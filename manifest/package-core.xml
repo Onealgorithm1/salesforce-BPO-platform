@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     ONE ALGORITHM — Core Platform Manifest
+     Target directory: force-app/
+     Run: sf project retrieve start --manifest manifest/package-core.xml
+
+     What belongs here: utilities and data structures that EVERY
+     client org deployment would receive. If a piece of metadata
+     only exists because One Algorithm is an ISV or has a website,
+     it does not belong here.
+
+     What does NOT belong here:
+       - Campaign schedulers / outreach logic → package-marketing.xml
+       - Site/Communities/ISV Apex classes   → package-pbo.xml
+       - Branding, site assets, LWC website components → package-pbo.xml
+       - LMA/ISV trigger                     → package-pbo.xml
+     ============================================================ -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+
+  <!-- APEX CLASSES — Core email utility only -->
+  <!-- OA_EmailSender is a generic email dispatcher; any module can depend on it. -->
+  <!-- OA_DripScheduler + OA_FollowUpScheduler → package-marketing.xml (campaign-specific) -->
+  <!-- Communities/Site classes, ISV test class → package-pbo.xml (not cross-client) -->
+  <types>
+    <members>OA_EmailSender</members>
+    <members>OA_EmailSender_Test</members>
+    <name>ApexClass</name>
+  </types>
+
+  <!-- CUSTOM FIELDS — Lead object (all 22 org-owned) -->
+  <!-- Lead.* retrieves all custom fields in one pass. Post-retrieval audit required: -->
+  <!--   Confirmed CORE:    Compatibility_Score__c, Geography_Tier__c (AI scoring)   -->
+  <!--   Pending reclassification: OA_* campaign tracking fields → marketing module   -->
+  <!--   after exact API names are confirmed from retrieved metadata.                  -->
+  <types>
+    <members>Lead.*</members>
+    <name>CustomField</name>
+  </types>
+
+  <!-- PERMISSION SETS — Core / integration access -->
+  <!-- OA_Campaign_Fields → package-marketing.xml (grants marketing field access only) -->
+  <types>
+    <members>OpenAI_Access</members>
+    <name>PermissionSet</name>
+  </types>
+
+  <!-- DUPLICATE RULES — Core data quality (applies to all client orgs) -->
+  <types>
+    <members>Lead.OA_Partner_Duplicate_Rule</members>
+    <members>Contact.Standard_Rule_for_Contacts_with_Duplicate_Leads</members>
+    <members>Lead.Standard_Rule_for_Leads_with_Duplicate_Contacts</members>
+    <name>DuplicateRule</name>
+  </types>
+
+  <!-- MATCHING RULES — Core data quality (applies to all client orgs) -->
+  <types>
+    <members>Lead.Standard_Lead_Match_Rule_v1_0</members>
+    <members>Lead.OA_Partner_Duplicate_Match</members>
+    <members>Contact.Standard_Contact_Match_Rule_v1_1</members>
+    <members>Account.Standard_Account_Match_Rule_v1_0</members>
+    <name>MatchingRule</name>
+  </types>
+
+  <version>67.0</version>
+</Package>

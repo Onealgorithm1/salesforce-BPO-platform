@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     ONE ALGORITHM — Marketing Automation Module Manifest
+     Target directory: modules/marketing-automation/
+     Run: sf project retrieve start --manifest manifest/package-marketing.xml \
+          --output-dir modules/marketing-automation
+
+     What belongs here: all metadata that drives the email outreach
+     campaign system — schedulers, sequences, reply detection, lead
+     processing flows, campaign field access, and email templates.
+     ============================================================ -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+
+  <!-- APEX CLASSES — Email campaign schedulers -->
+  <!-- Drip and follow-up schedulers are campaign-specific; they drive the outreach   -->
+  <!-- sequence cadence and have no utility outside the marketing module.              -->
+  <types>
+    <members>OA_DripScheduler</members>
+    <members>OA_DripScheduler_Test</members>
+    <members>OA_FollowUpScheduler</members>
+    <members>OA_FollowUpScheduler_Test</members>
+    <name>ApexClass</name>
+  </types>
+
+  <!-- FLOWS — Marketing outreach and reply detection -->
+  <types>
+    <members>lead_by_ramesh</members>
+    <members>OA_EDWOSB_Outreach_Sequence</members>
+    <members>OA_Reply_Detection</members>
+    <name>Flow</name>
+  </types>
+
+  <!-- PERMISSION SETS — Marketing field access -->
+  <types>
+    <members>OA_Campaign_Fields</members>
+    <name>PermissionSet</name>
+  </types>
+
+  <!-- EMAIL TEMPLATES — folder-scoped retrieval -->
+  <!-- Wildcard required: EmailTemplate must be retrieved with its parent EmailFolder. -->
+  <!-- Post-retrieval: audit for duplicates (Day 3, Day 5, Day 10 known to have two  -->
+  <!-- versions each). Remove stale versions before first commit.                      -->
+  <types>
+    <members>*</members>
+    <name>EmailFolder</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>EmailTemplate</name>
+  </types>
+
+  <version>67.0</version>
+</Package>

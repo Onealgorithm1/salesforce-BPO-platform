@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     ONE ALGORITHM — Full Org Baseline Manifest
+     Retrieves all org-owned (non-managed) metadata.
+     DO NOT use wildcard * — pulls managed package metadata.
+     Run: sf project retrieve start --manifest manifest/package-all.xml
+     ============================================================ -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+
+  <!-- APEX CLASSES — 27 org-owned only -->
+  <types>
+    <members>OA_DripScheduler</members>
+    <members>OA_DripScheduler_Test</members>
+    <members>OA_EmailSender</members>
+    <members>OA_EmailSender_Test</members>
+    <members>OA_FollowUpScheduler</members>
+    <members>OA_FollowUpScheduler_Test</members>
+    <members>TestLinkCOACustomerToLMALicense</members>
+    <members>ChangePasswordController</members>
+    <members>ChangePasswordControllerTest</members>
+    <members>CommunitiesLandingController</members>
+    <members>CommunitiesLandingControllerTest</members>
+    <members>CommunitiesLoginController</members>
+    <members>CommunitiesLoginControllerTest</members>
+    <members>CommunitiesSelfRegConfirmController</members>
+    <members>CommunitiesSelfRegConfirmControllerTest</members>
+    <members>CommunitiesSelfRegController</members>
+    <members>CommunitiesSelfRegControllerTest</members>
+    <members>ForgotPasswordController</members>
+    <members>ForgotPasswordControllerTest</members>
+    <members>MicrobatchSelfRegController</members>
+    <members>MicrobatchSelfRegControllerTest</members>
+    <members>MyProfilePageController</members>
+    <members>MyProfilePageControllerTest</members>
+    <members>SiteLoginController</members>
+    <members>SiteLoginControllerTest</members>
+    <members>SiteRegisterController</members>
+    <members>SiteRegisterControllerTest</members>
+    <name>ApexClass</name>
+  </types>
+
+  <!-- APEX TRIGGERS — 1 org-owned -->
+  <types>
+    <members>linkCOACustomerToLMALicense</members>
+    <name>ApexTrigger</name>
+  </types>
+
+  <!-- FLOWS — 3 org-owned unmanaged -->
+  <!-- MHolt__Org_Expiration_Notification removed: managed package flow, cannot be owned by this repo -->
+  <types>
+    <members>lead_by_ramesh</members>
+    <members>OA_EDWOSB_Outreach_Sequence</members>
+    <members>OA_Reply_Detection</members>
+    <name>Flow</name>
+  </types>
+
+  <!-- CUSTOM FIELDS — Lead (22 org-owned) -->
+  <types>
+    <members>Lead.*</members>
+    <name>CustomField</name>
+  </types>
+
+  <!-- PERMISSION SETS — 2 org-owned -->
+  <types>
+    <members>OpenAI_Access</members>
+    <members>OA_Campaign_Fields</members>
+    <name>PermissionSet</name>
+  </types>
+
+  <!-- DUPLICATE RULES -->
+  <types>
+    <members>Lead.OA_Partner_Duplicate_Rule</members>
+    <members>Contact.Standard_Rule_for_Contacts_with_Duplicate_Leads</members>
+    <members>Lead.Standard_Rule_for_Leads_with_Duplicate_Contacts</members>
+    <name>DuplicateRule</name>
+  </types>
+
+  <!-- MATCHING RULES -->
+  <types>
+    <members>Lead.Standard_Lead_Match_Rule_v1_0</members>
+    <members>Lead.OA_Partner_Duplicate_Match</members>
+    <members>Contact.Standard_Contact_Match_Rule_v1_1</members>
+    <members>Account.Standard_Account_Match_Rule_v1_0</members>
+    <name>MatchingRule</name>
+  </types>
+
+  <!-- STATIC RESOURCES — 6 org-owned -->
+  <types>
+    <members>construction</members>
+    <members>onealgo</members>
+    <members>OnealgorithLogo</members>
+    <members>leaflet</members>
+    <members>SiteSamples</members>
+    <members>SNA_kMhXn_sf_default_cdn_One_Algorithm1</members>
+    <name>StaticResource</name>
+  </types>
+
+  <!-- LWC — 7 org-owned bundles -->
+  <types>
+    <members>contactform</members>
+    <members>contactFormNew</members>
+    <members>worldMap</members>
+    <members>customheader</members>
+    <members>policy</members>
+    <members>serviceAccordion</members>
+    <members>oneAlgorithmLanding</members>
+    <name>LightningComponentBundle</name>
+  </types>
+
+  <!-- VISUALFORCE PAGES — 24 org-owned -->
+  <types>
+    <members>AnswersHome</members>
+    <members>BandwidthExceeded</members>
+    <members>ChangePassword</members>
+    <members>CommunitiesLanding</members>
+    <members>CommunitiesLogin</members>
+    <members>CommunitiesSelfReg</members>
+    <members>CommunitiesSelfRegConfirm</members>
+    <members>CommunitiesTemplate</members>
+    <members>Exception</members>
+    <members>FileNotFound</members>
+    <members>ForgotPassword</members>
+    <members>ForgotPasswordConfirm</members>
+    <members>IdeasHome</members>
+    <members>InMaintenance</members>
+    <members>MicrobatchSelfReg</members>
+    <members>my_Test</members>
+    <members>MyProfilePage</members>
+    <members>SiteLogin</members>
+    <members>SiteRegister</members>
+    <members>SiteRegisterConfirm</members>
+    <members>SiteTemplate</members>
+    <members>StdExceptionTemplate</members>
+    <members>Unauthorized</members>
+    <members>UnderConstruction</members>
+    <name>ApexPage</name>
+  </types>
+
+  <!-- VISUALFORCE COMPONENTS — 4 org-owned -->
+  <types>
+    <members>SiteFooter</members>
+    <members>SiteHeader</members>
+    <members>SiteLogin</members>
+    <members>SitePoweredBy</members>
+    <name>ApexComponent</name>
+  </types>
+
+  <!-- EMAIL TEMPLATES — folder-scoped -->
+  <types>
+    <members>*</members>
+    <name>EmailFolder</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>EmailTemplate</name>
+  </types>
+
+  <version>67.0</version>
+</Package>

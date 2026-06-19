@@ -1,0 +1,20 @@
+{
+  "orgName": "One Algorithm Dev",
+  "edition": "Enterprise",
+  "features": [
+    "EinsteinActivityCapture",
+    "Agentforce"
+  ],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    },
+    "emailIntegrationSettings": {
+      "enableContactAndEventSync": true,
+      "enableInboxProductivityFeatures": true
+    }
+  }
+}

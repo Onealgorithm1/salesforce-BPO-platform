@@ -1,0 +1,30 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true,
+      "package": "OA-Core-Platform",
+      "versionName": "Baseline",
+      "versionNumber": "1.0.0.NEXT",
+      "description": "One Algorithm core platform — shared foundation, utilities, integrations"
+    },
+    {
+      "path": "modules/marketing-automation",
+      "package": "OA-Marketing-Automation",
+      "versionName": "Baseline",
+      "versionNumber": "1.0.0.NEXT",
+      "description": "Email campaigns, EAC sync, lead scoring, outreach sequences",
+      "dependencies": [
+        { "package": "OA-Core-Platform", "versionNumber": "1.0.0.LATEST" }
+      ]
+    },
+    {
+      "path": "clients/pbo",
+      "default": false,
+      "description": "PBO Edition — One Algorithm internal operations org config"
+    }
+  ],
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "67.0"
+}
