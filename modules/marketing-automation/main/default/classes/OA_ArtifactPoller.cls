@@ -128,7 +128,7 @@ public class OA_ArtifactPoller implements Schedulable {
         HttpRequest req = new HttpRequest();
         req.setEndpoint('https://graph.microsoft.com/v1.0/users/' + graphUserOid
             + '/onlineMeetings/' + EncodingUtil.urlEncode(meetingId, 'UTF-8')
-            + '/recordings?$select=id,status&$top=1');
+            + '/recordings?$select=id,createdDateTime&$top=1');
         req.setMethod('GET');
         req.setHeader('Authorization', 'Bearer ' + token);
         req.setHeader('Accept', 'application/json');
@@ -145,14 +145,7 @@ public class OA_ArtifactPoller implements Schedulable {
         List<Object> recordings  = (List<Object>) body.get('value');
         if (recordings == null || recordings.isEmpty()) return null;
 
-        Map<String, Object> rec = (Map<String, Object>) recordings[0];
-        String status = (String) rec.get('status');
-        // Only accept recordings that have finished processing; 'recording' means still in progress.
-        if ('succeeded'.equalsIgnoreCase(status) || status == null) {
-            return (String) rec.get('id');
-        }
-        System.debug('[OA_ArtifactPoller] Recording status is \'' + status + '\' — not yet available.');
-        return null;
+        return (String)((Map<String, Object>) recordings[0]).get('id');
     }
 
     // ── Graph: get the ID of the first available transcript for a meeting ────────

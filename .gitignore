@@ -41,3 +41,6 @@ sfca_results.json
 # Node dependencies — never commit
 node_modules/
 package-lock.json
+
+# Local investigation artifacts
+scripts/
