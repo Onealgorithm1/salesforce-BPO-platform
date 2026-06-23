@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Default</label>
+    <protected>false</protected>
+    <values>
+        <field>Alert_Owner_Id__c</field>
+        <value xsi:type="xsd:string">005bn00000BP9zUAAT</value>
+    </values>
+    <values>
+        <field>Booking_Marker__c</field>
+        <value xsi:type="xsd:string">bookings page</value>
+    </values>
+    <values>
+        <field>Campaign_Id__c</field>
+        <value xsi:type="xsd:string">701Pn00001ZOyj8IAD</value>
+    </values>
+    <values>
+        <field>Graph_User_OID__c</field>
+        <value xsi:type="xsd:string">1ffa0307-bcdf-4ac5-ac1e-eb3084437c39</value>
+    </values>
+    <values>
+        <field>Is_Enabled__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>

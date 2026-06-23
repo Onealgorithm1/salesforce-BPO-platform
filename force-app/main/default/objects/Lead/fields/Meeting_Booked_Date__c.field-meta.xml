@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Meeting_Booked_Date__c</fullName>
+    <label>Meeting Booked Date</label>
+    <description>Date the prospect booked a meeting through Microsoft Bookings. Stamped automatically by OA_BookingPoller. Used by OA_FollowUpScheduler to suppress drip emails.</description>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Date</type>
+</CustomField>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Recording_Id__c</fullName>
+    <label>Recording ID</label>
+    <description>Microsoft Graph callRecording resource ID for the Teams meeting recording. Populated by OA_ArtifactPoller. The recordingContentUrl (short-lived download URL) is never stored; use this ID to construct a fresh GET request when download is needed.</description>
+    <length>255</length>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

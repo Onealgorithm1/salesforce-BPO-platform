@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Relationship_Status__c</fullName>
+    <label>Relationship Status</label>
+    <description>Current relationship stage with this prospect. Updated automatically by OA_BookingPoller when a meeting is booked. Used by OA_FollowUpScheduler to determine whether to send follow-up emails.</description>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Cold</fullName>
+                <default>true</default>
+                <label>Cold</label>
+            </value>
+            <value>
+                <fullName>Warm</fullName>
+                <default>false</default>
+                <label>Warm</label>
+            </value>
+            <value>
+                <fullName>Meeting Booked</fullName>
+                <default>false</default>
+                <label>Meeting Booked</label>
+            </value>
+            <value>
+                <fullName>Call Complete</fullName>
+                <default>false</default>
+                <label>Call Complete</label>
+            </value>
+            <value>
+                <fullName>Capability Statement Sent</fullName>
+                <default>false</default>
+                <label>Capability Statement Sent</label>
+            </value>
+            <value>
+                <fullName>Teaming Active</fullName>
+                <default>false</default>
+                <label>Teaming Active</label>
+            </value>
+            <value>
+                <fullName>Opportunity Identified</fullName>
+                <default>false</default>
+                <label>Opportunity Identified</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

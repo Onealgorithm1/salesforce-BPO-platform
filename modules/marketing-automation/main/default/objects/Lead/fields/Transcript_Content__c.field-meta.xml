@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Transcript_Content__c</fullName>
+    <label>Transcript Content</label>
+    <description>Raw VTT transcript from Microsoft Teams meeting (/transcripts/{id}/content?$format=text/vtt). Populated by OA_ArtifactPoller. Used as primary input to OA_AISummaryService. SENSITIVE: contains verbatim business conversation. Restrict via FLS to OA_Marketing_Automation permission set only. Enable field history tracking.</description>
+    <length>131072</length>
+    <required>false</required>
+    <trackFeedHistory>true</trackFeedHistory>
+    <type>LongTextArea</type>
+    <visibleLines>10</visibleLines>
+</CustomField>

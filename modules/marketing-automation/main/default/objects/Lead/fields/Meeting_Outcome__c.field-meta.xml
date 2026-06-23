@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Meeting_Outcome__c</fullName>
+    <label>Meeting Outcome</label>
+    <description>Human-confirmed classification of meeting result. OA_AISummaryService may pre-populate from recommended_outcome in AI_Summary__c, but this field requires Louis's confirmation before automation triggers fire. Drives follow-up task creation and OA_FollowUpScheduler suppression logic.</description>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Meeting Completed</fullName>
+                <default>false</default>
+                <label>Meeting Completed</label>
+            </value>
+            <value>
+                <fullName>Qualified Opportunity</fullName>
+                <default>false</default>
+                <label>Qualified Opportunity</label>
+            </value>
+            <value>
+                <fullName>Teaming Opportunity</fullName>
+                <default>false</default>
+                <label>Teaming Opportunity</label>
+            </value>
+            <value>
+                <fullName>Follow-Up Required</fullName>
+                <default>false</default>
+                <label>Follow-Up Required</label>
+            </value>
+            <value>
+                <fullName>Proposal Requested</fullName>
+                <default>false</default>
+                <label>Proposal Requested</label>
+            </value>
+            <value>
+                <fullName>No Action Required</fullName>
+                <default>false</default>
+                <label>No Action Required</label>
+            </value>
+            <value>
+                <fullName>Not Interested</fullName>
+                <default>false</default>
+                <label>Not Interested</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
