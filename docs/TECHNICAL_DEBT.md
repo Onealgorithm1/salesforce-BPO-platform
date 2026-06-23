@@ -1,6 +1,6 @@
 # Technical Debt Register — One Algorithm BPO Platform
 
-**Last updated:** June 19, 2026
+**Last updated:** June 23, 2026
 **Source:** Salesforce Platform Baseline Assessment
 
 ---
@@ -117,6 +117,23 @@
 **Owner:** Unassigned
 **Status:** Open
 
+### TD-015 — External Meeting Assistant Governance — Read AI
+**Severity:** Low
+**Impact:** Read AI is not referenced in any Salesforce metadata, Apex class, Named Credential, or the Integration Registry. It is not part of the BPO platform pipeline. However, it operates in the same Teams meeting context as the authoritative pipeline and warrants formal governance.
+
+Key facts established June 2026:
+1. Read AI is not referenced in Salesforce metadata or code — zero matches across the entire repository.
+2. Read AI joins Teams meetings independently as a bot participant, operating outside Salesforce control.
+3. Read AI stores meeting data (transcripts, summaries, video highlights) externally on readai.com servers. No data flows into Salesforce from Read AI.
+4. Read AI has usage and report limits tied to the account plan. Limit exhaustion could affect summary delivery to meeting participants without impacting the Salesforce pipeline.
+5. Read AI should be disabled or excluded as a meeting participant during BPO platform validation runs to prevent ambiguity about which transcript source is authoritative.
+6. Authoritative source of truth for the Salesforce pipeline is: Microsoft Graph native transcript (`/onlineMeetings/{id}/transcripts/{id}/content?$format=text/vtt`) → `Lead.Transcript_Content__c` → `OA_AISummaryService` → `Lead.AI_Summary__c`. Read AI has no role in this chain.
+7. Future decision required: disable Read AI for OA meetings, formally isolate it as an external participant-facing tool, or register it as INT-009 in the Integration Registry with a documented data retention and privacy scope.
+
+**Resolution:** Make one of three decisions before campaign go-live: (A) Disable Read AI for meetings involving BPO platform validation. (B) Formally isolate — document its scope as participant-facing only, add INT-009 to Integration Registry, confirm no data bridge to Salesforce exists or will be built. (C) Govern — if Read AI summaries will ever be imported into Salesforce, treat as a new integration requiring full INT-xxx registration, data classification, and credential management.
+**Owner:** Louis Rubino
+**Status:** Open — decision deferred
+
 ---
 
 ## Debt Summary
@@ -126,5 +143,5 @@
 | Critical | 2 | 1 | 1 |
 | High | 4 | 4 | 0 |
 | Medium | 5 | 5 | 0 |
-| Low | 3 | 2 | 0 (1 accepted) |
-| **Total** | **14** | **12** | **1** |
+| Low | 4 | 3 | 0 (1 accepted) |
+| **Total** | **15** | **13** | **1** |
