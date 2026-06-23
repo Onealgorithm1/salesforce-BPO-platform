@@ -37,3 +37,7 @@ sfca_results.json
 
 # Local environment variables
 .env
+
+# Node dependencies — never commit
+node_modules/
+package-lock.json
