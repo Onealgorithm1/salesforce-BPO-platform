@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Relationship_Status__c</fullName>
-    <label>Relationship Status</label>
     <description>Current relationship stage with this prospect. Updated automatically by OA_BookingPoller when a meeting is booked. Used by OA_FollowUpScheduler to determine whether to send follow-up emails.</description>
+    <label>Relationship Status</label>
     <required>false</required>
     <trackFeedHistory>false</trackFeedHistory>
     <type>Picklist</type>

@@ -3,8 +3,11 @@ public class OA_FollowUpScheduler implements Schedulable {
     private static final String CAMPAIGN_ID = '701Pn00001ZOyj8IAD';
     private static final String OWA_ID      = '0D2Pn00000013wjKAA';
 
+    @TestVisible private static String   testCampaignIdOverride;
+    @TestVisible private static DateTime nowOverride;
+
     private static final Set<String> STOP_STATUSES = new Set<String>{
-        'Replied', 'Meeting Booked', 'Interested', 'Not Interested', 'Unsubscribed'
+        'Replied', 'Meeting Booked', 'Interested', 'Not Interested', 'Unsubscribed', 'Call Completed'
     };
 
     public void execute(SchedulableContext sc) {
@@ -12,15 +15,17 @@ public class OA_FollowUpScheduler implements Schedulable {
     }
 
     public static void sendFollowUps() {
-        DateTime now = DateTime.now();
+        DateTime now = nowOverride != null ? nowOverride : DateTime.now();
         DateTime day3Cutoff  = now.addDays(-3);
         DateTime day5Cutoff  = now.addDays(-5);
         DateTime day10Cutoff = now.addDays(-10);
 
+        String activeCampaignId = testCampaignIdOverride != null ? testCampaignIdOverride : CAMPAIGN_ID;
+
         List<CampaignMember> members = [
             SELECT Id, LeadId, Status, CreatedDate, LastModifiedDate
             FROM CampaignMember
-            WHERE CampaignId = :CAMPAIGN_ID
+            WHERE CampaignId = :activeCampaignId
               AND LeadId != null
               AND Status NOT IN :STOP_STATUSES
               AND (

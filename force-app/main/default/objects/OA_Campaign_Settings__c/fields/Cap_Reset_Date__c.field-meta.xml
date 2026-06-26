@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cap_Reset_Date__c</fullName>
+    <description>Date the Sends_Today counter was last reset. OA_SendGovernor resets when this differs from today.</description>
+    <label>Cap Reset Date</label>
+    <type>Date</type>
+</CustomField>

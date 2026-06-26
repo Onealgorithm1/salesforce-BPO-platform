@@ -44,3 +44,7 @@ package-lock.json
 
 # Local investigation artifacts
 scripts/
+
+# External Credential metadata — contains live secrets (API keys in parameterValue)
+# Retrieve locally for inspection only; never commit
+**/externalCredentials/

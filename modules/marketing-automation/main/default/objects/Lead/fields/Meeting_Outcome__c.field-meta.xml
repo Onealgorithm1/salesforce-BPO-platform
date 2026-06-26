@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Meeting_Outcome__c</fullName>
+    <description>Human-confirmed classification of meeting result. OA_AISummaryService may pre-populate from recommended_outcome in AI_Summary__c, but this field requires Louis&apos;s confirmation before automation triggers fire. Drives follow-up task creation and OA_FollowUpScheduler suppression logic.</description>
     <label>Meeting Outcome</label>
-    <description>Human-confirmed classification of meeting result. OA_AISummaryService may pre-populate from recommended_outcome in AI_Summary__c, but this field requires Louis's confirmation before automation triggers fire. Drives follow-up task creation and OA_FollowUpScheduler suppression logic.</description>
     <required>false</required>
     <trackFeedHistory>false</trackFeedHistory>
     <type>Picklist</type>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Outreach_Segment__c</fullName>
+    <label>Outreach Segment</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Teaming Partner</fullName>
+                <default>false</default>
+                <label>Teaming Partner</label>
+            </value>
+            <value>
+                <fullName>EDWOSB Sub Prospect</fullName>
+                <default>false</default>
+                <label>EDWOSB Sub Prospect</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
