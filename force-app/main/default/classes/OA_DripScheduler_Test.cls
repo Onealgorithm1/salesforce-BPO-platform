@@ -10,8 +10,8 @@ private class OA_DripScheduler_Test {
         return c;
     }
 
-    private static Lead makePilotLead(String email) {
-        return makeLead(email, 'Pilot Batch 1', false);
+    private static Lead makeWaveLead(String email) {
+        return makeLead(email, 'Wave 1', false);
     }
 
     private static Lead makeLead(String email, String cohort, Boolean isTest) {
@@ -29,8 +29,19 @@ private class OA_DripScheduler_Test {
         return l;
     }
 
+    private static void setSendCap(Integer cap, Integer used) {
+        OA_Campaign_Settings__c cfg = OA_Campaign_Settings__c.getOrgDefaults();
+        if (cfg == null) {
+            cfg = new OA_Campaign_Settings__c(SetupOwnerId = UserInfo.getOrganizationId());
+        }
+        cfg.Daily_Send_Cap__c = cap;
+        cfg.Sends_Today__c = used;
+        cfg.Cap_Reset_Date__c = Date.today();
+        upsert cfg;
+    }
+
     @isTest
-    static void testNoPilotBatchLeads_zeroEnrolled() {
+    static void testNoWaveLeads_zeroEnrolled() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
@@ -39,24 +50,24 @@ private class OA_DripScheduler_Test {
         Test.stopTest();
 
         System.assertEquals(0, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            'No leads should be enrolled when no Pilot Batch 1 leads exist');
+            'No leads should be enrolled when no Wave 1 leads exist');
     }
 
     @isTest
-    static void testPilotBatchLeads_areEnrolled() {
+    static void testWaveLeads_areEnrolled() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
-        makePilotLead('pilot1@example.com');
-        makePilotLead('pilot2@example.com');
-        makePilotLead('pilot3@example.com');
+        makeWaveLead('wave1@example.com');
+        makeWaveLead('wave2@example.com');
+        makeWaveLead('wave3@example.com');
 
         Test.startTest();
         OA_DripScheduler.addLeadsToCampaign();
         Test.stopTest();
 
         System.assertEquals(3, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            '3 Pilot Batch 1 leads must be enrolled');
+            '3 Wave 1 leads must be enrolled');
     }
 
     @isTest
@@ -64,7 +75,7 @@ private class OA_DripScheduler_Test {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
-        makeLead('test@example.com', 'Pilot Batch 1', true); // Is_Test_Lead__c = true
+        makeLead('test@example.com', 'Wave 1', true); // Is_Test_Lead__c = true
 
         Test.startTest();
         OA_DripScheduler.addLeadsToCampaign();
@@ -102,23 +113,24 @@ private class OA_DripScheduler_Test {
         Test.stopTest();
 
         System.assertEquals(0, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            'Non-Pilot Batch 1 cohort values must not enroll');
+            'Non-Wave 1 cohort values must not enroll');
     }
 
     @isTest
-    static void testBatchLimit_capsAt10() {
+    static void testBatchLimit_capsAt50() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
+        setSendCap(200, 0);
 
         List<Lead> leads = new List<Lead>();
-        for (Integer i = 0; i < 15; i++) {
+        for (Integer i = 0; i < 60; i++) {
             leads.add(new Lead(
-                FirstName          = 'Pilot',
+                FirstName          = 'Wave',
                 LastName           = 'Lead' + i,
                 Company            = 'Test Co',
-                Email              = 'pilot' + i + '@example.com',
+                Email              = 'wave' + i + '@example.com',
                 LeadSource         = 'SAM.gov',
-                Outreach_Cohort__c = 'Pilot Batch 1',
+                Outreach_Cohort__c = 'Wave 1',
                 Is_Test_Lead__c    = false,
                 HasOptedOutOfEmail = false
             ));
@@ -129,8 +141,37 @@ private class OA_DripScheduler_Test {
         OA_DripScheduler.addLeadsToCampaign();
         Test.stopTest();
 
-        System.assertEquals(10, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            'BATCH_SIZE = 10 must cap enrollment even when 15 eligible leads exist');
+        System.assertEquals(50, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            'MAX_SYNC_BATCH = 50 must cap enrollment even when 60 eligible leads exist');
+    }
+
+    @isTest
+    static void testBatchLimit_respectsRemainingDailyCap() {
+        Campaign c = makeTestCampaign();
+        OA_DripScheduler.testCampaignIdOverride = c.Id;
+        setSendCap(50, 45);
+
+        List<Lead> leads = new List<Lead>();
+        for (Integer i = 0; i < 20; i++) {
+            leads.add(new Lead(
+                FirstName          = 'Cap',
+                LastName           = 'Lead' + i,
+                Company            = 'Test Co',
+                Email              = 'cap' + i + '@example.com',
+                LeadSource         = 'SAM.gov',
+                Outreach_Cohort__c = 'Wave 1',
+                Is_Test_Lead__c    = false,
+                HasOptedOutOfEmail = false
+            ));
+        }
+        insert leads;
+
+        Test.startTest();
+        OA_DripScheduler.addLeadsToCampaign();
+        Test.stopTest();
+
+        System.assertEquals(5, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            'Enrollment must not exceed remaining daily send capacity');
     }
 
     @isTest
@@ -138,7 +179,7 @@ private class OA_DripScheduler_Test {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
-        Lead l = makePilotLead('already@example.com');
+        Lead l = makeWaveLead('already@example.com');
         insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id);
 
         Test.startTest();
@@ -155,7 +196,7 @@ private class OA_DripScheduler_Test {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
-        Lead l = makePilotLead('optout@example.com');
+        Lead l = makeWaveLead('optout@example.com');
         update new Lead(Id = l.Id, HasOptedOutOfEmail = true);
 
         Test.startTest();

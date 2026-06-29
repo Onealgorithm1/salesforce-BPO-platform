@@ -50,6 +50,7 @@ private class OA_FollowUpScheduler_Test {
 
         OA_FollowUpScheduler.testCampaignIdOverride = c.Id;
         OA_FollowUpScheduler.nowOverride            = DateTime.now().addDays(30);
+        OA_EmailSender.bypassActualSendForTest      = true;
 
         Test.startTest();
         OA_FollowUpScheduler.sendFollowUps();
@@ -79,7 +80,7 @@ private class OA_FollowUpScheduler_Test {
 
         CampaignMember notChanged = [SELECT Status FROM CampaignMember WHERE Id = :cm.Id];
         System.assertEquals('Call Completed', notChanged.Status,
-            'Call Completed must be in STOP_STATUSES — status must not change');
+            'Call Completed must be in STOP_STATUSES; status must not change');
     }
 
     @isTest
@@ -116,7 +117,7 @@ private class OA_FollowUpScheduler_Test {
         OA_FollowUpScheduler.sendFollowUps();
         Test.stopTest();
 
-        // All CMs should remain unchanged — none matched Day-N patterns
+        // All CMs should remain unchanged; none matched Day-N patterns.
         Integer unchanged = [SELECT COUNT() FROM CampaignMember
                              WHERE CampaignId = :c.Id
                              AND Status IN ('Replied','Meeting Booked','Interested','Not Interested','Unsubscribed','Call Completed')];

@@ -1,40 +1,161 @@
 @isTest(SeeAllData=true)
 private class OA_EmailSender_Test {
 
-    @isTest
-    static void testSendEmailToLead() {
-        Lead testLead = new Lead(
-            FirstName = 'Test',
-            LastName = 'Lead',
-            Company = 'Test Company',
-            Email = 'testlead@example.com',
-            Status = 'Open - Not Contacted'
-        );
-        insert testLead;
+    private static void setSendCap(Integer cap, Integer used) {
+        OA_Campaign_Settings__c cfg = OA_Campaign_Settings__c.getOrgDefaults();
+        if (cfg == null) {
+            cfg = new OA_Campaign_Settings__c(SetupOwnerId = UserInfo.getOrganizationId());
+        }
+        cfg.Daily_Send_Cap__c = cap;
+        cfg.Sends_Today__c = used;
+        cfg.Cap_Reset_Date__c = Date.today();
+        upsert cfg;
+    }
 
+    private static List<Lead> makeLeads(Integer count) {
+        List<Lead> leads = new List<Lead>();
+        for (Integer i = 0; i < count; i++) {
+            leads.add(new Lead(
+                FirstName = 'Bulk',
+                LastName = 'Lead' + i,
+                Company = 'Test Company',
+                Email = 'bulk-email-sender-' + i + '@example.com',
+                Status = 'Open - Not Contacted'
+            ));
+        }
+        insert leads;
+        return leads;
+    }
+
+    private static List<OA_EmailSender.EmailRequest> makeRequests(
+        List<Lead> leads,
+        String templateName,
+        String owaId
+    ) {
+        List<OA_EmailSender.EmailRequest> requests = new List<OA_EmailSender.EmailRequest>();
+        for (Lead lead : leads) {
+            OA_EmailSender.EmailRequest req = new OA_EmailSender.EmailRequest();
+            req.leadId = lead.Id;
+            req.templateApiName = templateName;
+            req.orgWideEmailAddressId = owaId;
+            requests.add(req);
+        }
+        return requests;
+    }
+
+    private static Id getOrgWideEmailAddressId() {
         List<OrgWideEmailAddress> owas = [
-            SELECT Id FROM OrgWideEmailAddress
+            SELECT Id
+            FROM OrgWideEmailAddress
             WHERE Address = 'lrubino@onealgorithm.com'
             LIMIT 1
         ];
+        return owas.isEmpty() ? null : owas[0].Id;
+    }
 
-        List<EmailTemplate> templates = [
-            SELECT Id FROM EmailTemplate
-            WHERE DeveloperName = 'EDWOSB_Sub_Prospect_Email_1'
-            LIMIT 1
-        ];
+    private static Boolean templateExists(String developerName) {
+        return [
+            SELECT COUNT()
+            FROM EmailTemplate
+            WHERE DeveloperName = :developerName
+        ] > 0;
+    }
 
-        if (owas.isEmpty() || templates.isEmpty()) return;
+    @isTest
+    static void testBulkSendFiftyRequestsDoesNotHitCpuLimit() {
+        String templateName = 'EDWOSB_Sub_Prospect_Email_1';
+        Id owaId = getOrgWideEmailAddressId();
+        if (owaId == null || !templateExists(templateName)) return;
 
-        OA_EmailSender.EmailRequest req = new OA_EmailSender.EmailRequest();
-        req.leadId = testLead.Id;
-        req.templateApiName = 'EDWOSB_Sub_Prospect_Email_1';
-        req.orgWideEmailAddressId = owas[0].Id;
+        setSendCap(200, 0);
+        List<Lead> leads = makeLeads(50);
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, templateName, String.valueOf(owaId));
 
         Test.startTest();
-        OA_EmailSender.sendEmailToLead(
-            new List<OA_EmailSender.EmailRequest>{ req }
-        );
+        Integer cpuBefore = Limits.getCpuTime();
+        Map<String, Boolean> results = OA_EmailSender.sendEmailToLeadWithResults(requests);
+        Integer cpuUsed = Limits.getCpuTime() - cpuBefore;
         Test.stopTest();
+
+        System.assertEquals(50, results.size(), 'Every request should have a send result');
+        System.assert(cpuUsed < Limits.getLimitCpuTime(), 'Bulk send must complete below Apex CPU limit');
+    }
+
+    @isTest
+    static void testInvocableRejectsOversizedBatchBeforeReserve() {
+        setSendCap(200, 0);
+        List<Lead> leads = makeLeads(51);
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, 'EDWOSB_Sub_Prospect_Email_1', '0D2Pn00000013wjKAA');
+
+        Boolean threw = false;
+        try {
+            OA_EmailSender.sendEmailToLead(requests);
+        } catch (OA_EmailSender.EmailSendException e) {
+            threw = true;
+        }
+
+        System.assert(threw, 'Invocable path must fail fast above safe synchronous batch size');
+        System.assertEquals(0, (Integer) OA_Campaign_Settings__c.getOrgDefaults().Sends_Today__c,
+            'Oversized invocable batches must not reserve daily send capacity');
+    }
+
+    @isTest
+    static void testInvocableSucceedsWhenEveryRequestSends() {
+        OA_EmailSender.bypassActualSendForTest = true;
+        setSendCap(200, 0);
+        List<Lead> leads = makeLeads(1);
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, 'EDWOSB_Sub_Prospect_Email_1', '0D2Pn00000013wjKAA');
+
+        Test.startTest();
+        OA_EmailSender.sendEmailToLead(requests);
+        Test.stopTest();
+
+        System.assertEquals(1, (Integer) OA_Campaign_Settings__c.getOrgDefaults().Sends_Today__c,
+            'Successful invocable send should reserve one daily send slot');
+    }
+
+    @isTest
+    static void testInvocableFailsClosedWhenTemplateIsMissing() {
+        setSendCap(200, 0);
+        List<Lead> leads = makeLeads(1);
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, 'Missing_Template_For_Test', '0D2Pn00000013wjKAA');
+
+        Boolean threw = false;
+        try {
+            OA_EmailSender.sendEmailToLead(requests);
+        } catch (OA_EmailSender.EmailSendException e) {
+            threw = true;
+        }
+
+        System.assert(threw, 'Invocable path must fail closed when any requested email is not sent');
+    }
+
+    @isTest
+    static void testResultMapMarksSkippedRequestsWhenCapIsPartial() {
+        OA_EmailSender.bypassActualSendForTest = true;
+        setSendCap(3, 0);
+
+        List<Lead> leads = makeLeads(5);
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, 'EDWOSB_Sub_Prospect_Email_1', '0D2Pn00000013wjKAA');
+
+        Test.startTest();
+        Map<String, Boolean> results = OA_EmailSender.sendEmailToLeadWithResults(requests);
+        Test.stopTest();
+
+        Integer sent = 0;
+        Integer skipped = 0;
+        for (Boolean result : results.values()) {
+            if (result == true) sent++;
+            else skipped++;
+        }
+
+        System.assertEquals(5, results.size(), 'All requests must receive a result');
+        System.assertEquals(3, sent, 'Only remaining send capacity should be marked sent');
+        System.assertEquals(2, skipped, 'Requests beyond remaining capacity must stay false');
     }
 }

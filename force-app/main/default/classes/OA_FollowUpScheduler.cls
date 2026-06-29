@@ -1,7 +1,8 @@
 public class OA_FollowUpScheduler implements Schedulable {
 
-    private static final String CAMPAIGN_ID = '701Pn00001ZOyj8IAD';
-    private static final String OWA_ID      = '0D2Pn00000013wjKAA';
+    private static final String CAMPAIGN_ID    = '701Pn00001ZOyj8IAD';
+    private static final String OWA_ID         = '0D2Pn00000013wjKAA';
+    private static final Integer MAX_SYNC_BATCH = 50;
 
     @TestVisible private static String   testCampaignIdOverride;
     @TestVisible private static DateTime nowOverride;
@@ -11,6 +12,10 @@ public class OA_FollowUpScheduler implements Schedulable {
     };
 
     public void execute(SchedulableContext sc) {
+        if (!OA_SendGovernor.isBusinessDay()) {
+            System.debug('[OA_FollowUpScheduler] Skipping - not a business day.');
+            return;
+        }
         sendFollowUps();
     }
 
@@ -21,6 +26,9 @@ public class OA_FollowUpScheduler implements Schedulable {
         DateTime day10Cutoff = now.addDays(-10);
 
         String activeCampaignId = testCampaignIdOverride != null ? testCampaignIdOverride : CAMPAIGN_ID;
+
+        Integer queryLimit = Math.min(MAX_SYNC_BATCH, OA_SendGovernor.remainingToday());
+        if (queryLimit <= 0) return;
 
         List<CampaignMember> members = [
             SELECT Id, LeadId, Status, CreatedDate, LastModifiedDate
@@ -33,43 +41,47 @@ public class OA_FollowUpScheduler implements Schedulable {
                   (Status = 'Day 3 Sent'  AND LastModifiedDate <= :day5Cutoff)  OR
                   (Status = 'Day 5 Sent'  AND LastModifiedDate <= :day10Cutoff)
               )
+            LIMIT :queryLimit
         ];
 
         if (members.isEmpty()) return;
 
         List<OA_EmailSender.EmailRequest> emailRequests = new List<OA_EmailSender.EmailRequest>();
-        List<CampaignMember> toUpdate = new List<CampaignMember>();
+        Map<String, CampaignMember>       cmByLeadId    = new Map<String, CampaignMember>();
+        Map<String, String>               newStatusMap  = new Map<String, String>();
 
         for (CampaignMember cm : members) {
             String templateName;
             String newStatus;
 
-            if (cm.Status == 'Day 1 Sent') {
-                templateName = 'Follow_Up_Day3';
-                newStatus    = 'Day 3 Sent';
-            } else if (cm.Status == 'Day 3 Sent') {
-                templateName = 'Follow_Up_Day5';
-                newStatus    = 'Day 5 Sent';
-            } else if (cm.Status == 'Day 5 Sent') {
-                templateName = 'Follow_Up_Day10';
-                newStatus    = 'Day 10 Sent';
-            } else {
-                continue;
-            }
+            if      (cm.Status == 'Day 1 Sent') { templateName = 'Follow_Up_Day3';  newStatus = 'Day 3 Sent'; }
+            else if (cm.Status == 'Day 3 Sent') { templateName = 'Follow_Up_Day5';  newStatus = 'Day 5 Sent'; }
+            else if (cm.Status == 'Day 5 Sent') { templateName = 'Follow_Up_Day10'; newStatus = 'Day 10 Sent'; }
+            else { continue; }
 
             OA_EmailSender.EmailRequest req = new OA_EmailSender.EmailRequest();
-            req.leadId               = cm.LeadId;
-            req.templateApiName      = templateName;
+            req.leadId                = cm.LeadId;
+            req.templateApiName       = templateName;
             req.orgWideEmailAddressId = OWA_ID;
             emailRequests.add(req);
 
-            cm.Status = newStatus;
-            toUpdate.add(cm);
+            cmByLeadId.put(cm.LeadId, cm);
+            newStatusMap.put(cm.LeadId, newStatus);
         }
 
-        if (!emailRequests.isEmpty()) {
-            OA_EmailSender.sendEmailToLead(emailRequests);
-            update toUpdate;
+        if (emailRequests.isEmpty()) return;
+
+        Map<String, Boolean> sendResults = OA_EmailSender.sendEmailToLeadWithResults(emailRequests);
+
+        // Only advance status for leads whose send succeeded
+        List<CampaignMember> toUpdate = new List<CampaignMember>();
+        for (String leadId : sendResults.keySet()) {
+            if (sendResults.get(leadId) == true && cmByLeadId.containsKey(leadId)) {
+                CampaignMember cm = cmByLeadId.get(leadId);
+                cm.Status = newStatusMap.get(leadId);
+                toUpdate.add(cm);
+            }
         }
+        if (!toUpdate.isEmpty()) update toUpdate;
     }
 }

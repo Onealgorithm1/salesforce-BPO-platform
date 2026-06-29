@@ -28,6 +28,15 @@ public class OA_SendGovernor {
         return toSend;
     }
 
+    public static Integer remainingToday() {
+        OA_Campaign_Settings__c cfg = getOrCreate();
+        maybeReset(cfg);
+
+        Integer cap  = cfg.Daily_Send_Cap__c != null ? (Integer) cfg.Daily_Send_Cap__c : DEFAULT_CAP;
+        Integer used = cfg.Sends_Today__c    != null ? (Integer) cfg.Sends_Today__c    : 0;
+        return Math.max(0, cap - used);
+    }
+
     public static void resetDailyCounter() {
         OA_Campaign_Settings__c cfg = getOrCreate();
         cfg.Sends_Today__c    = 0;
@@ -76,7 +85,7 @@ public class OA_SendGovernor {
     }
 
     private static OA_Campaign_Settings__c getOrCreate() {
-        // getOrgDefaults() returns the record with its Id — required for upsert to UPDATE not INSERT
+        // getOrgDefaults() returns the record with its Id, required for upsert to UPDATE not INSERT.
         OA_Campaign_Settings__c s = OA_Campaign_Settings__c.getOrgDefaults();
         if (s == null) {
             s = new OA_Campaign_Settings__c(

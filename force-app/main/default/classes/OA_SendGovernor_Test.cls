@@ -34,6 +34,14 @@ private class OA_SendGovernor_Test {
     }
 
     @IsTest
+    static void testRemainingTodayReflectsCounter() {
+        OA_Campaign_Settings__c cfg = getCfg();
+        cfg.Sends_Today__c = 4;
+        update cfg;
+        System.assertEquals(6, OA_SendGovernor.remainingToday(), 'Remaining capacity should be cap minus used');
+    }
+
+    @IsTest
     static void testCheckAndReserveCapExceeded() {
         OA_Campaign_Settings__c cfg = getCfg();
         cfg.Sends_Today__c = 10;
