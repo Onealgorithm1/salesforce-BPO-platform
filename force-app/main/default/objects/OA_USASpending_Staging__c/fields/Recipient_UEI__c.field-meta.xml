@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Recipient_UEI__c</fullName>
+    <description>Unique Entity Identifier returned by USASpending. Currently null for most legacy awards. Reserved for future cross-reference with SAM.gov data.</description>
+    <externalId>false</externalId>
+    <label>Recipient UEI</label>
+    <length>12</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

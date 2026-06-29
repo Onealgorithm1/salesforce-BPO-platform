@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Awarding_Agency__c</fullName>
+    <description>Top-level federal agency that awarded the contract (e.g., Department of Defense).</description>
+    <externalId>false</externalId>
+    <label>Awarding Agency</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>
