@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Last_Audit__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Most recent audit event created from this token.</description>
+    <label>Last Audit</label>
+    <referenceTo>OA_Communication_Preference_Audit__c</referenceTo>
+    <relationshipLabel>Tokens Last Referencing Audit</relationshipLabel>
+    <relationshipName>Tokens_Last_Audit</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>
