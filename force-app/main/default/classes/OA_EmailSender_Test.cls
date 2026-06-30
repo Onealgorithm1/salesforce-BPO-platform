@@ -158,4 +158,75 @@ private class OA_EmailSender_Test {
         System.assertEquals(3, sent, 'Only remaining send capacity should be marked sent');
         System.assertEquals(2, skipped, 'Requests beyond remaining capacity must stay false');
     }
+
+    @isTest
+    static void testTransientUnsubscribeInjectionMintsTokenAndReplacesPlaceholder() {
+        Id owaId = getOrgWideEmailAddressId();
+        if (owaId == null) return;
+        setSendCap(200, 0);
+
+        Lead ld = new Lead(FirstName = 'Inj', LastName = 'Tester', Company = 'Inj Co',
+            Email = 'inj.tester@example.com', Status = 'Open - Not Contacted');
+        insert ld;
+        Campaign c = new Campaign(Name = 'Inj Campaign', IsActive = true);
+        insert c;
+        CampaignMember cm = new CampaignMember(CampaignId = c.Id, LeadId = ld.Id, Status = 'Sent');
+        insert cm;
+
+        OA_EmailSender.EmailRequest req = new OA_EmailSender.EmailRequest();
+        req.leadId = ld.Id;
+        req.templateApiName = 'SeamIgnored';
+        req.orgWideEmailAddressId = String.valueOf(owaId);
+        req.campaignId = c.Id;
+        req.campaignMemberId = cm.Id;
+
+        OA_EmailSender.testSubjectOverride = 'Subject';
+        OA_EmailSender.testHtmlOverride = '<p>hi</p><a href="%%OA_UNSUBSCRIBE_URL%%">unsubscribe</a>';
+        OA_EmailSender.testTextOverride = 'unsubscribe: %%OA_UNSUBSCRIBE_URL%%';
+
+        Test.startTest();
+        Map<String, Boolean> res =
+            OA_EmailSender.sendEmailToLeadWithResults(new List<OA_EmailSender.EmailRequest>{ req });
+        Test.stopTest();
+
+        System.assertEquals(true, res.get(ld.Id), 'Send should succeed');
+        System.assertEquals(1, [
+            SELECT COUNT() FROM OA_Communication_Preference_Token__c WHERE Lead__c = :ld.Id
+        ], 'Exactly one campaign-scoped token should be minted');
+        String html = OA_EmailSender.lastBuiltEmails[0].getHtmlBody();
+        System.assert(html.contains('/oa/unsubscribe?t='), 'HTML must contain tokenized HTTPS link: ' + html);
+        System.assert(!html.contains('%%OA_UNSUBSCRIBE_URL%%'), 'Placeholder must be replaced in HTML');
+        System.assert(!html.contains('mailto:lrubino'), 'Should not fall back to mailto when context present');
+        String text = OA_EmailSender.lastBuiltEmails[0].getPlainTextBody();
+        System.assert(text.contains('/oa/unsubscribe?t='), 'Plain text must contain tokenized link');
+    }
+
+    @isTest
+    static void testLegacyFallbackWhenCampaignContextMissing() {
+        Id owaId = getOrgWideEmailAddressId();
+        if (owaId == null) return;
+        setSendCap(200, 0);
+
+        Lead ld = new Lead(FirstName = 'Fb', LastName = 'Tester', Company = 'Fb Co',
+            Email = 'fb.tester@example.com', Status = 'Open - Not Contacted');
+        insert ld;
+
+        OA_EmailSender.EmailRequest req = new OA_EmailSender.EmailRequest();
+        req.leadId = ld.Id;
+        req.templateApiName = 'SeamIgnored';
+        req.orgWideEmailAddressId = String.valueOf(owaId);
+        // campaignId / campaignMemberId intentionally omitted
+
+        OA_EmailSender.testHtmlOverride = '<a href="%%OA_UNSUBSCRIBE_URL%%">unsubscribe</a>';
+
+        Test.startTest();
+        OA_EmailSender.sendEmailToLeadWithResults(new List<OA_EmailSender.EmailRequest>{ req });
+        Test.stopTest();
+
+        String html = OA_EmailSender.lastBuiltEmails[0].getHtmlBody();
+        System.assert(html.contains('mailto:lrubino'), 'Missing campaign context must fall back to mailto: ' + html);
+        System.assertEquals(0, [
+            SELECT COUNT() FROM OA_Communication_Preference_Token__c WHERE Lead__c = :ld.Id
+        ], 'No token should be minted without campaign context');
+    }
 }

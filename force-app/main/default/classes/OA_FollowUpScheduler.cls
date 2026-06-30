@@ -63,6 +63,8 @@ public class OA_FollowUpScheduler implements Schedulable {
             req.leadId                = cm.LeadId;
             req.templateApiName       = templateName;
             req.orgWideEmailAddressId = OWA_ID;
+            req.campaignId            = activeCampaignId;
+            req.campaignMemberId      = cm.Id;
             emailRequests.add(req);
 
             cmByLeadId.put(cm.LeadId, cm);

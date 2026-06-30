@@ -29,6 +29,18 @@
                 <stringValue>0D2Pn00000013wjKAA</stringValue>
             </value>
         </inputParameters>
+        <inputParameters>
+            <name>campaignId</name>
+            <value>
+                <elementReference>$Record.CampaignId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>campaignMemberId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
         <nameSegment>OA_EmailSender</nameSegment>
     </actionCalls>
     <actionCalls>
@@ -58,6 +70,18 @@
             <name>orgWideEmailAddressId</name>
             <value>
                 <stringValue>0D2Pn00000013wjKAA</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>campaignId</name>
+            <value>
+                <elementReference>$Record.CampaignId</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>campaignMemberId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
             </value>
         </inputParameters>
         <nameSegment>OA_EmailSender</nameSegment>
