@@ -124,4 +124,33 @@ private class OA_UnsubscribeTokenServiceTest {
         System.assertEquals(false, revokedResult.isValid);
         System.assertEquals('Revoked Token', revokedResult.eventType);
     }
+
+    @IsTest
+    static void testValidateTokenByHashMatchesRawTokenPath() {
+        TestContext ctx = makeContext();
+
+        OA_UnsubscribeTokenService.TokenCreationResult created =
+            OA_UnsubscribeTokenService.createCampaignUnsubscribeToken(
+                ctx.lead.Id,
+                ctx.campaign.Id,
+                ctx.campaignMember.Id,
+                ctx.lead.Email,
+                System.now().addDays(30)
+            );
+
+        OA_UnsubscribeTokenService.TokenValidationResult byHash =
+            OA_UnsubscribeTokenService.validateTokenByHash(created.tokenHash);
+        System.assertEquals(true, byHash.isValid, 'Hash of a fresh token should validate.');
+        System.assertEquals('Unsubscribe Requested', byHash.eventType);
+        System.assertEquals(created.tokenId, byHash.token.Id);
+
+        OA_UnsubscribeTokenService.TokenValidationResult blank =
+            OA_UnsubscribeTokenService.validateTokenByHash(null);
+        System.assertEquals(false, blank.isValid, 'Blank hash should not validate.');
+
+        OA_UnsubscribeTokenService.TokenValidationResult unknown =
+            OA_UnsubscribeTokenService.validateTokenByHash('no-such-hash');
+        System.assertEquals(false, unknown.isValid, 'Unknown hash should not validate.');
+        System.assertEquals(null, unknown.token);
+    }
 }

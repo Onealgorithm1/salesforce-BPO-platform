@@ -1,4 +1,4 @@
-public with sharing class OA_UnsubscribeTokenService {
+public inherited sharing class OA_UnsubscribeTokenService {
     public static final String ACTION_CAMPAIGN_UNSUBSCRIBE = 'Campaign Unsubscribe';
     public static final String STATUS_ACTIVE = 'Active';
     public static final String STATUS_USED = 'Used';
@@ -66,13 +66,21 @@ public with sharing class OA_UnsubscribeTokenService {
     }
 
     public static TokenValidationResult validateToken(String rawToken) {
-        TokenValidationResult result = new TokenValidationResult();
         if (String.isBlank(rawToken)) {
-            result.message = 'Token is blank.';
+            TokenValidationResult blank = new TokenValidationResult();
+            blank.message = 'Token is blank.';
+            return blank;
+        }
+        return validateTokenByHash(hashToken(rawToken));
+    }
+
+    public static TokenValidationResult validateTokenByHash(String tokenHash) {
+        TokenValidationResult result = new TokenValidationResult();
+        if (String.isBlank(tokenHash)) {
+            result.message = 'Token hash is blank.';
             return result;
         }
 
-        String tokenHash = hashToken(rawToken);
         List<OA_Communication_Preference_Token__c> tokens = [
             SELECT Id, Token_Hash__c, Lead__c, Campaign__c, CampaignMember__c,
                    Email__c, Normalized_Email__c, Action__c, Status__c,

@@ -213,4 +213,25 @@ private class OA_CommPreferenceServiceTest {
         System.assertEquals(null, audit.Token__c);
         System.assert(audit.Message__c.contains('No matching token'), 'Audit should explain invalid token.');
     }
+
+    @IsTest
+    static void testUnsubscribeByHashValidAndInvalid() {
+        TestContext ctx = makeContext(System.now().addDays(30));
+        String tokenHash = OA_UnsubscribeTokenService.hashToken(ctx.rawToken);
+
+        OA_CommPreferenceService.UnsubscribeResult valid =
+            OA_CommPreferenceService.unsubscribeByHash(tokenHash, '{"source":"hash-test"}');
+        System.assertEquals(true, valid.success, 'Valid hash should process successfully.');
+        System.assertEquals(true, [
+            SELECT HasOptedOutOfEmail FROM Lead WHERE Id = :ctx.lead.Id
+        ].HasOptedOutOfEmail);
+        System.assertEquals('Unsubscribed', [
+            SELECT Status FROM CampaignMember WHERE Id = :ctx.campaignMember.Id
+        ].Status);
+
+        OA_CommPreferenceService.UnsubscribeResult invalid =
+            OA_CommPreferenceService.unsubscribeByHash('no-such-hash', '{"source":"hash-test"}');
+        System.assertEquals(false, invalid.success, 'Unknown hash should be rejected.');
+        System.assertEquals(null, invalid.tokenId);
+    }
 }

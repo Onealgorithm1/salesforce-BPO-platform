@@ -1,4 +1,4 @@
-public with sharing class OA_CommPreferenceService {
+public inherited sharing class OA_CommPreferenceService {
     public static final String CHANNEL_EMAIL = 'Email';
     public static final String SCOPE_CAMPAIGN = 'Campaign';
     public static final String STATUS_UNSUBSCRIBED = 'Unsubscribed';
@@ -20,9 +20,23 @@ public with sharing class OA_CommPreferenceService {
     }
 
     public static UnsubscribeResult unsubscribeByToken(String rawToken, String requestMetadata) {
-        OA_UnsubscribeTokenService.TokenValidationResult validation =
-            OA_UnsubscribeTokenService.validateToken(rawToken);
+        return processValidation(
+            OA_UnsubscribeTokenService.validateToken(rawToken),
+            requestMetadata
+        );
+    }
 
+    public static UnsubscribeResult unsubscribeByHash(String tokenHash, String requestMetadata) {
+        return processValidation(
+            OA_UnsubscribeTokenService.validateTokenByHash(tokenHash),
+            requestMetadata
+        );
+    }
+
+    private static UnsubscribeResult processValidation(
+        OA_UnsubscribeTokenService.TokenValidationResult validation,
+        String requestMetadata
+    ) {
         if (!validation.isValid) {
             return recordRejectedAttempt(validation, requestMetadata);
         }
