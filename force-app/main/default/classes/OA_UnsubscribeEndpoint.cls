@@ -116,7 +116,7 @@ global without sharing class OA_UnsubscribeEndpoint {
             + (extraHtml == null ? '' : extraHtml)
             + trust
             + '<div class="oa-foot">'
-            + '<p class="oa-q">Questions? <a class="oa-link" href="mailto:support@onealgorithm.com">support@onealgorithm.com</a></p>'
+            + '<p class="oa-q">Questions? <a class="oa-link" href="mailto:service@onealgorithm.com">service@onealgorithm.com</a></p>'
             + '<p class="oa-legal">One Algorithm LLC &#8226; Certified EDWOSB &#8226; CAGE 14G18</p>'
             + '<p class="oa-flinks"><a class="oa-link" href="https://www.onealgorithm.com">onealgorithm.com</a></p>'
             + '</div></div></main></div></body></html>';
