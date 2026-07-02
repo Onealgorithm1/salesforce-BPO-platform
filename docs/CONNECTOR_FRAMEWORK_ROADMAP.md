@@ -124,16 +124,19 @@ preserving, per §5 of `docs/CONNECTOR_FRAMEWORK.md`.
 
 ## Commit & branch (Sprint 1A)
 
-**Open decision — held for approval.** An active Codex session is completing the unsubscribe
-work in this same working copy, and two divergent copies of the repo exist under OneDrive.
-The Sprint 1A commit target is therefore not assumed:
+Sprint 1A alignment docs are committed to the dedicated branch `feature/connector-framework`
+(off canonical `HEAD`), isolated from other workstreams. Two divergent copies of the repo exist
+under OneDrive; work only in the canonical copy.
 
-- **Recommended:** a dedicated branch `feature/connector-framework` off current `HEAD` in the
-  canonical copy, to isolate alignment docs from the in-flight unsubscribe work.
-- **Alternatives:** commit onto the current branch, or defer the commit until the unsubscribe
-  work merges.
+**Cross-session coordination**
 
-No commit will be made until this is confirmed.
+- **Unsubscribe workstream status: COMPLETE — Production Done, Cleanup Pending.** The remaining
+  cleanup is **non-blocking** for Evergreen work.
+- **Do not touch unsubscribe records or files from the Evergreen workstream.** Unsubscribe
+  cleanup is owned by that workstream, not this one.
+- **Evergreen Sprint 1A remains documentation-only** — no Apex, no metadata, no deployment.
+- **Sprint 1B must not start** until PR #1 is merged or explicitly accepted as the working
+  baseline.
 
 ---
 
