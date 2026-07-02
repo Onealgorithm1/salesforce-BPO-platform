@@ -9,6 +9,13 @@ This roadmap covers the technical implementation of the One Algorithm Salesforce
 
 For business roadmap and product vision, see `docs/PLATFORM_ROADMAP.md`.
 
+> **Parallel track (Proposed):** the Evergreen **Connector Framework** runs as a separate
+> workstream alongside these phases — see `docs/CONNECTOR_FRAMEWORK_ROADMAP.md` and its governing
+> decision `docs/decisions/ADR-005-connector-framework.md`. Supporting governance docs (Proposed):
+> `docs/CANONICAL_DATA_MODEL.md`, `docs/EVERGREEN_DATA_DICTIONARY.md`,
+> `docs/ENTITY_RESOLUTION_FRAMEWORK.md`, `docs/METADATA_REGISTRY.md`, `docs/SECURITY_BASELINE.md`,
+> `docs/DEFINITION_OF_READY.md` (ADR-006 … ADR-010). This does not renumber the phases below.
+
 ---
 
 ## Phase Summary

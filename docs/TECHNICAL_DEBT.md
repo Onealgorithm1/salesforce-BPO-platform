@@ -145,3 +145,48 @@ Key facts established June 2026:
 | Medium | 5 | 5 | 0 |
 | Low | 4 | 3 | 0 (1 accepted) |
 | **Total** | **15** | **13** | **1** |
+
+---
+
+## Sprint 1A Reconciliation Note (2026-07-02)
+
+Additive note from the Evergreen Sprint 1A documentation/governance pass. **No existing debt
+items above were removed or renumbered** (none verified obsolete). This note records how the new
+governance baseline relates to the register. Confidence labels: `[Verified from source]`,
+`[Unverified production runtime]`.
+
+- **Connector Framework governance baseline now exists** `[Verified from source]` — ADR-005 plus
+  `CONNECTOR_FRAMEWORK.md` / `CONNECTOR_FRAMEWORK_ROADMAP.md` establish the standard (Named
+  Credential, staging + human review, testing). Governs remediation of connector-related debt.
+- **USASpending remains pre-SDK** `[Verified from source]` — `OA_USASpendingClient` is still
+  orphaned (zero callers), has **no test class**, and does not persist to
+  `OA_USASpending_Staging__c`. It requires the **Sprint 1C** refactor onto the framework; not
+  fixed in 1A (docs-only).
+- **Remote Site Settings remain legacy/debt** `[Verified from source]` — `MicrosoftGraph`,
+  `MicrosoftLogin`, `OA_USASpending` persist where Named/External Credentials are the planned
+  standard (ADR-008, `SECURITY_BASELINE.md`). Relates to TD-006-era modernization; migration
+  deferred to 1C+.
+- **New proposed governance artifacts** `[Verified from source]` — `METADATA_REGISTRY.md`,
+  `EVERGREEN_DATA_DICTIONARY.md`, `CANONICAL_DATA_MODEL.md`, `ENTITY_RESOLUTION_FRAMEWORK.md`,
+  `SECURITY_BASELINE.md`, `DEFINITION_OF_READY.md` (ADR-006…ADR-010). All **Proposed**;
+  documentation only, no implementation.
+- **Additional findings surfaced by the Metadata Registry** `[Verified from source]`, tracked here
+  for future formal TD entries (not yet numbered, to keep this edit additive):
+  (a) `OA_BookingPoller` is **duplicated** in `force-app` and `modules/marketing-automation`
+  (layer-boundary violation); (b) the `OA_Anthropic` Named Credential references an **External
+  Credential not committed** to the repo; (c) `OA_Graph_Credential__c` stores `Client_Secret__c`
+  as a Text field (credential-in-object). Runtime impact `[Unverified production runtime]`.
+- **INT-numbering conflict to resolve** `[Verified from source]` — TD-015 (Read AI) reserves
+  "INT-009" for Read AI *if* it is ever registered, but Sprint 1A documented **USASpending as
+  INT-009** in `INTEGRATION_REGISTRY.md`. Recommendation: keep USASpending = INT-009 (now actually
+  documented); if Read AI is later governed, assign it **INT-010**.
+- **Unsubscribe workstream** `[Unverified production runtime]` — reported **Production Done,
+  Cleanup Pending**. Out of scope for this session; **no unsubscribe records or files were
+  modified.** Any remaining cleanup is owned by that workstream.
+- **Source-control risk remains** `[Verified from source]` — the repo lives in OneDrive with a
+  second, stale local copy (see RISK-REPO-01 / TD-011), and untracked temp files
+  (`apex-temp-*.json/.apex`, an untracked `lead_by_ramesh.flow-meta.xml`) are present in the
+  working tree and must be excluded from commits.
+
+> The Debt Summary counts above are **unchanged**; formal TD entries for items (a)–(c) should be
+> added in a later reconciliation once prioritized, so the summary is not silently desynced here.
