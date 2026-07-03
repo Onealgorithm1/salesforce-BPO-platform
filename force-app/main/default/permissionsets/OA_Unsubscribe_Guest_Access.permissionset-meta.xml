@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses>
+        <apexClass>OA_UnsubscribeEndpoint</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <description>Allows the Salesforce Site guest user to invoke the public unsubscribe REST endpoint and publish the OA_Unsubscribe_Request__e platform event. Grants NO access to any business object.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Unsubscribe Guest Access</label>
+    <objectPermissions>
+        <object>OA_Unsubscribe_Request__e</object>
+        <allowCreate>true</allowCreate>
+        <allowRead>true</allowRead>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <modifyAllRecords>false</modifyAllRecords>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+</PermissionSet>

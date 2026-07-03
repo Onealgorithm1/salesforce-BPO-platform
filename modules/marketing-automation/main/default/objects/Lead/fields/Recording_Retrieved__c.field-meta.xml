@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Recording_Retrieved__c</fullName>
+    <label>Recording Retrieved</label>
+    <description>Idempotency flag for OA_ArtifactPoller. Set to true after successful artifact retrieval (recording present, transcript attempted). Leads with this flag true are excluded from all future poller queries. Remains false if recording not yet available, enabling retry on next hourly cycle.</description>
+    <defaultValue>false</defaultValue>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Checkbox</type>
+</CustomField>

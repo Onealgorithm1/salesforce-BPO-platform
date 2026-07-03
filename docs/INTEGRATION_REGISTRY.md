@@ -203,6 +203,29 @@ This registry is the authoritative record of every external system that the One 
 
 ---
 
+### INT-009 — USASpending.gov (public federal award data)
+
+| Field | Value |
+|-------|-------|
+| **Integration ID** | INT-009 |
+| **Name** | USASpending.gov API v2 |
+| **Status** | **Metadata present; not operationally wired** — `[Verified from source]` the `OA_USASpendingClient` class and `OA_USASpending` Remote Site exist, but the client has **zero callers** and no test. Live traffic `[Unverified]`. |
+| **Owner** | Louis Rubino |
+| **Purpose** | Enrich teaming/EDWOSB leads with federal award data (recipient, award, agency). |
+| **Protocol** | HTTPS REST (`POST /api/v2/search/spending_by_award/`) |
+| **Auth Method** | **None** (public open-data API). Currently via Remote Site `OA_USASpending`; **planned migration to Named Credential** in Sprint 1C (see `docs/SECURITY_BASELINE.md`, ADR-008). |
+| **Salesforce Mechanism** | Apex `OA_USASpendingClient` → (planned) staging `OA_USASpending_Staging__c` |
+| **Data Flow: Outbound** | Recipient search text (public business names) |
+| **Data Flow: Inbound to SF** | Award records (public) → staging, pending human review |
+| **Data Classification** | Public — federal open data, no PII |
+| **PII Exposure** | None |
+| **Risk Level** | Low (public data, read-only) |
+| **Business Criticality** | Low today (not wired); Medium once Evergreen enrichment is live |
+| **Review Date** | Sprint 1C (connector refactor) |
+| **Notes** | First Evergreen connector / reference implementation. Not production-grade: no test, no staging persistence, no invocation. See `docs/CONNECTOR_FRAMEWORK.md` and `docs/METADATA_REGISTRY.md`. |
+
+---
+
 ## Planned Integrations (Not Yet Active)
 
 ---

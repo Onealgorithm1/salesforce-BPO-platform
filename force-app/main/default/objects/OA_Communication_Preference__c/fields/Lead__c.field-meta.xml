@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lead__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Lead whose email preference is represented by this record. Phase 1 is Lead-only.</description>
+    <label>Lead</label>
+    <referenceTo>Lead</referenceTo>
+    <relationshipLabel>Communication Preferences</relationshipLabel>
+    <relationshipName>OA_Comm_Preferences</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>

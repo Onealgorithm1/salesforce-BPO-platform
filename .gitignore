@@ -37,3 +37,14 @@ sfca_results.json
 
 # Local environment variables
 .env
+
+# Node dependencies — never commit
+node_modules/
+package-lock.json
+
+# Local investigation artifacts
+scripts/
+
+# External Credential metadata — contains live secrets (API keys in parameterValue)
+# Retrieve locally for inspection only; never commit
+**/externalCredentials/

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>UTF-8</encodingKey>
+    <name>Day 5 follow up no rply</name>
+    <style>none</style>
+    <subject>Potential Teaming Support from One Algorithm LLC</subject>
+    <type>custom</type>
+    <uiType>Aloha</uiType>
+</EmailTemplate>

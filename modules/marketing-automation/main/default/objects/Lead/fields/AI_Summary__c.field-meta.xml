@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>AI_Summary__c</fullName>
+    <label>AI Meeting Summary</label>
+    <description>Structured JSON output from OA_AISummaryService. Contains: customer_needs, opportunities_identified, risks_or_concerns, action_items, follow_up_commitments, proposal_indicators, teaming_indicators, recommended_outcome, confidence, summary_paragraph. SENSITIVE: contains AI-derived business intelligence. Restrict via FLS to OA_Marketing_Automation permission set.</description>
+    <length>32768</length>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>LongTextArea</type>
+    <visibleLines>5</visibleLines>
+</CustomField>

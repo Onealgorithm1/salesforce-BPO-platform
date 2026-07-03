@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Test_Lead__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Marks this Lead as a test or validation record. Set to true for all test leads to exclude them from pilot reports and KPI dashboards.</description>
+    <externalId>false</externalId>
+    <label>Is Test Lead</label>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <type>Checkbox</type>
+</CustomField>

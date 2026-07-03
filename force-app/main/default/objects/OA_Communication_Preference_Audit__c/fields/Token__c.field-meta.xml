@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Token__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Token used by this request, when a token could be resolved.</description>
+    <label>Token</label>
+    <referenceTo>OA_Communication_Preference_Token__c</referenceTo>
+    <relationshipLabel>Audit Events</relationshipLabel>
+    <relationshipName>Audit_Events</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>
