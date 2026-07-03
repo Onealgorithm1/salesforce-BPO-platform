@@ -9,7 +9,7 @@
 private class OA_USASpendingConnector_Test {
 
     private static final String ENDPOINT =
-        'https://api.usaspending.gov/api/v2/search/spending_by_award/';
+        'callout:OA_USASpending/api/v2/search/spending_by_award/';
 
     // Build a USASpending-shaped response body with `count` award rows.
     private static String awardsJson(Integer count, Boolean firstRowNulls) {

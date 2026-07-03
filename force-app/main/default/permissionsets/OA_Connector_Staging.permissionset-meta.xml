@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Connector Staging</label>
+    <description>Grants access to OA_USASpending_Staging__c and its fields for the enrichment Connector SDK (Sprint 1C-2), including the Dedupe_Key__c idempotency field. Not assigned to any user by default.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <object>OA_USASpending_Staging__c</object>
+        <allowRead>true</allowRead>
+        <allowCreate>true</allowCreate>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Award_Amount__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Award_Description__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Award_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Awarding_Agency__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Awarding_Sub_Agency__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Contract_Type__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Dedupe_Key__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Enrichment_Run_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.HTTP_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Lead__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Match_Confidence__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Name_Match_Score__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Notes__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Performance_State__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Query_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Recipient_Name__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Recipient_UEI__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Review_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Search_Term__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Source_Endpoint__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>
