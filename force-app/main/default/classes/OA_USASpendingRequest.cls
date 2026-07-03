@@ -4,15 +4,15 @@
  * Sprint 1C-1: re-homes the proven request-body logic from OA_USASpendingClient
  * onto the SDK contract (OA_IConnectorRequest). Behavior-preserving.
  *
- * SCOPE NOTE (1C-1): uses the existing public endpoint URL (backed by the current
- * OA_USASpending Remote Site). The switch to a Named Credential ('callout:OA_USASpending')
- * is DEFERRED to Sprint 1C-2. USASpending.gov is a public API — no auth required.
+ * Sprint 1C-2: endpoint now routes through the OA_USASpending Named Credential
+ * ('callout:OA_USASpending/...'). USASpending.gov is a public API — the Named
+ * Credential uses no authentication and holds no secret.
  */
 public class OA_USASpendingRequest implements OA_IConnectorRequest {
 
     @TestVisible
     private static final String ENDPOINT =
-        'https://api.usaspending.gov/api/v2/search/spending_by_award/';
+        'callout:OA_USASpending/api/v2/search/spending_by_award/';
 
     private static final Integer DEFAULT_LIMIT = 5;
 

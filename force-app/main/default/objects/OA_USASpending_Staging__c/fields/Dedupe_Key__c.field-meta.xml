@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Dedupe_Key__c</fullName>
+    <description>Idempotency key = Enrichment_Run_ID__c + "|" + Award_ID__c. External Id + Unique so re-running an enrichment run upserts rather than duplicating staging rows.</description>
+    <externalId>true</externalId>
+    <label>Dedupe Key</label>
+    <length>90</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

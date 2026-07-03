@@ -1,9 +1,10 @@
 /**
  * OA_USASpendingMapper — maps a normalized row to an OA_USASpending_Staging__c (Connector SDK).
  *
- * Sprint 1C-1: builds the staging record IN MEMORY ONLY. Performs NO DML — no
- * insert, update, upsert, or delete. Persistence (idempotent upsert) is DEFERRED
- * to Sprint 1C-2.
+ * Sprint 1C-1: builds the staging record IN MEMORY ONLY (no DML here).
+ * Sprint 1C-2: also stamps Dedupe_Key__c (run id + "|" + Award ID) so the
+ * persistence layer can upsert idempotently. This class still performs NO DML —
+ * saving is done by OA_ConnectorPersistence.
  *
  * Stamps the framework-managed fields from the run context and defaults the human
  * review gate (Review_Status__c = 'Pending') so nothing flows to a Lead without review.
@@ -14,7 +15,8 @@ public class OA_USASpendingMapper implements OA_IConnectorMapper {
         OA_USASpending_Staging__c s = new OA_USASpending_Staging__c();
 
         // --- source-specific fields ---
-        s.Award_ID__c            = row.getString('awardId');
+        String awardId           = row.getString('awardId');
+        s.Award_ID__c            = awardId;
         s.Recipient_Name__c      = row.getString('recipientName');
         s.Recipient_UEI__c       = row.getString('recipientUei');
         s.Award_Amount__c        = row.getDecimal('awardAmount');
@@ -32,6 +34,10 @@ public class OA_USASpendingMapper implements OA_IConnectorMapper {
         // --- framework-managed fields ---
         if (String.isNotBlank(ctx.runId)) {
             s.Enrichment_Run_ID__c = ctx.runId.abbreviate(36);
+        }
+        // Idempotency key: run id + "|" + Award ID. Enables upsert (no duplicates on re-run).
+        if (String.isNotBlank(ctx.runId) && String.isNotBlank(awardId)) {
+            s.Dedupe_Key__c = (ctx.runId + '|' + awardId).abbreviate(90);
         }
         s.Source_Endpoint__c = ctx.lastEndpoint;
         if (ctx.lastHttpStatus != null) {
