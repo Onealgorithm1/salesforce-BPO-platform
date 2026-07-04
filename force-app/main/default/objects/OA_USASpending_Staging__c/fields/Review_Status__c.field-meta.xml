@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Review_Status__c</fullName>
-    <description>Workflow gate. Pending=awaiting review. Approved=confirmed match, safe to write back. Rejected=wrong company. Written Back=data copied to Lead fields.</description>
+    <description>Workflow gate. Pending=awaiting review. Auto Verified=Tier A gates passed. Exception / Needs Review=a gate failed. Approved=confirmed match, safe to write back (manual fallback). Written Back=data copied to Lead fields. Failed Verification=post-write check failed. Rejected=wrong company.</description>
     <label>Review Status</label>
     <required>false</required>
     <trackTrending>false</trackTrending>
@@ -29,6 +29,21 @@
                 <fullName>Written Back</fullName>
                 <default>false</default>
                 <label>Written Back</label>
+            </value>
+            <value>
+                <fullName>Auto Verified</fullName>
+                <default>false</default>
+                <label>Auto Verified</label>
+            </value>
+            <value>
+                <fullName>Exception / Needs Review</fullName>
+                <default>false</default>
+                <label>Exception / Needs Review</label>
+            </value>
+            <value>
+                <fullName>Failed Verification</fullName>
+                <default>false</default>
+                <label>Failed Verification</label>
             </value>
         </valueSetDefinition>
     </valueSet>

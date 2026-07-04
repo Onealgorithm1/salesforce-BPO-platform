@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>USASpending_Latest_Award_Amount__c</fullName>
+    <label>USASpending Latest Award Amount</label>
+    <description>Write-back target. Latest federal award amount from USASpending staging (blank-only write; overwrite prohibited). Mirrors OA_USASpending_Staging__c.Award_Amount__c Number(18,2).</description>
+    <precision>18</precision>
+    <required>false</required>
+    <scale>2</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>
