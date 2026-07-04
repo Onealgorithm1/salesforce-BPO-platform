@@ -274,4 +274,155 @@ private class OA_LeadWritebackServiceTest {
         System.assertEquals(0, s2.attempted);
         System.assertEquals(5, s1.effectiveLimit, 'default limit applied');
     }
+
+    // ---------------- ROLLBACK ----------------
+
+    private static OA_LeadWritebackService.RollbackOutcome rbOutcomeFor(
+            OA_LeadWritebackService.RollbackSummary s, Id stagingId) {
+        for (OA_LeadWritebackService.RollbackOutcome ro : s.rows) {
+            if (ro.stagingId == stagingId) return ro;
+        }
+        return null;
+    }
+
+    // R1 — rollback blocked (skipped) when Before_Snapshot__c is null
+    @IsTest static void testRollbackBlocksNullSnapshot() {
+        Scn sc = setup('Approved', true, false); // Before_Snapshot null
+        OA_LeadWritebackService.RollbackSummary rb;
+        System.runAs(sc.fullUser) {
+            rb = OA_LeadWritebackService.rollback(new List<Id>{ sc.stagingId });
+        }
+        System.assertEquals(0, rb.succeeded, 'nothing restored');
+        System.assertEquals(1, rb.skipped, 'skipped');
+        System.assertEquals('SNAPSHOT_MISSING', rbOutcomeFor(rb, sc.stagingId).gate);
+    }
+
+    // R2 — rollback blocked on invalid snapshot JSON; Lead untouched
+    @IsTest static void testRollbackBlocksInvalidJson() {
+        Scn sc = setup('Approved', true, false);
+        OA_LeadWritebackService.RollbackSummary rb;
+        System.runAs(sc.fullUser) {
+            update new OA_USASpending_Staging__c(Id = sc.stagingId, Before_Snapshot__c = 'not-valid-json{');
+            rb = OA_LeadWritebackService.rollback(new List<Id>{ sc.stagingId });
+        }
+        System.assertEquals(0, rb.succeeded);
+        System.assertEquals('SNAPSHOT_INVALID', rbOutcomeFor(rb, sc.stagingId).gate);
+        Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
+        System.assertEquals(null, after.USASpending_Latest_Award_ID__c, 'Lead untouched');
+    }
+
+    // R3 — full round-trip: commit then rollback restores all fields, resets staging, clears markers, audits
+    @IsTest static void testRollbackRestoresFieldsAndResetsStaging() {
+        Scn sc = setup('Approved', true, false);
+        System.runAs(sc.fullUser) {
+            // Known pre-values (one text set, one status set, one left null to prove null-restore).
+            update new Lead(Id = sc.leadId,
+                            USASpending_Latest_Award_ID__c = 'ORIG-001',
+                            UEI_Verification_Status__c = 'Unverified');
+
+            OA_LeadWritebackService.RunSummary w =
+                OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId }, 1, true);
+            System.assertEquals(1, w.succeeded, 'committed');
+            Lead mid = [SELECT USASpending_Latest_Award_ID__c, UEI_Verification_Status__c
+                        FROM Lead WHERE Id = :sc.leadId];
+            System.assertEquals('AWD-001', mid.USASpending_Latest_Award_ID__c, 'commit overwrote');
+            System.assertEquals('Verified', mid.UEI_Verification_Status__c, 'commit set Verified');
+
+            OA_LeadWritebackService.RollbackSummary rb =
+                OA_LeadWritebackService.rollback(new List<Id>{ sc.stagingId });
+            System.assertEquals(1, rb.attempted, 'attempted 1');
+            System.assertEquals(1, rb.succeeded, 'restored 1');
+            System.assertEquals(0, rb.failed, 'no failures');
+            System.assertEquals(0, rb.rollbackFailures, 'no rollback failures');
+            System.assertEquals('RESTORED', rbOutcomeFor(rb, sc.stagingId).status);
+
+            Lead after = [SELECT USASpending_Latest_Award_ID__c, UEI_Verification_Status__c, USASpending_UEI__c
+                          FROM Lead WHERE Id = :sc.leadId];
+            System.assertEquals('ORIG-001', after.USASpending_Latest_Award_ID__c, 'restored pre-value');
+            System.assertEquals('Unverified', after.UEI_Verification_Status__c, 'restored status');
+            System.assertEquals(null, after.USASpending_UEI__c, 'restored null field');
+
+            OA_USASpending_Staging__c st = [SELECT Review_Status__c, Written_Back_Date__c, Written_Back_By__c,
+                                                   Before_Snapshot__c, Gate_Results__c
+                                            FROM OA_USASpending_Staging__c WHERE Id = :sc.stagingId];
+            System.assertEquals('Approved', st.Review_Status__c, 'reset to Approved');
+            System.assertEquals(null, st.Written_Back_Date__c, 'cleared written date');
+            System.assertEquals(null, st.Written_Back_By__c, 'cleared written by');
+            System.assertNotEquals(null, st.Before_Snapshot__c, 'snapshot kept for audit');
+            System.assert(st.Gate_Results__c.contains('Rolled back'), 'audit note appended');
+        }
+    }
+
+    // R4 — rollback refuses snapshot whose leadId != staging Lead__c
+    @IsTest static void testRollbackRefusesLeadIdMismatch() {
+        Scn sc = setup('Approved', true, false);
+        System.runAs(sc.fullUser) {
+            Lead other = new Lead(LastName = 'Other', Company = 'Other Co',
+                                  Email = 'other' + String.valueOf(System.now().getTime()) + '@example.com');
+            insert other;
+            String snapJson = JSON.serialize(new Map<String, Object>{
+                'leadId' => other.Id,
+                'capturedAt' => System.now().format(),
+                'writeBackRunId' => 'WB-x',
+                'fields' => new Map<String, Object>{ 'USASpending_Latest_Award_ID__c' => 'X' }
+            });
+            update new OA_USASpending_Staging__c(Id = sc.stagingId, Before_Snapshot__c = snapJson);
+            OA_LeadWritebackService.RollbackSummary rb =
+                OA_LeadWritebackService.rollback(new List<Id>{ sc.stagingId });
+            System.assertEquals(0, rb.succeeded);
+            System.assertEquals('LEAD_MISMATCH', rbOutcomeFor(rb, sc.stagingId).gate);
+        }
+    }
+
+    // R5 — partial success + summary counts + only explicit ids (valid restore + null-snapshot skip together)
+    @IsTest static void testRollbackPartialAndCounts() {
+        Scn sc = setup('Approved', true, false);
+        System.runAs(sc.fullUser) {
+            // Row A: commit to generate a valid snapshot.
+            OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId }, 1, true);
+            // Row B: approved, no snapshot (never committed).
+            Lead ldB = new Lead(LastName = 'WB B', Company = 'WB Co B',
+                                Email = 'wbb' + String.valueOf(System.now().getTime()) + '@example.com');
+            insert ldB;
+            OA_USASpending_Staging__c stB = new OA_USASpending_Staging__c(
+                Review_Status__c = 'Approved', Lead__c = ldB.Id,
+                Recipient_UEI__c = 'BBB222CCC333', Award_ID__c = 'AWD-B', Award_Amount__c = 9,
+                Awarding_Agency__c = 'Dept B', Enrichment_Run_ID__c = 'ENR-B', Query_Date__c = Date.today());
+            insert stB;
+
+            OA_LeadWritebackService.RollbackSummary rb =
+                OA_LeadWritebackService.rollback(new List<Id>{ sc.stagingId, stB.Id });
+            System.assertEquals(1, rb.attempted, 'one reached restore DML');
+            System.assertEquals(1, rb.succeeded, 'row A restored');
+            System.assertEquals(1, rb.skipped, 'row B skipped (no snapshot)');
+            System.assertEquals('RESTORED', rbOutcomeFor(rb, sc.stagingId).status);
+            System.assertEquals('SKIPPED', rbOutcomeFor(rb, stB.Id).status);
+        }
+    }
+
+    // R6 — rollback makes no callout and assigns no permission set
+    @IsTest static void testRollbackNoCalloutNoPermset() {
+        Scn sc = setup('Approved', true, false);
+        System.runAs(sc.fullUser) {
+            OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId }, 1, true);
+        }
+        Integer before = [SELECT COUNT() FROM PermissionSetAssignment
+                          WHERE PermissionSet.Name = 'OA_Lead_Writeback_Automation'];
+        System.runAs(sc.fullUser) {
+            Test.startTest();
+            OA_LeadWritebackService.rollback(new List<Id>{ sc.stagingId });
+            Test.stopTest();
+            System.assertEquals(0, Limits.getCallouts(), 'rollback makes no callouts');
+        }
+        Integer aft = [SELECT COUNT() FROM PermissionSetAssignment
+                       WHERE PermissionSet.Name = 'OA_Lead_Writeback_Automation'];
+        System.assertEquals(before, aft, 'rollback assigns no permission set');
+    }
+
+    // empty input handled safely
+    @IsTest static void testRollbackEmptyInput() {
+        OA_LeadWritebackService.RollbackSummary rb = OA_LeadWritebackService.rollback(new List<Id>());
+        System.assertEquals(0, rb.attempted);
+        System.assertNotEquals(null, rb.runId);
+    }
 }

@@ -83,6 +83,26 @@ public with sharing class OA_LeadWritebackService {
         public List<RowOutcome> rows = new List<RowOutcome>();
     }
 
+    /** Per-row rollback result. */
+    public class RollbackOutcome {
+        public Id stagingId;
+        public Id leadId;
+        public String status;   // RESTORED | SKIPPED | FAILED
+        public String gate;     // SNAPSHOT_MISSING | SNAPSHOT_INVALID | LEAD_MISMATCH | FLS | DML
+        public String reason;
+    }
+
+    /** Structured rollback summary with per-row outcomes. */
+    public class RollbackSummary {
+        public String runId;
+        public Integer attempted = 0;
+        public Integer succeeded = 0;
+        public Integer failed = 0;
+        public Integer skipped = 0;
+        public Integer rollbackFailures = 0;
+        public List<RollbackOutcome> rows = new List<RollbackOutcome>();
+    }
+
     /**
      * Manual/admin-invoked write-back.
      * @param stagingIds     explicit staging record ids (required; no query-all)
@@ -385,5 +405,170 @@ public with sharing class OA_LeadWritebackService {
             return sr.getErrors()[0].getMessage();
         }
         return 'Unknown error';
+    }
+
+    // ============================ ROLLBACK ============================
+
+    /**
+     * Restore the 16 Lead write-back fields from Before_Snapshot__c for the given staging rows,
+     * then reset the staging row (Review_Status__c -> Approved, clear write markers, audit note).
+     *
+     * SAFETY: explicit stagingIds only (no query-all); snapshot-driven (only the Lead named in the
+     * snapshot is touched); FLS-enforced (WITH USER_MODE read + stripInaccessible write); blocks a row
+     * if its snapshot is null, invalid JSON, or its snapshot leadId does not match staging Lead__c;
+     * row-independent partial success; no connector, no callouts, no permission-set assignment.
+     * Before_Snapshot__c is KEPT for audit (not cleared).
+     */
+    public static RollbackSummary rollback(List<Id> stagingIds) {
+        RollbackSummary s = new RollbackSummary();
+        s.runId = 'RB-' + UserInfo.getUserId() + '-' + String.valueOf(System.now().getTime());
+        if (stagingIds == null || stagingIds.isEmpty()) return s;
+
+        List<Id> ids = new List<Id>();
+        for (Id sid : stagingIds) {
+            if (ids.size() >= MAX_LIMIT) break;
+            if (sid != null) ids.add(sid);
+        }
+
+        List<OA_USASpending_Staging__c> rows;
+        try {
+            rows = [
+                SELECT Id, Lead__c, Review_Status__c, Written_Back_Date__c, Before_Snapshot__c, Gate_Results__c
+                FROM OA_USASpending_Staging__c WHERE Id IN :ids WITH USER_MODE
+            ];
+        } catch (Exception e) {
+            for (Id sid : ids) { s.rows.add(rbFail(sid, null, 'FLS', 'Staging read denied: ' + e.getMessage())); s.failed++; }
+            return s;
+        }
+
+        Map<Id, Lead> restores = new Map<Id, Lead>();
+        Map<Id, Id> leadToStaging = new Map<Id, Id>();
+        Map<Id, RollbackOutcome> byStaging = new Map<Id, RollbackOutcome>();
+
+        for (OA_USASpending_Staging__c row : rows) {
+            RollbackOutcome ro = new RollbackOutcome();
+            ro.stagingId = row.Id; ro.leadId = row.Lead__c;
+            byStaging.put(row.Id, ro); s.rows.add(ro);
+
+            if (String.isBlank(row.Before_Snapshot__c)) {
+                rbMark(ro, 'SKIPPED', 'SNAPSHOT_MISSING', 'No snapshot to roll back'); s.skipped++; continue;
+            }
+            Map<String, Object> snap;
+            try { snap = (Map<String, Object>) JSON.deserializeUntyped(row.Before_Snapshot__c); }
+            catch (Exception e) { rbMark(ro, 'FAILED', 'SNAPSHOT_INVALID', 'Invalid snapshot JSON'); s.failed++; continue; }
+
+            Object snapLeadId = snap.get('leadId');
+            Object fieldsObj = snap.get('fields');
+            if (snapLeadId == null || !(fieldsObj instanceof Map<String, Object>)) {
+                rbMark(ro, 'FAILED', 'SNAPSHOT_INVALID', 'Snapshot missing leadId/fields'); s.failed++; continue;
+            }
+            Id snapLid;
+            try { snapLid = (Id) String.valueOf(snapLeadId); }
+            catch (Exception e) { rbMark(ro, 'FAILED', 'SNAPSHOT_INVALID', 'Snapshot leadId not a valid Id'); s.failed++; continue; }
+            if (row.Lead__c == null || snapLid != row.Lead__c) {
+                rbMark(ro, 'FAILED', 'LEAD_MISMATCH', 'Snapshot leadId does not match staging Lead__c'); s.failed++; continue;
+            }
+            restores.put(row.Lead__c, buildRestore(row.Lead__c, (Map<String, Object>) fieldsObj));
+            leadToStaging.put(row.Lead__c, row.Id);
+        }
+
+        if (restores.isEmpty()) return s;
+
+        // FLS gate on the restore write.
+        List<Lead> restoreList = restores.values();
+        SObjectAccessDecision decision = Security.stripInaccessible(AccessType.UPDATABLE, restoreList);
+        Set<String> removed = decision.getRemovedFields().get('Lead');
+        Boolean flsBlocked = false;
+        if (removed != null) { for (String f : LEAD_TARGET_FIELDS) { if (removed.contains(f)) { flsBlocked = true; break; } } }
+        if (flsBlocked) {
+            for (Id lid : leadToStaging.keySet()) {
+                rbMark(byStaging.get(leadToStaging.get(lid)), 'FAILED', 'FLS',
+                       'Running user lacks edit FLS to restore Lead fields'); s.failed++;
+            }
+            return s;
+        }
+
+        List<Lead> stripped = (List<Lead>) decision.getRecords();
+        s.attempted = stripped.size();
+        Database.SaveResult[] res = Database.update(stripped, false);
+        Set<Id> restoredStaging = new Set<Id>();
+        for (Integer i = 0; i < stripped.size(); i++) {
+            Id sid = leadToStaging.get(stripped[i].Id);
+            RollbackOutcome ro = byStaging.get(sid);
+            if (res[i].isSuccess()) {
+                rbMark(ro, 'RESTORED', null, 'Lead restored from snapshot'); s.succeeded++; restoredStaging.add(sid);
+            } else {
+                rbMark(ro, 'FAILED', 'DML', 'Lead restore failed: ' + firstError(res[i])); s.failed++; s.rollbackFailures++;
+            }
+        }
+
+        // Reset staging for restored rows (Approved; clear write markers; append audit note). Snapshot KEPT.
+        List<OA_USASpending_Staging__c> stamps = new List<OA_USASpending_Staging__c>();
+        for (OA_USASpending_Staging__c row : rows) {
+            if (restoredStaging.contains(row.Id)) {
+                OA_USASpending_Staging__c st = new OA_USASpending_Staging__c(Id = row.Id);
+                st.Review_Status__c = STATUS_APPROVED;
+                st.Written_Back_Date__c = null;
+                st.Written_Back_By__c = null;
+                String note = 'Rolled back; runId=' + s.runId + '; at=' + System.now().format();
+                st.Gate_Results__c = String.isBlank(row.Gate_Results__c) ? note : (row.Gate_Results__c + '\n' + note);
+                stamps.add(st);
+            }
+        }
+        if (!stamps.isEmpty()) Database.update(stamps, false);
+
+        return s;
+    }
+
+    private static Lead buildRestore(Id leadId, Map<String, Object> f) {
+        Lead ld = new Lead(Id = leadId);
+        ld.UEI_Verification_Status__c         = rbStr(f, 'UEI_Verification_Status__c');
+        ld.UEI_Verification_Source__c         = rbStr(f, 'UEI_Verification_Source__c');
+        ld.UEI_Verification_Evidence__c       = rbStr(f, 'UEI_Verification_Evidence__c');
+        ld.UEI_Verification_Run_ID__c         = rbStr(f, 'UEI_Verification_Run_ID__c');
+        ld.USASpending_Latest_Award_ID__c     = rbStr(f, 'USASpending_Latest_Award_ID__c');
+        ld.USASpending_Latest_Award_Desc__c   = rbStr(f, 'USASpending_Latest_Award_Desc__c');
+        ld.USASpending_Awarding_Agency__c     = rbStr(f, 'USASpending_Awarding_Agency__c');
+        ld.USASpending_Awarding_Sub_Agency__c = rbStr(f, 'USASpending_Awarding_Sub_Agency__c');
+        ld.USASpending_Contract_Type__c       = rbStr(f, 'USASpending_Contract_Type__c');
+        ld.USASpending_Performance_State__c   = rbStr(f, 'USASpending_Performance_State__c');
+        ld.USASpending_Source_Run_ID__c       = rbStr(f, 'USASpending_Source_Run_ID__c');
+        ld.USASpending_UEI__c                 = rbStr(f, 'USASpending_UEI__c');
+        ld.UEI_Verified_Date__c               = rbDateTime(f, 'UEI_Verified_Date__c');
+        ld.USASpending_Last_Enriched__c       = rbDate(f, 'USASpending_Last_Enriched__c');
+        ld.USASpending_Latest_Award_Amount__c = rbDecimal(f, 'USASpending_Latest_Award_Amount__c');
+        ld.UEI_Verified_By__c                 = rbId(f, 'UEI_Verified_By__c');
+        return ld;
+    }
+
+    private static String rbStr(Map<String, Object> f, String k) {
+        Object o = f.get(k); return o == null ? null : String.valueOf(o);
+    }
+    private static Datetime rbDateTime(Map<String, Object> f, String k) {
+        Object o = f.get(k); if (o == null) return null;
+        return (o instanceof Datetime) ? (Datetime) o : (Datetime) JSON.deserialize(JSON.serialize(o), Datetime.class);
+    }
+    private static Date rbDate(Map<String, Object> f, String k) {
+        Object o = f.get(k); if (o == null) return null;
+        return (o instanceof Date) ? (Date) o : (Date) JSON.deserialize(JSON.serialize(o), Date.class);
+    }
+    private static Decimal rbDecimal(Map<String, Object> f, String k) {
+        Object o = f.get(k); if (o == null) return null;
+        if (o instanceof Decimal) return (Decimal) o;
+        if (o instanceof Double)  return Decimal.valueOf((Double) o);
+        if (o instanceof Integer) return Decimal.valueOf((Integer) o);
+        return (Decimal) JSON.deserialize(JSON.serialize(o), Decimal.class);
+    }
+    private static Id rbId(Map<String, Object> f, String k) {
+        Object o = f.get(k); return o == null ? null : (Id) String.valueOf(o);
+    }
+
+    private static void rbMark(RollbackOutcome ro, String status, String gate, String reason) {
+        ro.status = status; ro.gate = gate; ro.reason = reason;
+    }
+    private static RollbackOutcome rbFail(Id stagingId, Id leadId, String gate, String reason) {
+        RollbackOutcome ro = new RollbackOutcome();
+        ro.stagingId = stagingId; ro.leadId = leadId; ro.status = 'FAILED'; ro.gate = gate; ro.reason = reason;
+        return ro;
     }
 }
