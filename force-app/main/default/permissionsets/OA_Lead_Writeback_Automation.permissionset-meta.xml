@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Lead Writeback Automation</label>
+    <description>Lead Write-Back automation/service context. READ/EDIT on the 16 Lead write-back fields and 7 staging audit fields plus Review_Status__c. No Create/Delete/ViewAll/ModifyAll on Lead. SENSITIVE: keep UNASSIGNED until engine + canary gates approved.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <object>Lead</object>
+        <allowRead>true</allowRead>
+        <allowCreate>false</allowCreate>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>OA_USASpending_Staging__c</object>
+        <allowRead>true</allowRead>
+        <allowCreate>true</allowCreate>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <fieldPermissions><field>Lead.UEI_Verification_Evidence__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.UEI_Verification_Run_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.UEI_Verification_Source__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.UEI_Verification_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.UEI_Verified_By__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.UEI_Verified_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Awarding_Agency__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Awarding_Sub_Agency__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Contract_Type__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Last_Enriched__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Latest_Award_Amount__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Latest_Award_Desc__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Latest_Award_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Performance_State__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_Source_Run_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.USASpending_UEI__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Auto_Verification_Method__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Auto_Verified_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Before_Snapshot__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Exception_Reason__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Gate_Results__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Review_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Written_Back_By__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_USASpending_Staging__c.Written_Back_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>
