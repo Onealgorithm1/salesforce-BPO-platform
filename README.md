@@ -350,6 +350,16 @@ Full grouped index: **[`docs/README.md`](docs/README.md)**. Frequently reference
 
 ---
 
+## USASpending Connector Operations
+
+The USASpending connector is deployed, proven through a controlled production smoke test, and currently dormant/locked by default.
+
+Operational procedures for safely re-enabling, running, reviewing, cleaning up, and re-locking the connector are documented here:
+
+- [USASpending Connector Operations Runbook](docs/USASPENDING_CONNECTOR_OPERATIONS_RUNBOOK.md)
+
+---
+
 ## How to Work in This Repo
 
 - **Verify the correct repo root** — the canonical copy under `OneDrive - One Algorithm LLC`, not the personal-OneDrive copy.
