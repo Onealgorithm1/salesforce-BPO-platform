@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lead__c</fullName>
+    <description>Deterministic link to the matched Lead (set during matching; blank until then). No write-back occurs in the dormant foundation.</description>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Lead</label>
+    <referenceTo>Lead</referenceTo>
+    <relationshipLabel>OA SAM Entity Staging</relationshipLabel>
+    <relationshipName>OA_SAM_Entity_Staging</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

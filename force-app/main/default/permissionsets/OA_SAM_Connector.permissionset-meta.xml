@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA SAM Connector</label>
+    <description>SAM.gov Entity connector (Phase 2, dormant): Read/Create/Edit on OA_SAM_Entity_Staging__c + fields. No Delete/ViewAll/ModifyAll. Unassigned by default. EC principal access added at the key gate.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <object>OA_SAM_Entity_Staging__c</object>
+        <allowRead>true</allowRead>
+        <allowCreate>true</allowCreate>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Business_Types__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.CAGE_Code__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Dedupe_Key__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Entity_URL__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Error_Message__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Gate_Results__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.HTTP_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Last_Fetched__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Lead__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Legal_Business_Name__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Physical_State__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Query_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Registration_Expiration_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Registration_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Review_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Search_Term__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Source_Endpoint__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Source_Payload_Ref__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.Source_Run_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_SAM_Entity_Staging__c.UEI__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>

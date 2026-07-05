@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Staging for SAM.gov Entity API results (Phase 2 dormant SAM connector foundation). Human-review-gated; no data flows to a Lead without review. No secrets are stored here.</description>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <label>OA SAM Entity Staging</label>
+    <nameField>
+        <displayFormat>SAM-{00000}</displayFormat>
+        <label>SAM Entity Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>OA SAM Entity Staging</pluralLabel>
+    <sharingModel>ReadWrite</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>
