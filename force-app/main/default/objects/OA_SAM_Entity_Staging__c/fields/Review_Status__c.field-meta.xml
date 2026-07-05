@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Review_Status__c</fullName>
+    <description>Human review gate for a SAM.gov staging row. Nothing flows to a Lead until a reviewer advances this. Default Pending.</description>
+    <label>Review Status</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Pending</fullName>
+                <default>true</default>
+                <label>Pending</label>
+            </value>
+            <value>
+                <fullName>Approved</fullName>
+                <default>false</default>
+                <label>Approved</label>
+            </value>
+            <value>
+                <fullName>Rejected</fullName>
+                <default>false</default>
+                <label>Rejected</label>
+            </value>
+            <value>
+                <fullName>Auto Verified</fullName>
+                <default>false</default>
+                <label>Auto Verified</label>
+            </value>
+            <value>
+                <fullName>Exception / Needs Review</fullName>
+                <default>false</default>
+                <label>Exception / Needs Review</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
