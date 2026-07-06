@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Audit trail: one row per field change made or previewed by the enrichment writer. Holds before-snapshot for rollback.</description>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <label>OA Enrichment Change Log</label>
+    <nameField>
+        <displayFormat>CHG-{00000}</displayFormat>
+        <label>OA Enrichment Change Log Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>OA Enrichment Change Logs</pluralLabel>
+    <sharingModel>ReadWrite</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>

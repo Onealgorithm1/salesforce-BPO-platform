@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>Census</label>
+    <protected>false</protected>
+    <values>
+        <field>Source_System__c</field>
+        <value xsi:type="xsd:string">Census</value>
+    </values>
+    <values>
+        <field>Display_Name__c</field>
+        <value xsi:type="xsd:string">U.S. Census</value>
+    </values>
+    <values>
+        <field>Precedence__c</field>
+        <value xsi:type="xsd:double">60</value>
+    </values>
+    <values>
+        <field>Trusted__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Authoritative_For__c</field>
+        <value xsi:type="xsd:string">Market</value>
+    </values>
+    <values>
+        <field>Active__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Description__c</field>
+        <value xsi:type="xsd:string">SAMPLE (dormant). Aggregate market/geography context.</value>
+    </values>
+</CustomMetadata>

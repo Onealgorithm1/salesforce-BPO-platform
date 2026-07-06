@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Initiated_By__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Initiated By</label>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>OA_Connector_Runs</relationshipLabel>
+    <relationshipName>OA_Connector_Runs</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>
