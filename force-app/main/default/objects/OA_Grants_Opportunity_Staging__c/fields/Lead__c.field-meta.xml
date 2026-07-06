@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lead__c</fullName>
+    <description>Optional LOOSE association to a Lead this opportunity may be relevant to (set later during reviewed matching; blank until then). Grants.gov is an opportunity-signal source — there is NO Lead write-back in the dormant foundation.</description>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Lead</label>
+    <referenceTo>Lead</referenceTo>
+    <relationshipLabel>OA Grants Opportunity Staging</relationshipLabel>
+    <relationshipName>OA_Grants_Opportunity_Staging</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

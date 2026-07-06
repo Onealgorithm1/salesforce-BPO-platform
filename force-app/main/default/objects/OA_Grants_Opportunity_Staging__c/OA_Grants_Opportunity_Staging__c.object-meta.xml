@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Staging for Grants.gov Search2 funding-opportunity results (dormant Grants.gov connector foundation). This is an OPPORTUNITY-SIGNAL object (outreach-timing intelligence), NOT Lead firmographic data. Human-review-gated; nothing is acted on without review. No Lead write-back. No secrets are stored here (public, keyless API).</description>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <label>OA Grants Opportunity Staging</label>
+    <nameField>
+        <displayFormat>GRANT-{00000}</displayFormat>
+        <label>Grants Opportunity Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>OA Grants Opportunity Staging</pluralLabel>
+    <sharingModel>ReadWrite</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>

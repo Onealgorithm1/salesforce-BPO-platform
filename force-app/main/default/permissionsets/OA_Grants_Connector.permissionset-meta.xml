@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Grants Connector</label>
+    <description>Grants.gov opportunity connector (dormant): Read/Create/Edit on OA_Grants_Opportunity_Staging__c + fields. No Delete/ViewAll/ModifyAll. Unassigned by default. Public keyless API — no External Credential principal access needed.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <object>OA_Grants_Opportunity_Staging__c</object>
+        <allowRead>true</allowRead>
+        <allowCreate>true</allowCreate>
+        <allowEdit>true</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Agency_Code__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Agency_Name__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.CFDA_Numbers__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Close_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Dedupe_Key__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Doc_Type__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Error_Message__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Gate_Results__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.HTTP_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Last_Fetched__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Lead__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Open_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Opportunity_Number__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Opportunity_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Opportunity_Title__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Opportunity_URL__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Query_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Review_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Search_Term__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Source_Endpoint__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Source_Payload_Ref__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Grants_Opportunity_Staging__c.Source_Run_ID__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>
