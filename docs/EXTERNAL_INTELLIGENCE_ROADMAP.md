@@ -1,5 +1,10 @@
 # External Intelligence Roadmap — Connector Inventory (Deliverable 1)
 
+> 🔎 **Phase 6 refocus (2026-07-06):** the active phase is **Lead Enrichment only** — see the trimmed
+> 7-connector list in [`LEAD_ENRICHMENT_CONNECTORS.md`](LEAD_ENRICHMENT_CONNECTORS.md) (SAM, USASpending,
+> Census, IRS, SEC, NPPES, USPTO). Grants/SBIR/NIH/NSF/DOE **Opportunity** connectors below are
+> **DEFERRED** to a later phase. This document is retained as the long-range source catalog.
+
 _Status: **DESIGN ONLY — for review** · 2026-07-06. No connector below is authorized for live
 callouts or deployment beyond the three already built dormant._
 

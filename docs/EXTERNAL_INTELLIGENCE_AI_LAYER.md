@@ -1,5 +1,9 @@
 # Future AI Layer (Deliverable 8)
 
+> ⛔ **DEFERRED (Phase 6 refocus, 2026-07-06).** Out of scope for the current phase, which is **Lead
+> Enrichment only** (see [`LEAD_ENRICHMENT_PLATFORM.md`](LEAD_ENRICHMENT_PLATFORM.md)). AI
+> recommendations are a **later phase**. Retained for future reference; not part of the active design.
+
 _Status: **DESIGN ONLY — for review** · 2026-07-06. Human approval remains mandatory. AI never writes
 to the CRM._
 

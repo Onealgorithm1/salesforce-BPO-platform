@@ -1,5 +1,12 @@
 # External Intelligence Object Model (Deliverable 3)
 
+> 🔎 **Phase 6 refocus (2026-07-06):** active phase is **Lead Enrichment only**. The
+> **`OA_Opportunity_Signal__c`**, **`OA_Intelligence_Action__c`** (AI activation), and **grant** objects
+> are **DEFERRED**. The enrichment phase adds `OA_Enrichment_Change_Log__c`, `OA_Field_Write_Policy__mdt`,
+> `OA_Qualification_Rule__mdt`, and `OA_Enrichment_Exception__c` (see
+> [`LEAD_ENRICHMENT_PLATFORM.md`](LEAD_ENRICHMENT_PLATFORM.md) §6). Entity/Contract/Compliance/Market
+> intelligence objects + `OA_Connector_Run__c` carry into enrichment.
+
 _Status: **DESIGN ONLY — for review** · 2026-07-06. No objects/fields are created here._
 
 Extends ADR-006 (canonical data model). Preserves the existing per-source staging objects as the

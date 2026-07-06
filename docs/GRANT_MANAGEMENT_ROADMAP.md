@@ -1,5 +1,9 @@
 # Grant Management Roadmap (Deliverable 7)
 
+> ⛔ **DEFERRED (Phase 6 refocus, 2026-07-06).** Out of scope for the current phase, which is **Lead
+> Enrichment only** (see [`LEAD_ENRICHMENT_PLATFORM.md`](LEAD_ENRICHMENT_PLATFORM.md)). Grants /
+> proposal / workspace management is a **later phase**. Retained for future reference.
+
 _Status: **DESIGN ONLY — for review** · 2026-07-06. **Do not implement authenticated Grants.gov
 integration.** Architecture only._
 

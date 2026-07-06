@@ -1,5 +1,12 @@
 # External Intelligence Framework — Master Architecture
 
+> 🔎 **Phase 6 refocus (2026-07-06): active scope narrowed to Lead Enrichment only.** The authoritative
+> current-phase master is [`LEAD_ENRICHMENT_PLATFORM.md`](LEAD_ENRICHMENT_PLATFORM.md). The **Opportunity
+> Intelligence** category, the **AI recommendation** layer, and **Grants/proposal** management are
+> **DEFERRED** to later phases. The reusable spine below (SDK, registry, canonical hub, dedupe,
+> governance) still applies; the Entity/Contract/Compliance/Market categories carry into enrichment.
+> This document is retained as the long-range platform vision.
+
 _Status: **DESIGN ONLY — for review** · Date: 2026-07-06 · Owner: Louis Rubino_
 _Nothing in this document is built, deployed, activated, or scheduled. It describes the target architecture only._
 
