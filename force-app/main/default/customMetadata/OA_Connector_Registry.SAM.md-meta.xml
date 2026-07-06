@@ -4,7 +4,7 @@
     <protected>false</protected>
     <values>
         <field>Connector_Name__c</field>
-        <value xsi:type="xsd:string">SAM.gov Entity</value>
+        <value xsi:type="xsd:string">SAM.gov Entity (Lead Enrichment)</value>
     </values>
     <values>
         <field>Source_System__c</field>
@@ -16,19 +16,19 @@
     </values>
     <values>
         <field>Connector_Class__c</field>
-        <value xsi:type="xsd:string">OA_SAMConnector</value>
+        <value xsi:type="xsd:string">OA_SAM_Connector</value>
     </values>
     <values>
         <field>Parser_Class__c</field>
-        <value xsi:type="xsd:string">OA_SAMParser</value>
+        <value xsi:type="xsd:string">OA_SAM_ResponseParser</value>
     </values>
     <values>
         <field>Mapper_Class__c</field>
-        <value xsi:type="xsd:string">OA_SAMMapper</value>
+        <value xsi:type="xsd:string">OA_SAM_Mapper</value>
     </values>
     <values>
         <field>Staging_Object__c</field>
-        <value xsi:type="xsd:string">OA_SAM_Entity_Staging__c</value>
+        <value xsi:type="xsd:string">OA_Discovered_Organization__c</value>
     </values>
     <values>
         <field>Named_Credential__c</field>
@@ -40,7 +40,7 @@
     </values>
     <values>
         <field>Dedupe_External_Id_Field__c</field>
-        <value xsi:type="xsd:string">Dedupe_Key__c</value>
+        <value xsi:type="xsd:string">Canonical_Key__c</value>
     </values>
     <values>
         <field>Enabled__c</field>

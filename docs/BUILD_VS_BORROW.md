@@ -34,3 +34,11 @@ foundation's matching/normalization logic (Phase 7)._
 …fuzzy (non-deterministic) matching becomes a hard requirement at scale — at that point, evaluate
 running **Splink** as an *offline, approved* batch step that writes match candidates back for review,
 rather than embedding any library in the org.
+
+## Update — Phase 8 (SAM.gov connector), 2026-07-06
+No decisions changed. Building the SAM.gov connector confirmed the Salesforce-native, borrow-concepts
+approach: SAM plugged into the platform using only `OA_SAM_Request` / `OA_SAM_ResponseParser` /
+`OA_SAM_Mapper` / `OA_SAM_Connector` + metadata, with **no external runtime dependency** and **no change
+to the platform engines**. The `makegov/procurement-tools` reference informed the SAM v3 entity
+endpoint/field shapes only. Deterministic identity (UEI) → HIGH confidence needed no probabilistic
+library, consistent with the original decision.
