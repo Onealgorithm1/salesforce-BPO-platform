@@ -75,3 +75,22 @@ least-privilege runtime user, approved field/ICP metadata, tripwire kill-switch,
 See also: `ADR-012-automated-lead-enrichment`, `LEAD_ENRICHMENT_PLATFORM.md`,
 `AUTOMATED_MATCH_AND_WRITE_POLICY.md`, `DISCOVERY_QUALIFICATION_ENGINE.md`, `BUILD_VS_BORROW.md`.
 (These design docs live on the `design/lead-enrichment-platform` branch.)
+
+## Phase 9 — Generic Connector Framework (platform complete)
+The final generalization landed. Connectors are now dispatched generically; no per-connector
+orchestration is written by hand:
+- **`OA_IEnrichmentConnector`** — the source-agnostic interface (`sourceKey()`, `fetch(input, cfg)`).
+- **`OA_ConnectorRunner`** — reads `OA_Connector_Registry__mdt`, resolves the connector class via
+  `Type.forName` (no hardcoded `if`/`switch`), runs the identical lifecycle, and captures telemetry
+  (start/finish/duration/processed/qualified/rejected/exceptions/version) into an in-memory
+  `OA_Connector_Run__c` (no DML by default). Skips disabled connectors; unknown/non-implementing
+  connectors fail gracefully.
+- **`OA_ConnectorResult`** — the standard result every connector returns.
+- **SAM.gov** was retrofitted to implement the interface with **no behavior/parser/mapper change**.
+
+**Onboarding a new connector is now: Request + Parser + Mapper + a Connector that implements the
+interface + metadata registration.** No platform/engine code changes. See `CONNECTOR_TEMPLATE.md` and
+the sequence diagram in `CONNECTOR_DEVELOPER_GUIDE.md` (§0).
+
+> Note: the platform-master doc `LEAD_ENRICHMENT_PLATFORM.md` lives on the `design/lead-enrichment-platform`
+> branch; apply the same Phase 9 update there when the branches are consolidated.

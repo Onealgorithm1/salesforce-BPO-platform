@@ -45,7 +45,7 @@ private class OA_SAM_Connector_Test {
         OA_SAM_Connector.registryOverride = samRegistry();
         Test.setMock(HttpCalloutMock.class, new SamMock(200, sampleBody()));
         Test.startTest();
-        OA_SAM_Connector.Result r = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult r = new OA_SAM_Connector().fetch('ABC123DEF456');
         Test.stopTest();
         System.assertEquals(1, r.parsed, 'One entity parsed');
         System.assertEquals(1, r.organizations.size(), 'Canonical org produced');
@@ -61,7 +61,7 @@ private class OA_SAM_Connector_Test {
         OA_SAM_Connector.debugStoreRawPayload = true;
         Test.setMock(HttpCalloutMock.class, new SamMock(200, sampleBody()));
         Test.startTest();
-        OA_SAM_Connector.Result r = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult r = new OA_SAM_Connector().fetch('ABC123DEF456');
         Test.stopTest();
         System.assert(String.isNotBlank(r.rawPayload), 'Raw payload captured only when debug enabled');
     }
@@ -71,16 +71,16 @@ private class OA_SAM_Connector_Test {
         OA_SAM_Connector.registryOverride = samRegistry();
 
         Test.setMock(HttpCalloutMock.class, new SamMock(429, '{"error":"rate limited"}'));
-        OA_SAM_Connector.Result rate = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult rate = new OA_SAM_Connector().fetch('ABC123DEF456');
         System.assertEquals(1, rate.httpErrors, 'Non-2xx recorded');
         System.assertEquals(0, rate.parsed, 'Nothing parsed on non-2xx');
 
         Test.setMock(HttpCalloutMock.class, new SamMock(200, 'not-json'));
-        OA_SAM_Connector.Result bad = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult bad = new OA_SAM_Connector().fetch('ABC123DEF456');
         System.assertEquals(1, bad.parseErrors, 'Malformed body -> parse error');
 
         Test.setMock(HttpCalloutMock.class, new ThrowMock());
-        OA_SAM_Connector.Result thrown = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult thrown = new OA_SAM_Connector().fetch('ABC123DEF456');
         System.assertEquals(1, thrown.httpErrors, 'Callout exception recorded, not swallowed');
         System.assert(!thrown.messages.isEmpty(), 'Failure message captured');
     }
@@ -90,7 +90,7 @@ private class OA_SAM_Connector_Test {
         // No registryOverride -> config() runs the SOQL (0 rows here) -> request falls back to defaults.
         Test.setMock(HttpCalloutMock.class, new SamMock(200, sampleBody()));
         Test.startTest();
-        OA_SAM_Connector.Result r = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult r = new OA_SAM_Connector().fetch('ABC123DEF456');
         Test.stopTest();
         System.assertEquals(1, r.parsed, 'Works with default endpoint when no registry record present');
     }
@@ -101,7 +101,7 @@ private class OA_SAM_Connector_Test {
         // 1. SAM connector -> canonical org
         OA_SAM_Connector.registryOverride = samRegistry();
         Test.setMock(HttpCalloutMock.class, new SamMock(200, sampleBody()));
-        OA_SAM_Connector.Result r = new OA_SAM_Connector().fetch('ABC123DEF456');
+        OA_ConnectorResult r = new OA_SAM_Connector().fetch('ABC123DEF456');
         OA_CanonicalOrg org = r.organizations[0];
 
         // 2. Mapper -> field proposals (SAM-specific mapping only)

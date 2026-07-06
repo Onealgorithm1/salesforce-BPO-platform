@@ -1,18 +1,20 @@
 /**
  * OA_SAM_Connector — the SAM.gov Entity connector on the Lead Enrichment platform (dormant).
  *
- * Orchestrates request -> send -> parse into canonical organizations, reading its endpoint /
- * Named Credential from OA_Connector_Registry__mdt (metadata-driven; no hardcoded registration).
- * Wires ONLY SAM-specific classes (OA_SAM_Request / OA_SAM_ResponseParser); it does not modify
- * or contain any platform (policy / qualification / writer) logic.
+ * Implements the generic OA_IEnrichmentConnector contract so OA_ConnectorRunner can dispatch it
+ * dynamically from OA_Connector_Registry__mdt. Orchestrates request -> send -> parse into canonical
+ * organizations; wires ONLY SAM-specific classes (OA_SAM_Request / OA_SAM_ResponseParser) and
+ * contains NO platform (policy / qualification / writer) logic.
+ *
+ * Behavior is unchanged from Phase 8 — this class only adopts the shared interface + result type.
  *
  * DORMANT: nothing schedules or invokes it; live callouts are gated behind External Credential
- * principal access which is granted separately. In tests the send path is mocked; no live call.
+ * principal access granted separately. In tests the send path is mocked; no live call.
  *
- * RAW PAYLOAD: disabled by default (debugStoreRawPayload = false). It is populated only when a
- * debug configuration turns it on and is NEVER enabled automatically.
+ * RAW PAYLOAD: disabled by default (debugStoreRawPayload = false). Populated only when a debug
+ * configuration turns it on and NEVER enabled automatically.
  */
-public with sharing class OA_SAM_Connector {
+public with sharing class OA_SAM_Connector implements OA_IEnrichmentConnector {
 
     public static final String SOURCE_KEY = 'SAM';
 
@@ -24,23 +26,19 @@ public with sharing class OA_SAM_Connector {
     @TestVisible
     private static List<OA_Connector_Registry__mdt> registryOverride;
 
-    public class Result {
-        public String sourceKey = SOURCE_KEY;
-        public Integer requested = 0;
-        public Integer parsed = 0;
-        public Integer httpErrors = 0;
-        public Integer parseErrors = 0;
-        public Integer lastStatus;
-        public List<OA_CanonicalOrg> organizations = new List<OA_CanonicalOrg>();
-        public List<String> messages = new List<String>();
-        public String rawPayload;   // populated only when debugStoreRawPayload = true
+    public String sourceKey() {
+        return SOURCE_KEY;
     }
 
-    /** Fetch + parse one entity (by UEI or legal name) into canonical organizations. */
-    public Result fetch(String input) {
-        Result res = new Result();
+    /** Convenience: resolve config from the registry, then fetch (standalone use / tests). */
+    public OA_ConnectorResult fetch(String input) {
+        return fetch(input, config());
+    }
+
+    /** Interface entry point: fetch + parse one entity into canonical organizations. */
+    public OA_ConnectorResult fetch(String input, OA_Connector_Registry__mdt cfg) {
+        OA_ConnectorResult res = new OA_ConnectorResult(SOURCE_KEY);
         res.requested = 1;
-        OA_Connector_Registry__mdt cfg = config();
         HttpRequest req = new OA_SAM_Request().build(input, cfg);
 
         try {
@@ -81,7 +79,7 @@ public with sharing class OA_SAM_Connector {
         }
         List<OA_Connector_Registry__mdt> rs = [
             SELECT Source_System__c, Named_Credential__c, Endpoint_Path__c, Connector_Class__c,
-                   Parser_Class__c, Mapper_Class__c, Enabled__c, Status__c
+                   Parser_Class__c, Mapper_Class__c, Enabled__c, Status__c, Version__c
             FROM OA_Connector_Registry__mdt
             WHERE Source_System__c = :SOURCE_KEY
             LIMIT 1

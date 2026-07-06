@@ -4,7 +4,45 @@ _How to add an enrichment connector to the Lead Enrichment Platform. Goal: conne
 straightforward as connector #1. SAM.gov (Phase 8) is the reference implementation._
 
 The platform (Phase 7 foundation) is connector-agnostic. A connector supplies ONLY source-specific
-logic in four classes + metadata; it never modifies the platform engines.
+logic in four classes + metadata; it never modifies the platform engines. Since Phase 9, connectors
+are **dispatched generically** by `OA_ConnectorRunner` from `OA_Connector_Registry__mdt` — there is no
+per-connector orchestration to write and no `if source == …` anywhere.
+
+---
+
+## 0. How dispatch works (Phase 9 — generic connector framework)
+
+Every connector implements one interface and is run by one dispatcher:
+
+- **`OA_IEnrichmentConnector`** — `sourceKey()` + `fetch(input, cfg) : OA_ConnectorResult`. Source-agnostic.
+- **`OA_ConnectorRunner`** — reads the registry, resolves the connector class via `Type.forName`,
+  runs the identical lifecycle, and captures timing + telemetry. It knows nothing about any source.
+- **`OA_ConnectorResult`** — the standard result (canonical orgs + fetch counts) every connector returns.
+
+Lifecycle (identical for all connectors):
+```
+Initialize → Execute Request → Receive Response → Parse → Map →
+Return Canonical Organizations → Invoke existing platform → Collect metrics → Complete
+```
+
+### Sequence — Registry → Dispatcher → Connector → Canonical → Platform
+```
+Caller                 OA_ConnectorRunner         OA_Connector_Registry__mdt      OA_<Src>_Connector          Platform engines
+  │  run(sourceKey,input,ruleset)                         │                              │                          │
+  ├──────────────►│                                       │                              │                          │
+  │               │  read registry record ───────────────►│                              │                          │
+  │               │◄── cfg (class, enabled, version) ──────┤                              │                          │
+  │               │  if !Enabled → Skipped (stop)          │                              │                          │
+  │               │  Type.forName(cfg.Connector_Class__c).newInstance()  ───────────────► │  (dynamic resolve)       │
+  │               │  fetch(input, cfg) ─────────────────────────────────────────────────►│                          │
+  │               │                                        │   Request→send→Parser→OA_CanonicalOrg[]                 │
+  │               │◄─────────────────── OA_ConnectorResult (canonical orgs) ──────────────┤                          │
+  │               │  for each org: DiscoveryQualificationEngine.evaluate(org, ruleset) ─────────────────────────────►│
+  │               │◄──────────────────────────── qualified / rejected ────────────────────────────────────────────┤
+  │               │  build telemetry → OA_Connector_Run__c (in-memory) + RunOutcome        │                          │
+  │◄── RunOutcome (orgs + metrics + timing) ──────────────┤                              │                          │
+```
+(Field-write enrichment via `OA_<Src>_Mapper` → `OA_EnrichmentWriter` runs downstream, per matched Lead.)
 
 ---
 
