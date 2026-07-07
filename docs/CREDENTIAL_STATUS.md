@@ -1,6 +1,15 @@
-# Connector Credential Status (Track A) — Sprint 17
+# Connector Credential Status (Track A) — Sprint 17 (re-verified Sprint 19)
 
-_Verified live 2026-07-06 · Org 00Dbn00000plgUfEAI · read-only audit · NO secrets shown_
+_Re-verified live 2026-07-07 (Sprint 19, Tooling API) · Org 00Dbn00000plgUfEAI · read-only audit · NO secrets shown_
+
+> **Sprint 19 live re-verification & correction.** The SAM "endpoint blank" finding below was a **misread**: `OA_SAM`
+> is a new-style `SecuredEndpoint` Named Credential, so the legacy `NamedCredential.Endpoint` field is null by design.
+> The **real** endpoint lives in a `namedCredentialParameter` (live value **`https://api-alpha.sam.gov`** — the ALPHA host,
+> not production `api.sam.gov`). SAM's genuine gaps are: **principal access = 0** (confirmed live — permset `OA_SAM_Connector`
+> carries no `externalCredentialPrincipalAccesses` grant and has 0 assignments), **alpha endpoint** (should move to prod),
+> and **unconfirmed key** (prior non-2xx). USASpending re-confirmed live-ready: **connectivity test HTTP 200** (read-only,
+> Sprint 19). Census + SEC NCs **prepared + check-only validated** (`0AfPn00000236CbKAI`, Succeeded) but **not deployed**.
+> Full detail: `SPRINT19_LIVE_PILOT_REPORT.md`.
 
 Production credential readiness for every v1.0 connector. Values below are **presence/endpoint only** —
 no keys, tokens, or secrets are recorded here (secrets live only in External Credentials in Setup).

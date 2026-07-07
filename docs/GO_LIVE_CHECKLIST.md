@@ -33,9 +33,11 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [ ] Rollback rehearsed once against a live pilot run before scaling.
 
 ## 6. Source control & release
-- [x] v1.0 baseline: `main = 485f7dc`, tag `lead-enrichment-v1.0` (local; push pending Louis approval).
-- [x] Sprint-17 operational layer committed on `feature/sprint17-operational-enablement` (local).
+- [x] v1.0 baseline: tag `lead-enrichment-v1.0` = `485f7dc` (pushed; not retagged).
+- [x] **Sprint 17 MERGED to `main` (2026-07-07, Sprint 19)** — fast-forward `485f7dc..59f9df0`, validated `0AfPn00000235zhKAA` (6/6), pushed to origin. `main = origin/main = 59f9df0`.
 - [x] Platform frozen — Sprint 17 added only operational classes (no platform/connector edits).
+- [ ] **Sprint 17 execution layer NOT yet deployed to the org** (orchestrator/queueable/adapter count = 0 in prod; only check-only validated). Required before any pilot.
+- [x] Census + SEC Named Credentials prepared + check-only validated (`0AfPn00000236CbKAI`); not deployed.
 
 ## 7. Deployment history (for the record)
 | Deploy / validate | ID | Result |
