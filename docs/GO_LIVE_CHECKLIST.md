@@ -59,6 +59,11 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [ ] **Activate a fill-empty write policy** (0 of 19 active) — required before any real write. Under fill-empty the preview would fill 48 blank fields and route 8 `State` conflicts to the exception queue (no overwrite).
 - [ ] Execution engine (`OA_EnrichmentOrchestrator`) still not deployed — required for batch/scheduled, **not** for the direct-path 25-Lead write.
 
+## Sprint 21 update (2026-07-07) — write pilot BLOCKED (fix prepared)
+- [ ] **Fill-empty policies not yet active.** Deployed USASpending policies were **2 Overwrite + 3 missing** (not fill-empty). Corrected 5 policies (2 Overwrite→FillEmptyOnly + 3 new), **Active=false**, check-only validated `0AfPn00000238RJKAY` (Succeeded). Activation (Active=true + deploy) is the gated write step.
+- [ ] **Concurrent session in the org** (LinkedIn/OAuth check-only validations) — coordinate before the first production write.
+- [x] Pre-flight PASS; 25 Leads verified unchanged; 8 matched targets all blank; before-snapshot saved; rollback ready. Detail: `SPRINT21_25_LEAD_WRITE_PILOT.md`.
+
 ## Go/No-Go
-**GO for a controlled 25-Lead WRITE pilot** — after activating the fill-empty policy + explicit approval; runs via the preview-proven direct path with `commitWrites=true`; rollback ready.
+**GO for a controlled 25-Lead WRITE pilot** — after (a) activating the 5 prepared fill-empty policies, (b) explicit approval, (c) org quiet; runs via the preview-proven direct path with `commitWrites=true`; rollback ready.
 **NO-GO for 100-Lead / batch / scheduled / 24-7** until §1 least-priv user, engine deploy, and a passing 25-Lead write are complete.

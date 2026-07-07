@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <label>USASpending Lead Federal Contractor</label>
+    <label>USASpending Lead Award Count</label>
     <protected>false</protected>
     <values><field>Target_Object__c</field><value xsi:type="xsd:string">Lead</value></values>
-    <values><field>Target_Field__c</field><value xsi:type="xsd:string">Federal_Contractor__c</value></values>
+    <values><field>Target_Field__c</field><value xsi:type="xsd:string">Award_Count__c</value></values>
     <values><field>Source_System__c</field><value xsi:type="xsd:string">USASpending</value></values>
     <values><field>Write_Mode__c</field><value xsi:type="xsd:string">FillEmptyOnly</value></values>
     <values><field>Confidence_Floor__c</field><value xsi:type="xsd:string">HIGH</value></values>

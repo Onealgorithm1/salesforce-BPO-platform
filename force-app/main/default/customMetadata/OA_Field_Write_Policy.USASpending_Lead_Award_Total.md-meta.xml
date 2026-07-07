@@ -2,40 +2,13 @@
 <CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <label>USASpending Lead Award Total</label>
     <protected>false</protected>
-    <values>
-        <field>Target_Object__c</field>
-        <value xsi:type="xsd:string">Lead</value>
-    </values>
-    <values>
-        <field>Target_Field__c</field>
-        <value xsi:type="xsd:string">Total_Award_Amount__c</value>
-    </values>
-    <values>
-        <field>Source_System__c</field>
-        <value xsi:type="xsd:string">USASpending</value>
-    </values>
-    <values>
-        <field>Write_Mode__c</field>
-        <value xsi:type="xsd:string">Overwrite</value>
-    </values>
-    <values>
-        <field>Confidence_Floor__c</field>
-        <value xsi:type="xsd:string">HIGH</value>
-    </values>
-    <values>
-        <field>Conflict_Behavior__c</field>
-        <value xsi:type="xsd:string">Review</value>
-    </values>
-    <values>
-        <field>Trusted__c</field>
-        <value xsi:type="xsd:boolean">true</value>
-    </values>
-    <values>
-        <field>Active__c</field>
-        <value xsi:type="xsd:boolean">false</value>
-    </values>
-    <values>
-        <field>Description__c</field>
-        <value xsi:type="xsd:string">SAMPLE (dormant) field policy.</value>
-    </values>
+    <values><field>Target_Object__c</field><value xsi:type="xsd:string">Lead</value></values>
+    <values><field>Target_Field__c</field><value xsi:type="xsd:string">Total_Award_Amount__c</value></values>
+    <values><field>Source_System__c</field><value xsi:type="xsd:string">USASpending</value></values>
+    <values><field>Write_Mode__c</field><value xsi:type="xsd:string">FillEmptyOnly</value></values>
+    <values><field>Confidence_Floor__c</field><value xsi:type="xsd:string">HIGH</value></values>
+    <values><field>Conflict_Behavior__c</field><value xsi:type="xsd:string">Review</value></values>
+    <values><field>Trusted__c</field><value xsi:type="xsd:boolean">true</value></values>
+    <values><field>Active__c</field><value xsi:type="xsd:boolean">false</value></values>
+    <values><field>Description__c</field><value xsi:type="xsd:string">USASpending fill-empty pilot policy (Sprint 21). Dormant until pilot activation.</value></values>
 </CustomMetadata>
