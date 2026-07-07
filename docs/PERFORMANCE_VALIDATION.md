@@ -53,6 +53,29 @@ Start live runs at **20**, watch telemetry (`OA_Connector_Run__c` duration/error
 / 200 (IRS). Keep scheduled concurrency low so daily API allocation isn't exhausted by a single backfill.
 
 ## Caveats
-- Numbers are the compute/limit profile; **real callouts were not executed** (credentials/endpoints pending —
-  see `CREDENTIAL_STATUS.md`). Re-measure end-to-end latency during the first controlled live pilot.
 - Warm-up inflates the per-Lead CPU average at small N; at production volume the amortized cost is lower.
+
+## Sprint 27 — MEASURED performance (live, v1.1) & capacity
+Real production measurements from the Sprint-24 100-Lead run + Sprint-23/25 writes (USASpending, callout-before-DML):
+
+| Metric | Measured | Governor limit / txn | Margin |
+|---|---|---|---|
+| CPU | ~25 ms/Lead (~1.3 s / 50) | 10,000 ms (sync) / 60,000 (async) | huge |
+| SOQL | 1 / chunk (CMDT cached) | 100 | huge |
+| DML statements | 60–64 / 50-Lead chunk | 150 | ~2.3× |
+| DML rows | ~205–219 / 50-Lead chunk | 10,000 | huge |
+| Callouts | 50 / chunk | 100 | 2× (**binding limit**) |
+| Heap | ~32 KB / 50-Lead chunk | 6 MB (sync) / 12 MB (async) | huge |
+| API latency | ~150 ms/callout (128–330) | — | — |
+
+**Binding constraint = callouts (100/txn).** With callout-before-DML, **safe chunk = 50 callout-Leads/transaction**.
+
+### Estimated capacity (safe production limits)
+| Volume | Chunks @ 50 | Est. wall-clock | Notes |
+|---|---|---|---|
+| **100 Leads** | 2 | ~25 s | proven (Sprint 24). |
+| **500 Leads** | 10 | ~2–4 min | run in one session; watch daily API allocation. |
+| **1,000 Leads** | 20 | ~5–10 min | fine synchronously in chunks; ideal for the (undeployed) Batch orchestrator. |
+| **10,000 Leads** | 200 | ~1–2 hrs | requires `OA_EnrichmentOrchestrator` (Batch) — not yet deployed; run off-peak. |
+
+**Recommended safe limits:** ≤50 callout-Leads/transaction; ≤ a few thousand/day manually (respect the org's daily callout allocation); ≥10k needs the Batch orchestrator + off-peak scheduling + the least-privilege runtime user. IRS (bulk CSV, no callout): batch 200, CPU/DML-bound only.

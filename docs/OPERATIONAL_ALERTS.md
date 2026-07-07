@@ -1,5 +1,7 @@
 # Operational Alerts (Track E) — Sprint 17
 
+> **🕰 HISTORICAL — superseded by `MONITORING_AND_ALERTS.md` (Sprint 27), the authoritative monitoring & alerting reference.** Retained for provenance; do not extend this file.
+
 _Design + thresholds · Org 00Dbn00000plgUfEAI · alerts are recommendations, none activated_
 
 All signals derive from data the platform already persists — `OA_Connector_Run__c` (telemetry),
