@@ -145,3 +145,15 @@ turns it on deliberately).
 [ ] Runbook written; BUILD_VS_BORROW updated if a decision changed
 [ ] Check-only validated; committed; NOT deployed/enabled
 ```
+
+## 11. Wave 1 reference connectors (Sprint 10)
+Four built connectors show the pattern across ingestion styles — copy the closest one:
+- **SAM.gov** — REST GET, JSON object → entity identity (UEI/CAGE).
+- **USASpending** — REST **POST**, JSON object; parser **aggregates** awards per recipient into one org.
+- **Census** — REST GET, JSON **array-of-arrays**; produces **context** records (no identity, `NONE`
+  confidence) that enrich an existing org by geography/NAICS.
+- **IRS Tax-Exempt** — **BULK** (EO BMF CSV): implements the same interface but makes **no HTTP call**;
+  `fetch(input)` parses provided bulk content. Proves the framework is not REST-locked.
+
+Non-REST or context sources need **no platform change** — only a different Parser/Mapper. See
+`LEAD_ENRICHMENT_PLATFORM_SPEC.md` for the full connector matrix and entity-resolution notes.

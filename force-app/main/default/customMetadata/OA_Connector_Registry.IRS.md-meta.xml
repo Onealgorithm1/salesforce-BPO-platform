@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <label>USASpending</label>
+    <label>IRS Tax Exempt</label>
     <protected>false</protected>
     <values>
         <field>Connector_Name__c</field>
-        <value xsi:type="xsd:string">USASpending</value>
+        <value xsi:type="xsd:string">IRS Tax Exempt</value>
     </values>
     <values>
         <field>Source_System__c</field>
-        <value xsi:type="xsd:string">USASpending</value>
+        <value xsi:type="xsd:string">IRS</value>
     </values>
     <values>
         <field>Category__c</field>
-        <value xsi:type="xsd:string">Contract</value>
+        <value xsi:type="xsd:string">Compliance</value>
     </values>
     <values>
         <field>Connector_Class__c</field>
-        <value xsi:type="xsd:string">OA_USASpending_Connector</value>
+        <value xsi:type="xsd:string">OA_IRS_Connector</value>
     </values>
     <values>
         <field>Parser_Class__c</field>
-        <value xsi:type="xsd:string">OA_USASpending_ResponseParser</value>
+        <value xsi:type="xsd:string">OA_IRS_ResponseParser</value>
     </values>
     <values>
         <field>Mapper_Class__c</field>
-        <value xsi:type="xsd:string">OA_USASpending_Mapper</value>
+        <value xsi:type="xsd:string">OA_IRS_Mapper</value>
     </values>
     <values>
         <field>Staging_Object__c</field>
@@ -32,11 +32,11 @@
     </values>
     <values>
         <field>Named_Credential__c</field>
-        <value xsi:type="xsd:string">OA_USASpending</value>
+        <value xsi:type="xsd:string">OA_IRS</value>
     </values>
     <values>
         <field>Endpoint_Path__c</field>
-        <value xsi:type="xsd:string">/api/v2/search/spending_by_award/</value>
+        <value xsi:type="xsd:string">/bulk</value>
     </values>
     <values>
         <field>Dedupe_External_Id_Field__c</field>
