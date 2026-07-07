@@ -1,5 +1,7 @@
 # Google Cloud API Baseline — Recommended Posture
 
+> ⚠️ **HISTORICAL (Sprint 1).** Current: **43 enabled** (8 of the disable-candidates disabled in Sprint 3; `datastore`+`sql-component` kept). See **`GOOGLE_CLOUD_API_INVENTORY.md`** / **`GOOGLE_CLOUD_HARDENING.md`**.
+
 **Project:** `onealgorithm-bpo`. **Verified 2026-07-07: 48 APIs enabled** (`gcloud services list
 --enabled`, authenticated as `onealgorithm@gmail.com`). The recommendation table below is now
 reconciled against that live list.

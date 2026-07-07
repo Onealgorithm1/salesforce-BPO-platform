@@ -1,5 +1,7 @@
 # Google Cloud Platform — Baseline
 
+> ⚠️ **HISTORICAL (Sprint 1).** Post-hardening current state (43 APIs, `claude-cli-admin` SA, Data Access logs on, ADC done) lives in **`GOOGLE_CLOUD_HARDENING.md`** / **`PROJECT_CLOSEOUT.md`**. Numbers below are the pre-Sprint-3 snapshot.
+
 **Project:** `onealgorithm-bpo` — intended permanent Google integration hub for One Algorithm
 **Sprint:** GREEN — Infrastructure & CLI Foundation (2026-07-07)
 **Execution mode:** install tooling + read-only audit + documentation. **No billable resources, no credentials, no keys, no deploy.**
