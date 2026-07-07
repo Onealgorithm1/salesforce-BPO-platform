@@ -38,7 +38,7 @@ Rollback (if needed): `OA_ChangeLogService.rollback([logs WHERE Connector_Run__r
 
 ## Conditions & limits
 - Runtime user is the temporary MAD `oauser` (documented exception) — replace with a least-privilege user before any automation.
-- USASpending only; SAM/Census/SEC remain dormant pending credential provisioning.
-- Baseline KPIs: `KPI_BASELINE.md`.
+- **Sprint 30:** program CLOSED at ops baseline `lead-enrichment-ops-v1.1`. USASpending in use; **Census + SEC NCs deployed + live-tested (HTTP 200) → credential-READY** (connectors dormant); IRS ready (no callout); **SAM BLOCKED** (data.gov key / EC principal access).
+- Baseline KPIs: `KPI_BASELINE.md`. Closure: `LEAD_ENRICHMENT_FINAL_CLOSURE.md`. Daily ops: `DAILY_ENRICHMENT_OPERATING_PROCEDURE.md`.
 
 **Certifying evidence author:** Claude (CLI-verified). **Owner/approver:** Louis (`lronealgorithm@gmail.com`).

@@ -38,7 +38,7 @@ The single operational reference for running Lead Enrichment Platform v1.0. Comp
 - **SAM (data.gov key):** rotate in `Setup → Named/External Credentials → OA_SAM` (update the `X-Api-Key`
   Custom Header on the External Credential). Never commit keys; secrets live only in the EC. Re-run a smoke
   test after rotating. Rotate immediately if a key is ever exposed in logs/screens.
-- **Census/SEC:** public (no secret) — only the endpoint/User-Agent matter.
+- **Census/SEC:** public (no secret) — only the endpoint/User-Agent matter. **NCs `OA_Census`→`api.census.gov` / `OA_SEC`→`data.sec.gov` DEPLOYED + live-tested HTTP 200 (Sprint 30); connectors remain dormant.**
 - **EC principal access** is granted **JIT** at go-live and revoked when not actively enriching.
 
 ## Recovery (after a failed run)

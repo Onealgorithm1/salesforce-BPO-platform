@@ -90,5 +90,10 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [ ] Visual monitoring (dashboards/reports/alerts) — build via **admin UI** (metadata deploy impractical); specs in `DASHBOARD_*.md`.
 - [ ] Least-privilege runtime user (replace MAD `oauser`); Census/SEC/SAM credentials.
 
+## Sprint 30 — CLOSED (operational baseline `lead-enrichment-ops-v1.1`)
+- [x] Census + SEC Named Credentials deployed + live-tested (HTTP 200) → USASpending/IRS/Census/SEC READY; SAM BLOCKED (external creds).
+- [x] Daily operating procedure (`DAILY_ENRICHMENT_OPERATING_PROCEDURE.md`) + final closure (`LEAD_ENRICHMENT_FINAL_CLOSURE.md`).
+- [ ] UI dashboards/alerts (`MONITORING_UI_BUILD_GUIDE.md`) · [ ] least-priv user (license) · [ ] SAM key — **operational maintenance, not engineering.**
+
 ## Go/No-Go
-🟢 **GO / CERTIFIED for controlled/manual enrichment** (25/100/daily; execution layer now deployed). 🔴 **NO-GO for scheduled/batch/24×7** until visual monitoring + alerts (UI), least-privilege runtime user, and credentials are complete.
+🟢 **GO / CERTIFIED for controlled/manual enrichment**; program **CLOSED** at ops baseline. 🔴 **NO-GO for scheduled/batch/24×7** until UI monitoring + least-privilege user + SAM key.
