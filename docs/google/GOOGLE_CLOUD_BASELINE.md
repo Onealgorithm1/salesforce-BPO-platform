@@ -1,5 +1,7 @@
 # Google Cloud Baseline Inventory — `onealgorithm-bpo`
 
+> ⚠️ **Superseded for post-Sprint-3 state by `GOOGLE_CLOUD_HARDENING.md`** (2026-07-07): Data Access logs now ON, `claude-cli-admin` SA created, 8 APIs disabled (49→43), `cloudasset`/`recommender` enabled, notification channel created.
+
 **Sprint 2 — Foundation Finalization** · **Verified 2026-07-07** (live `gcloud`, authenticated `onealgorithm@gmail.com`)
 **Companion audits:** `GOOGLE_CLOUD_API_INVENTORY.md`, `GOOGLE_CLOUD_IAM_AUDIT.md`, `GOOGLE_CLOUD_SECURITY.md`, `GOOGLE_CLOUD_COST_GOVERNANCE.md`
 **Note:** point-in-time audit; complements the Sprint-1 architecture docs (`GOOGLE_PLATFORM_BASELINE.md` etc.).

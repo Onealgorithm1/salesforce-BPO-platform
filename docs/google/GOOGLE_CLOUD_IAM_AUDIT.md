@@ -1,5 +1,7 @@
 # Google Cloud IAM & Service Account Audit — `onealgorithm-bpo`
 
+> ⚠️ **Post-Sprint-3 (2026-07-07):** `claude-cli-admin` SA now exists (keyless, 4 scoped roles, impersonation by owner). Owner intentionally unchanged (lockout risk). See `GOOGLE_CLOUD_HARDENING.md`.
+
 **Sprint 2** · **Verified 2026-07-07** (`get-iam-policy`, `iam service-accounts list`). **No access removed** — recommendations only.
 
 ## Track C — IAM principals

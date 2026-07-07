@@ -1,5 +1,7 @@
 # Google Cloud Security Posture — `onealgorithm-bpo`
 
+> ⚠️ **Post-Sprint-3 (2026-07-07):** Data Access audit logs now ON; `cloudasset`+`recommender` enabled; 0 keys maintained. SCC/Org-Policy still N/A (no Org). See `GOOGLE_CLOUD_HARDENING.md`.
+
 **Sprint 2** · **Verified 2026-07-07.** Recommendations only — no changes made.
 
 ## Track E — Security baseline (verified state)

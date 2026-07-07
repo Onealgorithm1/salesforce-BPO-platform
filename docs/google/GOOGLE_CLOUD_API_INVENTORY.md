@@ -1,5 +1,7 @@
 # Google Cloud API Inventory — `onealgorithm-bpo`
 
+> ⚠️ **Post-Sprint-3 (2026-07-07): 43 enabled.** 8 of the 10 disable-candidates were disabled; `datastore` + `sql-component` kept (dependents). `cloudasset`+`recommender` added. See `GOOGLE_CLOUD_HARDENING.md`.
+
 **Sprint 2** · **Verified 2026-07-07: 49 APIs enabled.** Classification only — **nothing disabled** (gated).
 Classes: **KEEP** (foundational, in use) · **KEEP FOR ROADMAP** (stated goal, not yet used) · **DISABLE CANDIDATE** (not on any goal) · **UNKNOWN**.
 
