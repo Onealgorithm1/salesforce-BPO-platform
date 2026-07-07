@@ -80,5 +80,10 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [ ] **DEFECT #2:** `OA_EnrichmentWriter` ignores `Database.update` SaveResults → commits change logs for failed updates, routes no exception. Fix before scaled/automated use.
 - Full detail: `SPRINT24_PRODUCTION_ACCEPTANCE_REPORT.md`.
 
+## Sprint 25 update (2026-07-07) — CERTIFIED (v1.1)
+- [x] **Both acceptance defects fixed + deployed** (deploy `0AfPn0000023BnNKAU`, 261 tests, 0 failures): `Awarding_Agencies__c`→Long Text Area; `OA_EnrichmentWriter` inspects SaveResults.
+- [x] **6 failed Leads repaired** (6/6 enriched); orphan audit cleaned; **audit exactly matches DB** (68 Leads, 408 logs, 0 orphans); rollback verified; dormant.
+- [x] **PRODUCTION CERTIFIED** for controlled/manual enrichment — `PRODUCTION_CERTIFICATION.md`, `RELEASE_1.1.md`, tag `lead-enrichment-v1.1`.
+
 ## Go/No-Go
-**GO for controlled/manual enrichment** (proven, audited, reversible). **NO-GO for scheduled/batch/24-7** until DEFECT #1/#2 fixed, least-privilege runtime user provisioned, and orchestrator deployed.
+🟢 **GO / CERTIFIED for controlled/manual enrichment** (25/100/daily). 🔴 **NO-GO for scheduled/batch/24×7** until least-privilege runtime user + orchestrator deploy (operational-automation track).

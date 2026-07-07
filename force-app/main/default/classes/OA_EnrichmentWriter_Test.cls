@@ -98,6 +98,34 @@ private class OA_EnrichmentWriter_Test {
     }
 
     @isTest
+    static void testSaveFailureRoutesExceptionAndDiscardsLogs() {
+        // Sprint 25 Defect #2: when the CRM update fails (here STRING_TOO_LONG on FirstName(40)),
+        // the writer must NOT commit misleading change logs, must route an exception, and must
+        // reflect that nothing persisted — while continuing safely.
+        OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
+            pol('FirstName', 'Overwrite')
+        };
+        Lead l = newLead('ACME6', null, 'Hot');   // FirstName is null
+        String tooLong = '0123456789012345678901234567890123456789012345678901234567890123'; // 64 > 40
+        List<OA_EnrichmentWriter.FieldProposal> ps = new List<OA_EnrichmentWriter.FieldProposal>{
+            new OA_EnrichmentWriter.FieldProposal('FirstName', tooLong, 'SAM', 'HIGH')
+        };
+        Test.startTest();
+        OA_EnrichmentWriter.Result r = OA_EnrichmentWriter.enrich(l, ps, null, true);
+        Test.stopTest();
+
+        System.assert(r.committed, 'Commit path ran');
+        System.assertEquals(0, r.written, 'Failed save -> nothing counted as written');
+        System.assert(r.exceptions.size() >= 1, 'A failure exception was routed');
+        System.assertEquals('PolicyException', r.exceptions[0].Exception_Type__c, 'Routed as PolicyException');
+        System.assertEquals(0, [SELECT COUNT() FROM OA_Enrichment_Change_Log__c],
+            'No misleading change log persisted for the failed write');
+        System.assert([SELECT COUNT() FROM OA_Enrichment_Exception__c] >= 1, 'Exception persisted');
+        System.assertEquals(null, [SELECT FirstName FROM Lead WHERE Id = :l.Id].FirstName,
+            'Field not persisted (update was rejected)');
+    }
+
+    @isTest
     static void testTypeErrorAndNoChange() {
         OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
             pol('NumberOfEmployees', 'Overwrite'),

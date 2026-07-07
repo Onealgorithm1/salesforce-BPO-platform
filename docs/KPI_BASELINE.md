@@ -36,9 +36,12 @@ _Established 2026-07-07 (Sprint 24, 100-Lead acceptance pilot) · Org **00Dbn000
 - 50 Leads/transaction (50 callouts) ≈ 10–14 s. 100 Leads ≈ 2 chunks ≈ ~25 s.
 - Extrapolated: 1,000 Leads ≈ ~5–10 min; 10,000 ≈ ~1–2 hrs (callout-latency bound; run off-peak).
 
-## Known limitations captured in this baseline
-1. **`Awarding_Agencies__c` (255 chars)** overflows for multi-agency contractors (449–566 chars observed) → silent write failure (~10% of matches). *Fix pending.*
-2. **`OA_EnrichmentWriter`** does not inspect `Database.update` SaveResults → commits change logs for failed updates and routes no exception. *Fix pending.*
+## Sprint 25 update — write success rate now 100%
+After the defect fixes, the 6 previously-failed Leads enriched successfully. **Effective write success rate (of matched) = 100%** (60/60 for the acceptance cohort; 68 Leads enriched total). Both limitations below are **RESOLVED**.
+
+## Known limitations captured in this baseline (RESOLVED Sprint 25)
+1. ~~`Awarding_Agencies__c` (255 chars) overflow~~ → **FIXED**: converted to Long Text Area(32768); all agency data preserved.
+2. ~~`OA_EnrichmentWriter` ignores SaveResults~~ → **FIXED**: writer inspects `Database.SaveResult`; failed writes route an exception and never leave misleading audit.
 
 ## How to reproduce / measure
 - Preview: fetch → `OA_USASpending_Mapper.toLeadProposals` → `OA_EnrichmentWriter.preview` (commit=false), sample `Limits.*`.

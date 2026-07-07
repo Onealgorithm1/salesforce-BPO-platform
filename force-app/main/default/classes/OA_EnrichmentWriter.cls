@@ -100,10 +100,34 @@ public with sharing class OA_EnrichmentWriter {
         }
 
         if (commitWrites == true) {
+            Boolean saveOk = true;
             if (dirty) {
-                Database.update(new List<SObject>{ target }, false, AccessLevel.USER_MODE);
+                // Sprint 25 Defect #2 fix: inspect the SaveResult. A failed CRM write must NOT
+                // leave misleading "written" audit — discard the change logs, route an exception
+                // capturing the reason, and reflect that nothing persisted.
+                Database.SaveResult sr =
+                    Database.update(new List<SObject>{ target }, false, AccessLevel.USER_MODE)[0];
+                saveOk = sr.isSuccess();
+                if (!saveOk) {
+                    List<String> errs = new List<String>();
+                    for (Database.Error e : sr.getErrors()) {
+                        String flds = (e.getFields() != null && !e.getFields().isEmpty())
+                            ? ' [' + String.join(e.getFields(), ',') + ']' : '';
+                        errs.add(e.getStatusCode() + ': ' + e.getMessage() + flds);
+                    }
+                    String reason = String.join(errs, ' | ');
+                    r.exceptions.add(OA_ExceptionRoutingService.policyException(
+                        obj, targetId, null, null,
+                        'Enrichment write failed; no fields persisted: ' + reason, runId));
+                    r.messages.add('Update failed — change logs discarded: ' + reason);
+                    r.skipped += r.written;   // nothing actually persisted
+                    r.written = 0;
+                    r.changeLogs.clear();     // do not persist misleading audit
+                }
             }
-            OA_ChangeLogService.commitLogs(r.changeLogs);
+            if (saveOk) {
+                OA_ChangeLogService.commitLogs(r.changeLogs);
+            }
             OA_ExceptionRoutingService.commitExceptions(r.exceptions);
             r.committed = true;
         }

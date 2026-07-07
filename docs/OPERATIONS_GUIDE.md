@@ -63,7 +63,7 @@ user (retire the `oauser`/MAD exception when a license is available — top stan
 ## Operational learnings (Sprints 23–24)
 - **Callout ordering (critical):** make the connector callout(s) **before any DML** in the transaction. Doing DML (e.g. inserting the run record) first triggers `CalloutException: uncommitted work pending` — every callout then fails with `lastStatus=null`. Pattern: collect all fetch results first, then insert run + `enrich(commit=true)`. (This — not rate limiting — was the Sprint-22 blocker.)
 - **Batch sizing:** ~50 Leads per transaction is safe (50 callouts < 100 limit; ~25 ms CPU/Lead; DML < 150 stmts). USASpending latency ~150 ms/callout.
-- **Known defect — `Awarding_Agencies__c` (255 chars):** multi-agency contractors overflow it → `STRING_TOO_LONG` → the whole Lead update is silently rejected (writer uses `allOrNone=false` and does not check SaveResults, so change logs are still written). Until fixed: expect ~10% of matches to silently miss, with audit rows that don't match data. See `SPRINT24_PRODUCTION_ACCEPTANCE_REPORT.md`.
+- **RESOLVED (Sprint 25):** `Awarding_Agencies__c` is now **Long Text Area(32768)** (was Text 255) — multi-agency contractors no longer overflow. And `OA_EnrichmentWriter` now **inspects `Database.SaveResult`**: a failed write routes an exception and never leaves misleading audit. See `SPRINT25_PRODUCTION_HARDENING.md` / `PRODUCTION_CERTIFICATION.md`.
 
 ## Guardrails (always true)
 - No live enrichment until credentials + a passing pilot; connectors dormant by default.
