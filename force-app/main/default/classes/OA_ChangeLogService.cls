@@ -74,7 +74,15 @@ public with sharing class OA_ChangeLogService {
                 continue;
             }
             Map<String, Object> snap = (Map<String, Object>) JSON.deserializeUntyped(log.Before_Snapshot__c);
-            byRecord.put(log.Target_Record_Id__c, snap);
+            // Each change log carries a single-field snapshot; MERGE all of a record's field
+            // snapshots so every field is restored (previously this put() overwrote the map,
+            // restoring only the last field per record — the multi-field rollback defect).
+            Map<String, Object> merged = byRecord.get(log.Target_Record_Id__c);
+            if (merged == null) {
+                merged = new Map<String, Object>();
+                byRecord.put(log.Target_Record_Id__c, merged);
+            }
+            merged.putAll(snap);
             objOf.put(log.Target_Record_Id__c, log.Target_Object__c);
         }
         for (String recId : byRecord.keySet()) {
