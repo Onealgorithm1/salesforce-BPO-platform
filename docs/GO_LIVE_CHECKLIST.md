@@ -74,6 +74,11 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [x] **Root-cause correction:** Sprint-22 "rate limit" was actually a DML-before-callout `CalloutException`. Fix = callout before DML. Not an API/connector issue.
 - [ ] 100-Lead pilot (next) · least-privilege runtime user (before 24/7) · orchestrator deploy (before batch/scheduled).
 
+## Sprint 24 update (2026-07-07) — 100-Lead acceptance pilot: ACCEPTED WITH CONDITIONS
+- [x] **100-Lead pilot complete:** 60 matched, **54 enriched (324 fields), 0 overwrites**, audited, reversible; KPI baseline set (`KPI_BASELINE.md`). Returned to dormant (62 Leads enriched preserved).
+- [ ] **DEFECT #1:** `Awarding_Agencies__c` (255) too small for multi-agency contractors → 6/60 silent `STRING_TOO_LONG` failures. Fix (widen field or truncate in mapper) + re-enrich the 6 Leads.
+- [ ] **DEFECT #2:** `OA_EnrichmentWriter` ignores `Database.update` SaveResults → commits change logs for failed updates, routes no exception. Fix before scaled/automated use.
+- Full detail: `SPRINT24_PRODUCTION_ACCEPTANCE_REPORT.md`.
+
 ## Go/No-Go
-**GO for the controlled 100-Lead pilot** — proven path (callout-before-DML, per-Lead/modest batches, fill-empty, audited, reversible). Detail: `SPRINT23_FIRST_SUCCESSFUL_WRITE.md`.
-**NO-GO for scheduled / batch / 24-7** until §1 least-priv user + orchestrator deploy + a passing 100-Lead pilot.
+**GO for controlled/manual enrichment** (proven, audited, reversible). **NO-GO for scheduled/batch/24-7** until DEFECT #1/#2 fixed, least-privilege runtime user provisioned, and orchestrator deployed.
