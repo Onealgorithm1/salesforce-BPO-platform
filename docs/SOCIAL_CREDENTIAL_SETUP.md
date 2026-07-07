@@ -3,7 +3,13 @@
 **Org:** `00Dbn00000plgUfEAI` (oauser@pboedition.com) · **My Domain:** `onealgorithmllc.my.salesforce.com`
 **Runtime user:** `oauser@pboedition.com` · **Rule:** never paste a secret into chat, a file, or Git — only into the Salesforce Setup fields named below.
 
-> Status: no secrets are stored yet. Follow the steps for each platform, then tell Claude "secrets entered" to run the read-only smoke test.
+> Status: no secrets are stored yet. All Salesforce metadata is validated (check-only ID `0AfPn0000023JOLKA2`). Follow the steps below, then tell Claude "secrets entered" to run the read-only smoke test.
+
+## Prerequisites
+- **LinkedIn:** a LinkedIn Developer app with **Client ID + Client Secret** (from the app's Auth tab) and the products/scopes you need approved.
+- **Meta:** the `OA BPO Connector Hub` app + a **Business System User** with the ad account assigned and a **non-expiring token** (`ads_read`).
+- **Salesforce:** System Admin access to Setup; the no-secret components (NCs, permsets) are deployed by Claude on your OK; you create the **Auth Provider (LinkedIn)** and **External Credential principals** in the UI (that's where secrets live).
+- **Deploy order:** LinkedIn — create the Auth Provider first (it generates the callback), then EC → NC → permset. Meta — EC → NC → permset (no Auth Provider).
 
 ---
 
@@ -76,3 +82,24 @@ Setup → **Permission Sets → `OA_Meta_Connector`** → **External Credential 
 
 ## What Claude will NOT do
 Enter/observe your secrets · scrape profiles/pages · write Leads/Campaigns · run enrichment/ads changes. After you enter the secrets and say "done", Claude runs one read-only status-code smoke test per platform and reports only the HTTP status + top-level JSON shape.
+
+---
+
+## Common mistakes
+- **LinkedIn callback mismatch:** the URL in the LinkedIn app must **exactly** match the Auth Provider's generated Callback URL (no trailing slash difference, no `#`). A mismatch = `redirect_uri` error.
+- **Editing the Auth Provider via metadata deploy:** don't — a redeploy would overwrite your real Client Secret with a placeholder. Manage the Auth Provider **in the UI only**.
+- **Meta header wrong:** the custom header must be `Authorization` = `Bearer {!$Credential.OA_Meta.AccessToken}` (space after `Bearer`; the token goes in the principal's `AccessToken` parameter, not the header).
+- **Forgetting principal access:** the permission set must have External Credential Principal Access enabled AND be assigned to `oauser@pboedition.com`, or callouts fail with a credential error.
+- **Using an expiring Meta token:** choose **Never** expiration for the System User token, or callouts break in ~60 days.
+
+## Rollback procedure (safe, reversible)
+1. **Unassign** the permission set from `oauser` (Permission Sets → Manage Assignments). Callouts stop immediately.
+2. **Clear the secret:** LinkedIn → delete/blank the Auth Provider's Consumer Secret (or delete the Auth Provider); Meta → blank the principal's `AccessToken`. No token = no callout.
+3. **Remove components (optional):** delete NC → EC → Auth Provider (in that order) in Setup, or via a destructive changeset. Nothing else references them (dormant).
+4. **Nothing to revert in data:** these are credential components only — no Leads/Campaigns/records are touched.
+
+## Security notes
+- Secrets live **only** in Salesforce's encrypted credential store (Auth Provider Consumer Secret / EC principal parameter) — never in metadata, Git, files, or chat. This branch commits **no secrets** and the External Credentials + Auth Provider are **not committed** (org/UI-only, matching the OA_SAM/OA_Anthropic pattern).
+- **Least privilege:** the permission sets grant *only* External Credential principal access — no object or data permissions. Assign to `oauser` only.
+- **Recommendation:** gitignore `**/authproviders/` (like `**/externalCredentials/`) so secret-bearing Auth Provider metadata is never committed. (Owner decision — not changed here.)
+- Rotate the LinkedIn secret / Meta token on a schedule; revoke by clearing the field (rollback step 2).
