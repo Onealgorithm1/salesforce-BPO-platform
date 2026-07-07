@@ -95,5 +95,10 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [x] Daily operating procedure (`DAILY_ENRICHMENT_OPERATING_PROCEDURE.md`) + final closure (`LEAD_ENRICHMENT_FINAL_CLOSURE.md`).
 - [ ] UI dashboards/alerts (`MONITORING_UI_BUILD_GUIDE.md`) · [ ] least-priv user (license) · [ ] SAM key — **operational maintenance, not engineering.**
 
+## Sprint 34 update (2026-07-07) — automation
+- [x] Rollback multi-field defect fixed + merged to main (`decd12a`).
+- [x] Preview automation (scheduled/queued, commit=false) proven via `OA_EnrichmentQueueable`.
+- [ ] **Write automation BLOCKED:** `OA_EnrichmentOrchestrator` commit path writes only 1 Lead/invocation (callout-after-DML defect — `AUTOMATION_ENABLEMENT_REPORT.md`). Fix needed before scheduled writes.
+
 ## Go/No-Go
-🟢 **GO / CERTIFIED for controlled/manual enrichment**; program **CLOSED** at ops baseline. 🔴 **NO-GO for scheduled/batch/24×7** until UI monitoring + least-privilege user + SAM key.
+🟢 **GO — controlled/manual enrichment** (proven; rollback fixed) · 🟢 **GO — scheduled/queued PREVIEW automation**. 🔴 **NO-GO — scheduled WRITE automation** until: orchestrator callout-before-DML fix, least-privilege user, UI monitoring.

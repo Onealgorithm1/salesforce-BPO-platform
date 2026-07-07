@@ -43,4 +43,7 @@ The step-by-step for a day of controlled Lead Enrichment. Platform is **dormant 
 - [ ] Enriched data + audit preserved. Platform dormant. Done.
 
 ## Guardrails (always)
-FillEmptyOnly only · no overwrite · callout-before-DML · ≤ 50 callout-Leads/txn · connectors dormant between runs · runtime FLS permset stays assigned · never expose secrets. Emergency stop + recovery: `OPERATIONS_GUIDE.md`.
+FillEmptyOnly only · no overwrite · **callout-before-DML** (all fetches first, then writes) · ≤ 50 callout-Leads/txn · connectors dormant between runs · runtime FLS permset stays assigned · never expose secrets. Emergency stop + recovery: `OPERATIONS_GUIDE.md`.
+
+## Automation note (Sprint 34)
+For **writes, use the manual callout-before-DML path** (this procedure) — proven and rollback-safe. The `OA_EnrichmentQueueable`/`OA_EnrichmentOrchestrator` are safe for **PREVIEW automation only**; their commit path currently writes just 1 Lead/invocation (defect, `AUTOMATION_ENABLEMENT_REPORT.md`). Rollback is fixed (`ROLLBACK_DEFECT_FIX.md`): every write is fully reversible via `OA_ChangeLogService.rollback([logs])`. Always **verify `active policies = 0` after deactivating** (use explicit quoted `--source-dir` paths).
