@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>State Registry 10 Ingest</label>
+    <protected>false</protected>
+    <values>
+        <field>Pipeline_Name__c</field>
+        <value xsi:type="xsd:string">State Registry Enrichment</value>
+    </values>
+    <values>
+        <field>Step_Name__c</field>
+        <value xsi:type="xsd:string">Ingest</value>
+    </values>
+    <values>
+        <field>Step_Order__c</field>
+        <value xsi:type="xsd:double">10</value>
+    </values>
+    <values>
+        <field>Service_Class__c</field>
+        <value xsi:type="xsd:string">OA_StateRegistry_Template</value>
+    </values>
+    <values>
+        <field>Enabled__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Description__c</field>
+        <value xsi:type="xsd:string">SAMPLE (dormant) ingest step.</value>
+    </values>
+</CustomMetadata>
