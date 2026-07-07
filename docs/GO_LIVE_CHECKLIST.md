@@ -54,7 +54,11 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - **Platform escalation:** Salesforce Support — **not warranted** for the known FLS behavior
   (`SALESFORCE_SUPPORT_PACKAGE.md`); open only for a genuine FLS-independent anomaly.
 
+## Sprint 20 update (2026-07-07) — live preview validated
+- [x] **Preview proven live** — full pipeline over the 25 pilot Leads via USASpending: 8/25 matched, 56 proposals, **0 writes** (`dmlRows=0`), platform stayed dormant. Detail: `SPRINT20_OPERATIONAL_READINESS.md`.
+- [ ] **Activate a fill-empty write policy** (0 of 19 active) — required before any real write. Under fill-empty the preview would fill 48 blank fields and route 8 `State` conflicts to the exception queue (no overwrite).
+- [ ] Execution engine (`OA_EnrichmentOrchestrator`) still not deployed — required for batch/scheduled, **not** for the direct-path 25-Lead write.
+
 ## Go/No-Go
-**GO for controlled pilots** (manual/canary/25/100, once §2 credentials for the chosen source are closed).
-**NO-GO for scheduled / 24-7 enrichment** until §1 least-priv user, §2 all credentials, §3 pilots, and §4
-monitoring are complete.
+**GO for a controlled 25-Lead WRITE pilot** — after activating the fill-empty policy + explicit approval; runs via the preview-proven direct path with `commitWrites=true`; rollback ready.
+**NO-GO for 100-Lead / batch / scheduled / 24-7** until §1 least-priv user, engine deploy, and a passing 25-Lead write are complete.

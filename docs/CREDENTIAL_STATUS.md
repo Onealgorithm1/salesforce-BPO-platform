@@ -10,6 +10,10 @@ _Re-verified live 2026-07-07 (Sprint 19, Tooling API) · Org 00Dbn00000plgUfEAI 
 > and **unconfirmed key** (prior non-2xx). USASpending re-confirmed live-ready: **connectivity test HTTP 200** (read-only,
 > Sprint 19). Census + SEC NCs **prepared + check-only validated** (`0AfPn00000236CbKAI`, Succeeded) but **not deployed**.
 > Full detail: `SPRINT19_LIVE_PILOT_REPORT.md`.
+>
+> **Sprint 20 (2026-07-07):** USASpending credential path **exercised end-to-end in preview** — 25 pilot Leads, 8 matched
+> with real UEIs, **0 writes** (`dmlRows=0`). USASpending confirmed 🟢 READY (public, no secret). SAM/Census/SEC unchanged.
+> Detail: `SPRINT20_OPERATIONAL_READINESS.md`.
 
 Production credential readiness for every v1.0 connector. Values below are **presence/endpoint only** —
 no keys, tokens, or secrets are recorded here (secrets live only in External Credentials in Setup).

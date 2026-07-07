@@ -2,6 +2,12 @@
 
 _Version 1.0 · Commissioned in production 2026-07-07 · Org 00Dbn00000plgUfEAI · GO_
 
+> **Historical baseline (tag `lead-enrichment-v1.0` = `485f7dc`).** This document describes the v1.0 release *before*
+> Sprint 17. Statements below that the async orchestrator is "not built" and that the epic is "closed" are superseded:
+> Sprint 17 built the async orchestrator (`OA_EnrichmentOrchestrator`/`OA_EnrichmentQueueable`, merged to `main`, **not
+> yet deployed to the org**), and as of Sprint 20 the epic is **not yet closed** — one controlled 25-Lead write pilot
+> remains (preview validated live, 0 writes). Current status: `SPRINT20_OPERATIONAL_READINESS.md` + `PROGRAM_ROADMAP.md`.
+
 Version 1.0 of the Lead Enrichment Platform is **built, deployed, commissioned, and proven on
 production Leads** with durable audit and verified rollback. The Lead Enrichment epic is **closed**.
 The next development program is the **Opportunity Intelligence Platform**.
