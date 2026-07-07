@@ -64,6 +64,11 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [ ] **Concurrent session in the org** (LinkedIn/OAuth check-only validations) — coordinate before the first production write.
 - [x] Pre-flight PASS; 25 Leads verified unchanged; 8 matched targets all blank; before-snapshot saved; rollback ready. Detail: `SPRINT21_25_LEAD_WRITE_PILOT.md`.
 
+## Sprint 22 update (2026-07-07) — policies deployed; write blocked by rate-limit
+- [x] **Corrected fill-empty policies DEPLOYED + verified** — all 6 USASpending fields FillEmptyOnly (2 Overwrite→FillEmptyOnly permanently corrected in prod, 3 new). 0 Overwrite active. Then deactivated to dormant (0 active policies).
+- [x] Preview repeated with active policies — matched Sprint 20 (8 matched, 48 fill-empty, 0 conflicts, dmlRows=0).
+- [ ] **First production write NOT completed** — USASpending rate-limited all callouts (transient); 0 Leads written; platform safe. Retry the 8-matched-Lead write after cooldown (reactivate policies → write, spaced). Detail: `SPRINT22_FIRST_PRODUCTION_WRITE.md`.
+
 ## Go/No-Go
-**GO for a controlled 25-Lead WRITE pilot** — after (a) activating the 5 prepared fill-empty policies, (b) explicit approval, (c) org quiet; runs via the preview-proven direct path with `commitWrites=true`; rollback ready.
-**NO-GO for 100-Lead / batch / scheduled / 24-7** until §1 least-priv user, engine deploy, and a passing 25-Lead write are complete.
+**GO to retry the 25-Lead (8-matched) WRITE** — after a USASpending rate-limit cooldown; reactivate the 6 fill-empty policies → write via the preview-proven path (spaced, one Lead per transaction) → verify + rollback-ready.
+**NO-GO for 100-Lead / batch / scheduled / 24-7** until a first write lands, plus §1 least-priv user and engine deploy.
