@@ -12,11 +12,9 @@ The single operational reference for running Lead Enrichment Platform v1.0. Comp
 - **Deployed & Active (dormant)** as of Sprint 28 — nothing invokes/schedules them; the direct callout-before-DML
   path remains the proven manual method. **Safe by default:** `commitWrites = false` = preview (no Lead DML).
   All writes go through the existing policy engine + audit; nothing bypasses it.
-- **⚠️ Orchestrator COMMIT defect (Sprint 34):** `OA_EnrichmentOrchestrator.processScope` interleaves fetch(callout)→
-  enrich(DML) per Lead, so in **commit mode it writes only the FIRST Lead per invocation** (subsequent callouts hit
-  "uncommitted work pending", caught as HTTP errors). **Use the orchestrator/queueable for PREVIEW only.** For real
-  writes, use the manual **callout-before-DML** path (all fetches first, then `enrich(commit=true)`). Fix pending
-  (`AUTOMATION_ENABLEMENT_REPORT.md`).
+- **✅ Orchestrator commit path FIXED (Sprint 35):** `processScope` is now two-phase (all callouts first, then all
+  writes), so `OA_EnrichmentQueueable`/`Batch` **commit mode writes ALL Leads** (verified 5/5, was 1/5). Both preview
+  and commit automation are safe. Detail: `AUTOMATED_WRITE_PATH_FIX.md`.
 
 ## Startup (enable operation — requires Louis authorization)
 1. Confirm runtime FLS: `OA_Lead_Enrichment_Runtime` **assigned** to the runtime user and **kept assigned**

@@ -119,4 +119,72 @@ private class OA_EnrichmentOrchestrator_Test {
         // empty-id queueable is a safe no-op
         System.enqueueJob(new OA_EnrichmentQueueable(new List<Id>(), 'SAM', null, false));
     }
+
+    /** Mock USASpending response so the REAL runner path (callout) is exercised in tests. */
+    private class UsMock implements HttpCalloutMock {
+        public HttpResponse respond(HttpRequest req) {
+            HttpResponse res = new HttpResponse();
+            res.setStatusCode(200);
+            res.setBody('{"results":[{"Recipient UEI":"TESTUEI00001","Recipient Name":"Test Co",' +
+                '"Award Amount":100,"Awarding Agency":"Department of Defense","Start Date":"2020-01-01",' +
+                '"Place of Performance State Code":"CO"}]}');
+            return res;
+        }
+    }
+
+    @isTest static void multi_lead_commit_no_callout_after_dml() {
+        // Regression for the orchestrator callout-after-DML defect: with REAL (mocked) callouts and
+        // commit=true over multiple Leads, EVERY Lead must be written. The old interleaved
+        // fetch->enrich(DML)->fetch code wrote only the first Lead (the 2nd callout threw
+        // "uncommitted work pending", caught as an HTTP error).
+        OA_ConnectorRunner.registryOverride = new List<OA_Connector_Registry__mdt>{
+            new OA_Connector_Registry__mdt(Source_System__c='USASpending', Enabled__c=true,
+                Connector_Class__c='OA_USASpending_Connector', Named_Credential__c='OA_USASpending',
+                Endpoint_Path__c='/api/v2/search/spending_by_award/', Version__c='1.0')
+        };
+        OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
+            new OA_Field_Write_Policy__mdt(Target_Object__c='Lead', Target_Field__c='UEI__c',
+                Source_System__c='USASpending', Write_Mode__c='FillEmptyOnly', Confidence_Floor__c='LOW',
+                Conflict_Behavior__c='Review', Trusted__c=true, Active__c=true)
+        };
+        Test.setMock(HttpCalloutMock.class, new UsMock());
+        List<Lead> leads = new List<Lead>{ newLead('Alpha Co'), newLead('Beta Co'), newLead('Gamma Co') };
+        insert leads;
+        leads = [SELECT Id, Company, UEI__c, Website, Phone, State FROM Lead WHERE Id IN :leads];
+
+        List<OA_Connector_Run__c> tele = new List<OA_Connector_Run__c>();
+        Test.startTest();
+        OA_EnrichmentOrchestrator.Metrics m =
+            OA_EnrichmentOrchestrator.processScope(leads, 'USASPENDING', null, true, 1, tele);
+        Test.stopTest();
+
+        System.assertEquals(3, m.leadsProcessed, 'all three Leads processed');
+        System.assertEquals(0, m.httpErrors, 'no callout-after-DML errors');
+        System.assertEquals(3,
+            [SELECT COUNT() FROM Lead WHERE Id IN :leads AND UEI__c = 'TESTUEI00001'],
+            'ALL Leads written (multi-Lead commit), not just the first');
+        System.assertEquals(3, tele.size(), 'telemetry per Lead');
+    }
+
+    @isTest static void multi_lead_preview_writes_nothing() {
+        OA_ConnectorRunner.registryOverride = new List<OA_Connector_Registry__mdt>{
+            new OA_Connector_Registry__mdt(Source_System__c='USASpending', Enabled__c=true,
+                Connector_Class__c='OA_USASpending_Connector', Named_Credential__c='OA_USASpending',
+                Endpoint_Path__c='/api/v2/search/spending_by_award/', Version__c='1.0')
+        };
+        OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
+            new OA_Field_Write_Policy__mdt(Target_Object__c='Lead', Target_Field__c='UEI__c',
+                Source_System__c='USASpending', Write_Mode__c='FillEmptyOnly', Confidence_Floor__c='LOW',
+                Conflict_Behavior__c='Review', Trusted__c=true, Active__c=true)
+        };
+        Test.setMock(HttpCalloutMock.class, new UsMock());
+        List<Lead> leads = new List<Lead>{ newLead('Alpha2 Co'), newLead('Beta2 Co') };
+        insert leads;
+        leads = [SELECT Id, Company, UEI__c FROM Lead WHERE Id IN :leads];
+        Test.startTest();
+        OA_EnrichmentOrchestrator.processScope(leads, 'USASPENDING', null, false, 1, null); // preview
+        Test.stopTest();
+        System.assertEquals(0, [SELECT COUNT() FROM Lead WHERE Id IN :leads AND UEI__c != null],
+            'preview writes nothing');
+    }
 }

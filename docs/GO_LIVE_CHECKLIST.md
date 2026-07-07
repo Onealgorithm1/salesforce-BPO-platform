@@ -98,7 +98,7 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 ## Sprint 34 update (2026-07-07) — automation
 - [x] Rollback multi-field defect fixed + merged to main (`decd12a`).
 - [x] Preview automation (scheduled/queued, commit=false) proven via `OA_EnrichmentQueueable`.
-- [ ] **Write automation BLOCKED:** `OA_EnrichmentOrchestrator` commit path writes only 1 Lead/invocation (callout-after-DML defect — `AUTOMATION_ENABLEMENT_REPORT.md`). Fix needed before scheduled writes.
+- [x] **Write automation FIXED (Sprint 35):** `OA_EnrichmentOrchestrator` two-phase callout-before-DML; commit mode writes ALL Leads (5/5, 270 tests) — `AUTOMATED_WRITE_PATH_FIX.md`. Scheduled writes now technically ready; gated only on least-priv user + monitoring.
 
 ## Go/No-Go
 🟢 **GO — controlled/manual enrichment** (proven; rollback fixed) · 🟢 **GO — scheduled/queued PREVIEW automation**. 🔴 **NO-GO — scheduled WRITE automation** until: orchestrator callout-before-DML fix, least-privilege user, UI monitoring.

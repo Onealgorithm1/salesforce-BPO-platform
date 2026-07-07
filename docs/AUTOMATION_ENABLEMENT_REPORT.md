@@ -2,11 +2,13 @@
 
 _2026-07-07 · Org 00Dbn00000plgUfEAI · evidence-based · **honest result — preview automation works; orchestrator WRITE automation has a defect** · platform DORMANT_
 
-## Headline
+> **⚠️ SUPERSEDED (Sprint 35): the write defect below is FIXED.** `OA_EnrichmentOrchestrator.processScope` is now two-phase (all callouts first, then all writes); commit-mode automation writes ALL Leads (verified 5/5, was 1/5). See `AUTOMATED_WRITE_PATH_FIX.md`. Scheduled WRITE automation is now **technically ready**; remaining gates are non-engineering (least-priv user + monitoring UI).
+
+## Headline (as of Sprint 34; write defect since fixed — see banner)
 - ✅ Rollback fix merged to `main` (`decd12a`), pushed.
 - ✅ **Preview automation works** via the deployed `OA_EnrichmentQueueable` (async, telemetry, 0 writes).
-- ❌ **Write automation via the orchestrator/queueable is DEFECTIVE** — it writes only **1 Lead per invocation** and silently drops the rest (callout-after-DML). **NOT ready for scheduled write automation.**
-- **GO/NO-GO for recurring scheduled WRITE enrichment: 🔴 NO-GO** (orchestrator commit defect + least-priv user + monitoring). **Scheduled PREVIEW automation: possible.** Manual controlled write (the proven callout-before-DML path) remains the safe way to enrich today.
+- ❌→✅ **Write automation** was DEFECTIVE (1 Lead/invocation, callout-after-DML) — **FIXED in Sprint 35**.
+- GO/NO-GO for scheduled WRITE enrichment: was 🔴 NO-GO (defect); now 🟡 technically-ready, gated on least-priv user + monitoring.
 
 ## Track B — Rollback fix merged
 `main` now contains `OA_ChangeLogService` merge fix + `testMultiFieldRollbackRestoresAllFields` + `ROLLBACK_DEFECT_FIX.md` (FF `deecba4..decd12a`, pushed; already deployed to prod, 268 tests). Confirmed present on main.

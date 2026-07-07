@@ -100,6 +100,13 @@ public with sharing class OA_EnrichmentOrchestrator
         m.committed = (doCommit == true);
         if (leads == null || leads.isEmpty()) { return m; }
         OA_ConnectorRunner runner = new OA_ConnectorRunner();
+
+        // ---- Phase 1: ALL callouts first (no Lead DML) ----
+        // The writer's commit path performs DML; interleaving fetch->enrich per Lead used to make the
+        // second Lead's callout throw "uncommitted work pending". Fetch every Lead's connector result
+        // BEFORE any write, mirroring the proven manual callout-before-DML pattern.
+        List<Lead> fetchedLeads = new List<Lead>();
+        List<OA_ConnectorRunner.RunOutcome> outcomes = new List<OA_ConnectorRunner.RunOutcome>();
         for (Lead ld : leads) {
             String input = deriveInput(ld);
             if (String.isBlank(input)) { continue; }
@@ -108,9 +115,19 @@ public with sharing class OA_EnrichmentOrchestrator
             if (o == null) { continue; }
             m.httpErrors += nz(o.httpErrors);
             m.qualified  += nz(o.recordsQualified);
+            fetchedLeads.add(ld);
+            outcomes.add(o);
             if (OA_ConnectorRunner.STATUS_FAILED.equals(o.status)) {
-                m.aborted = true;   // unrecoverable — record telemetry, then stop
+                m.aborted = true;   // unrecoverable — stop fetching further; the write phase still runs
+                break;
             }
+        }
+
+        // ---- Phase 2: ALL writes after every callout is complete ----
+        for (Integer i = 0; i < outcomes.size(); i++) {
+            Lead ld = fetchedLeads[i];
+            OA_ConnectorRunner.RunOutcome o = outcomes[i];
+            Integer enrichedThisLead = 0;
             if (o.organizations != null) {
                 for (OA_CanonicalOrg org : o.organizations) {
                     List<OA_EnrichmentWriter.FieldProposal> proposals =
@@ -119,16 +136,16 @@ public with sharing class OA_EnrichmentOrchestrator
                     OA_EnrichmentWriter.Result wr =
                         OA_EnrichmentWriter.enrich(ld, proposals, null, doCommit == true);
                     m.recordsEnriched += nz(wr.written);
+                    enrichedThisLead  += nz(wr.written);
                     m.conflicts       += nz(wr.conflicts);
                     m.exceptionsRaised += (wr.exceptions == null ? 0 : wr.exceptions.size());
                 }
             }
             if (telemetryOut != null && o.runRecord != null) {
-                o.runRecord.Records_Enriched__c = m.recordsEnriched;
+                o.runRecord.Records_Enriched__c = enrichedThisLead;
                 o.runRecord.Initiated_By__c = UserInfo.getUserId();
                 telemetryOut.add(o.runRecord);
             }
-            if (m.aborted) { break; }
         }
         return m;
     }
