@@ -85,5 +85,10 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [x] **6 failed Leads repaired** (6/6 enriched); orphan audit cleaned; **audit exactly matches DB** (68 Leads, 408 logs, 0 orphans); rollback verified; dormant.
 - [x] **PRODUCTION CERTIFIED** for controlled/manual enrichment — `PRODUCTION_CERTIFICATION.md`, `RELEASE_1.1.md`, tag `lead-enrichment-v1.1`.
 
+## Sprint 28 update (2026-07-07) — execution layer deployed
+- [x] **`OA_EnrichmentOrchestrator`/`OA_EnrichmentQueueable`/`OA_ProposalAdapter` deployed to prod (Active, dormant)**; operational rehearsal passed (0 writes). `LEAD_ENRICHMENT_COMMISSIONING_REPORT.md`.
+- [ ] Visual monitoring (dashboards/reports/alerts) — build via **admin UI** (metadata deploy impractical); specs in `DASHBOARD_*.md`.
+- [ ] Least-privilege runtime user (replace MAD `oauser`); Census/SEC/SAM credentials.
+
 ## Go/No-Go
-🟢 **GO / CERTIFIED for controlled/manual enrichment** (25/100/daily). 🔴 **NO-GO for scheduled/batch/24×7** until least-privilege runtime user + orchestrator deploy (operational-automation track).
+🟢 **GO / CERTIFIED for controlled/manual enrichment** (25/100/daily; execution layer now deployed). 🔴 **NO-GO for scheduled/batch/24×7** until visual monitoring + alerts (UI), least-privilege runtime user, and credentials are complete.

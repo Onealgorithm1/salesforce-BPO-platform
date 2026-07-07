@@ -24,9 +24,9 @@ The Lead Enrichment Platform is **CERTIFIED for controlled/manual production enr
 | 25-Lead controlled runs | ✅ **CERTIFIED** |
 | 100-Lead controlled runs | ✅ **CERTIFIED** |
 | Daily manual use | ✅ **CERTIFIED** |
-| Scheduled enrichment | ⛔ **NOT certified** — requires least-privilege runtime user + orchestrator deploy |
-| Batch enrichment | ⛔ **NOT certified** — requires orchestrator deploy |
-| 24×7 automation | ⛔ **NOT certified** — requires least-priv user + orchestrator + scheduler |
+| Scheduled enrichment | ⛔ **NOT certified** — requires least-privilege runtime user + visual monitoring/alerts (orchestrator now deployed, Sprint 28) |
+| Batch enrichment | 🟡 **Conditionally ready** — orchestrator deployed (Sprint 28, dormant); needs least-privilege runtime user for volume |
+| 24×7 automation | ⛔ **NOT certified** — requires least-priv user + monitoring/alerts + scheduler |
 
 ## Standard operating procedure (certified path)
 1. Verify Org ID = `00Dbn00000plgUfEAI` and no concurrent deployment.

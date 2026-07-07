@@ -6,11 +6,12 @@ The single operational reference for running Lead Enrichment Platform v1.0. Comp
 `LEAD_ENRICHMENT_OPERATIONS_RUNBOOK.md` (daily monitoring detail) and `DEPLOYMENT_PACKAGE.md` (deploy steps).
 **Current state: platform deployed dormant — 0 connectors enabled, 0 active policies, nothing scheduled.**
 
-## Execution surface (Sprint 17)
+## Execution surface (Sprint 17; **deployed to prod dormant Sprint 28**)
 - **Batch:** `OA_EnrichmentOrchestrator.enqueueBatch(source, ruleset, scopeQuery, commitWrites, batchSize)`
 - **Queueable (manual/small):** `System.enqueueJob(new OA_EnrichmentQueueable(leadIds, source, ruleset, commitWrites))`
-- **Safe by default:** `commitWrites = false` = preview (no Lead DML). All writes go through the existing
-  policy engine + audit; nothing bypasses it.
+- **Deployed & Active (dormant)** as of Sprint 28 — nothing invokes/schedules them; the direct callout-before-DML
+  path remains the proven manual method. **Safe by default:** `commitWrites = false` = preview (no Lead DML).
+  All writes go through the existing policy engine + audit; nothing bypasses it.
 
 ## Startup (enable operation — requires Louis authorization)
 1. Confirm runtime FLS: `OA_Lead_Enrichment_Runtime` **assigned** to the runtime user and **kept assigned**

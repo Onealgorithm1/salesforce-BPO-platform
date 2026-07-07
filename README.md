@@ -27,7 +27,8 @@ platform supports:
 - **Communication preferences** — preference/opt-out framework and public unsubscribe endpoint.
 - **Lead Enrichment Platform v1.1** — metadata-driven, connector-agnostic enrichment from public
   data sources, with governed per-field writes, audit + rollback. **PRODUCTION-CERTIFIED (2026-07-07)
-  for controlled/manual enrichment; 68 Leads enriched, both acceptance defects fixed; dormant by default.**
+  for controlled/manual enrichment; 68 Leads enriched, both acceptance defects fixed; execution layer
+  (orchestrator) deployed dormant (Sprint 28); dormant by default.**
   See `RELEASE_1.1.md` + `PRODUCTION_CERTIFICATION.md`, and [Lead Enrichment Platform v1.0](#lead-enrichment-platform-v10) and
   [`docs/RELEASE_1.0.md`](docs/RELEASE_1.0.md). `[Verified from source]`
 
