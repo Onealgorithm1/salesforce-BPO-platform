@@ -8,7 +8,9 @@ _Sprint 31 · 2026-07-07 · Org 00Dbn00000plgUfEAI · live-verified · no secret
 | **IRS** | n/a | n/a | n/a (bulk CSV) | none | n/a | n/a (no callout) | 🟢 **READY** |
 | **Census** | `OA_Census` ✓ | none (public) | `api.census.gov` | none | n/a | **HTTP 200** (Sprint 30) | 🟢 **READY** (dormant) |
 | **SEC** | `OA_SEC` ✓ | none (public) | `data.sec.gov` | User-Agent (in code) | n/a | **HTTP 200** (Sprint 30) | 🟢 **READY** (dormant) |
-| **SAM** | `OA_SAM` ✓ | `OA_SAM` ✓ (X-Api-Key) | `api-alpha.sam.gov` (alpha) | data.gov key | NOT granted (JIT) | **HTTP 401** (Sprint 31) | 🔴 **BLOCKED (external)** |
+| **SAM** | `OA_SAM` ✓ | `OA_SAM` ✓ (X-Api-Key) | **`api.sam.gov` (prod, fixed Sprint 32)** | data.gov key | JIT (temp permset) | **HTTP 200** (Sprint 32) | 🟡 **READY WITH CONDITIONS** |
+
+> **SAM update (Sprint 32):** the Sprint-31 HTTP 401 was an **endpoint mismatch**, not a bad key. Re-tested the same key against **`api.sam.gov` (production)** → **HTTP 200, 1 org mapped**. The NC endpoint was corrected alpha→prod (deployed + repo updated). **SAM is no longer blocked.** To *use* SAM enrichment: (1) grant EC principal access to the runtime user JIT (a 1-permset assign — the temp `OA_SAM_Temp_Principal` works, or add the grant to `OA_SAM_Connector`), (2) enable the SAM registry row + activate SAM fill-empty policies. Connector remains dormant.
 
 ## SAM — definitive evidence (Track B, Sprint 31)
 Temporarily granted oauser EC principal access (temp permset, deployed + assigned + **revoked** after test) and ran the real `OA_SAM_Connector` against `api-alpha.sam.gov`:
