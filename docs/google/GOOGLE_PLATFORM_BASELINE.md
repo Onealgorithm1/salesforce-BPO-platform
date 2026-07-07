@@ -6,8 +6,7 @@
 **Branch:** `feature/google-cloud-foundation` (isolated worktree; NOT pushed, NOT merged to main)
 
 > Evidence over assumptions. **Live audit COMPLETED 2026-07-07** (authenticated as
-> `onealgorithm@gmail.com`); verified findings recorded below. Only ADC (`application-default`)
-> remains pending.
+> `onealgorithm@gmail.com`); verified findings recorded below. **Authentication + ADC both complete.**
 
 ## Verified this sprint
 
@@ -19,7 +18,7 @@
 | `gsutil` | `gsutil 5.37` | ✅ **Verified** |
 | Install path | `C:\Users\User\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin` | ✅ **Verified** |
 | gcloud auth | `gcloud auth list` → **`onealgorithm@gmail.com` (active)** | ✅ **Verified (authenticated 2026-07-07)** |
-| ADC | `application_default_credentials.json` not yet created | ⏳ **Pending** (`gcloud auth application-default login`) |
+| ADC | `application_default_credentials.json` created; quota project `onealgorithm-bpo` | ✅ **Verified (2026-07-07)** |
 | Default project config | `core/project = onealgorithm-bpo` | ✅ **Verified** |
 
 ## Verified live audit — 2026-07-07 (authenticated as `onealgorithm@gmail.com`)
@@ -40,7 +39,7 @@
 | Logging sinks | only built-in `_Required` / `_Default` | ✅ Verified |
 | Cloud Run / Functions / Pub-Sub / Scheduler / Artifact Registry / Vertex AI / Compute | **none — APIs not enabled** | ✅ Verified |
 | Enabled APIs | **48 total**; **~11 recommended for REMOVE** (see `GOOGLE_API_BASELINE.md`) | ✅ Verified |
-| ADC | **pending** | ⏳ |
+| ADC (application-default) | **configured** — `%APPDATA%\gcloud\application_default_credentials.json`, quota project `onealgorithm-bpo` | ✅ Verified |
 
 **Net:** zero user-created resources, zero service accounts, zero keys — a clean slate with a
 **broad API surface**. Owner-only IAM on a consumer Gmail (no Org) is the main governance gap.
