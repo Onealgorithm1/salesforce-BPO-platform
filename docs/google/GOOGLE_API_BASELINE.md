@@ -1,8 +1,23 @@
 # Google Cloud API Baseline — Recommended Posture
 
-**Project:** `onealgorithm-bpo`. **Current enabled-API state = `[Needs Verification]`** (run
-`gcloud services list --enabled` after auth). The table below is the **recommended target posture**;
-reconcile it against the verified list once available.
+**Project:** `onealgorithm-bpo`. **Verified 2026-07-07: 48 APIs enabled** (`gcloud services list
+--enabled`, authenticated as `onealgorithm@gmail.com`). The recommendation table below is now
+reconciled against that live list.
+
+## Verified: REMOVE recommendations (~11 APIs — gated, NOT disabled)
+
+Enabled but **not on any stated goal** → recommend disabling in a gated "API trim" sprint (attack
+surface + quota reduction). **Not disabled this sprint.**
+
+`retail.googleapis.com`, `datastore.googleapis.com`, `dataplex.googleapis.com`,
+`dataform.googleapis.com`, `analyticshub.googleapis.com`, `bigqueryconnection.googleapis.com`,
+`bigquerydatapolicy.googleapis.com`, `bigquerymigration.googleapis.com`,
+`bigqueryreservation.googleapis.com`, `sql-component.googleapis.com` (+ `bigquerydatatransfer` =
+ENABLE-LATER until transfers are scheduled).
+
+**Not enabled (so no resources possible):** `run`, `cloudfunctions`, `pubsub`, `cloudscheduler`,
+`artifactregistry`, **`aiplatform` (Vertex AI)**, `compute`. Vertex AI must be enabled before any
+Gemini-on-Vertex workload.
 
 **Principle `[Verified]`:** least privilege applies to APIs — enable an API **only when a workload
 needs it**. Enable the foundational/governance set now; **ENABLE LATER** the product/data APIs

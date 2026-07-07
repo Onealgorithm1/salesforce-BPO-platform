@@ -5,9 +5,9 @@
 **Execution mode:** install tooling + read-only audit + documentation. **No billable resources, no credentials, no keys, no deploy.**
 **Branch:** `feature/google-cloud-foundation` (isolated worktree; NOT pushed, NOT merged to main)
 
-> Evidence over assumptions. Every live-project fact that requires an authenticated API call is
-> marked **`[Needs Verification]`** until `gcloud auth login` is completed (interactive; see
-> `GOOGLE_CLI_SETUP.md`). Nothing below is assumed.
+> Evidence over assumptions. **Live audit COMPLETED 2026-07-07** (authenticated as
+> `onealgorithm@gmail.com`); verified findings recorded below. Only ADC (`application-default`)
+> remains pending.
 
 ## Verified this sprint
 
@@ -18,30 +18,36 @@
 | `bq` | `bq 2.1.33` | ✅ **Verified** |
 | `gsutil` | `gsutil 5.37` | ✅ **Verified** |
 | Install path | `C:\Users\User\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin` | ✅ **Verified** |
-| gcloud auth | `gcloud auth list` → **"No credentialed accounts."** | ✅ **Verified (unauthenticated)** |
-| ADC | no `%APPDATA%\gcloud\application_default_credentials.json` | ✅ **Verified (absent)** |
-| Default project config | `gcloud config set project onealgorithm-bpo` → `core/project = onealgorithm-bpo` | ✅ **Verified (local config only)** |
+| gcloud auth | `gcloud auth list` → **`onealgorithm@gmail.com` (active)** | ✅ **Verified (authenticated 2026-07-07)** |
+| ADC | `application_default_credentials.json` not yet created | ⏳ **Pending** (`gcloud auth application-default login`) |
+| Default project config | `core/project = onealgorithm-bpo` | ✅ **Verified** |
 
-## Pending — requires interactive authentication (user action)
+## Verified live audit — 2026-07-07 (authenticated as `onealgorithm@gmail.com`)
 
-The following cannot be completed by an automated/non-interactive shell because
-`gcloud auth login` opens a browser consent flow:
+| Item | Value | Status |
+|---|---|---|
+| Authenticated account | **`onealgorithm@gmail.com`** | ✅ Verified |
+| Project ID / number | `onealgorithm-bpo` / **885034473642** | ✅ Verified |
+| Lifecycle | **ACTIVE** | ✅ Verified |
+| Billing | **ENABLED** → `billingAccounts/016AE0-5E6BCD-6799EF` | ✅ Verified |
+| Organization | **none** (consumer Gmail — no Org / Folders / Org-Policies) | ✅ Verified |
+| IAM | single binding: `roles/owner` → `user:onealgorithm@gmail.com` | ✅ Verified |
+| Service accounts | **none** | ✅ Verified |
+| API keys | **none** | ✅ Verified |
+| Secret Manager secrets | **none** | ✅ Verified |
+| Storage buckets | **none** | ✅ Verified |
+| BigQuery datasets | **none** | ✅ Verified |
+| Logging sinks | only built-in `_Required` / `_Default` | ✅ Verified |
+| Cloud Run / Functions / Pub-Sub / Scheduler / Artifact Registry / Vertex AI / Compute | **none — APIs not enabled** | ✅ Verified |
+| Enabled APIs | **48 total**; **~11 recommended for REMOVE** (see `GOOGLE_API_BASELINE.md`) | ✅ Verified |
+| ADC | **pending** | ⏳ |
 
-- Phase 2: `gcloud auth login` + `gcloud auth application-default login`
-- Phase 3 verification: authenticated account, **billing status**, **project number**
-- Phase 4: the complete read-only inventory (enabled APIs, IAM, service accounts, API keys,
-  OAuth clients, Secret Manager, Storage, BigQuery, Cloud Run/Functions, Pub/Sub, Scheduler,
-  Artifact Registry, Logging, Monitoring, Organization, Folder, Quotas)
+**Net:** zero user-created resources, zero service accounts, zero keys — a clean slate with a
+**broad API surface**. Owner-only IAM on a consumer Gmail (no Org) is the main governance gap.
 
-All of these are marked **`[Needs Verification]`**. Run `docs/google/gcp-readonly-audit.sh`
-(read-only) immediately after authenticating to fill them in.
-
-## Structural caveat `[High Confidence]`
-
-The owning identity context is a **consumer Gmail (`lronealgorithm@gmail.com`)**. If `onealgorithm-bpo`
-was created under a bare Gmail, **no GCP Organization or Folder resources exist** (those need Cloud
-Identity/Workspace on `onealgorithm.com`). Whether an Organization exists is `[Needs Verification]`
-(`gcloud organizations list`) and determines whether a folder hierarchy and Org Policies are possible.
+**Next recommended sprints:** (1) **API trim** — disable the ~11 unneeded APIs (retail, datastore,
+dataplex, dataform, analyticshub, 4× advanced-BigQuery, sql-component); (2) **IAM hardening** —
+create `claude-cli-admin` service account for **impersonation** (no JSON key). Both gated.
 
 ## Companion documents
 
