@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Meta</label>
+    <protected>false</protected>
+    <values>
+        <field>Connector_Name__c</field>
+        <value xsi:type="xsd:string">Meta Marketing (INT-011, dormant foundation)</value>
+    </values>
+    <values>
+        <field>Source_System__c</field>
+        <value xsi:type="xsd:string">Meta</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Marketing</value>
+    </values>
+    <values>
+        <field>Connector_Class__c</field>
+        <value xsi:type="xsd:string">OA_MetaConnector</value>
+    </values>
+    <values>
+        <field>Named_Credential__c</field>
+        <value xsi:type="xsd:string">OA_Meta</value>
+    </values>
+    <values>
+        <field>Enabled__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Review_Required__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Status__c</field>
+        <value xsi:type="xsd:string">Dormant</value>
+    </values>
+    <values>
+        <field>Version__c</field>
+        <value xsi:type="xsd:string">0.1.0</value>
+    </values>
+    <values>
+        <field>Owner_Steward__c</field>
+        <value xsi:type="xsd:string">Louis Rubino</value>
+    </values>
+</CustomMetadata>

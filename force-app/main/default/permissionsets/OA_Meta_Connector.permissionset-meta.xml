@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Meta Connector</label>
+    <description>DORMANT, UNASSIGNED. Container permission set for the Meta Marketing API connector (INT-011). External Credential principal access is added after token setup in the UI in a future sprint. No data/object permissions yet.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+</PermissionSet>
