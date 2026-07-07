@@ -25,8 +25,10 @@ platform supports:
 - **Transcripts** — native Graph transcript retrieval.
 - **AI summaries** — transcript-to-summary processing.
 - **Communication preferences** — preference/opt-out framework and public unsubscribe endpoint.
-- **Future Evergreen Intelligence connectors** — public-API enrichment feeding a reviewed
-  staging layer (see [Evergreen Intelligence Platform](#evergreen-intelligence-platform)). `[Proposed]`
+- **Lead Enrichment Platform v1.0** — metadata-driven, connector-agnostic enrichment from public
+  data sources, with governed per-field writes, audit + rollback. **Complete & commissioned; deployed
+  dormant.** See [Lead Enrichment Platform v1.0](#lead-enrichment-platform-v10) and
+  [`docs/RELEASE_1.0.md`](docs/RELEASE_1.0.md). `[Verified from source]`
 
 ---
 
@@ -129,52 +131,58 @@ migrated toward **Named/External Credentials**, matching the pattern already use
 
 ---
 
-## Evergreen Intelligence Platform
+## Lead Enrichment Platform v1.0
 
-The **Evergreen Intelligence Platform** is the future connector/intelligence layer that enriches
-the CRM from public data sources. `[Proposed]` — **the terms "Evergreen"/"Connector Framework" do
-not yet exist anywhere in committed code or the platform roadmap;** this is a planned direction
-being written into the repository during Sprint 1A.
+The **Lead Enrichment Platform** is the connector/intelligence layer that enriches the CRM from
+public data sources. **v1.0 is built, deployed (dormant), commissioned, and proven on production
+Leads** with durable audit and verified rollback. `[Verified from source]` The permanent baseline is
+[`docs/RELEASE_1.0.md`](docs/RELEASE_1.0.md); the epic is **closed**.
 
-Current direction / principles:
+**Architecture** — metadata-driven and connector-agnostic (Apex). One generic framework; add a source
+with Request + Parser + Mapper + a Connector implementing the interface + metadata — no platform code change.
+- **Framework:** `OA_IEnrichmentConnector` (interface), `OA_ConnectorRunner` (registry-driven dispatcher,
+  `Type.forName`), `OA_ConnectorResult`.
+- **Canonical model + engines:** `OA_CanonicalOrg`; Field Write Policy, Qualification, Confidence,
+  Source Precedence, Discovery Qualification.
+- **Governed write:** `OA_EnrichmentWriter` (per-field policy, USER_MODE FLS, before-snapshot), Change
+  Log + Rollback (`OA_ChangeLogService`), Exception Routing (`OA_ExceptionRoutingService`).
+- **Execution layer (Sprint 17):** `OA_EnrichmentOrchestrator` (Batch + Stateful) and
+  `OA_EnrichmentQueueable` — configurable batches, transient retry, stop-on-unrecoverable, telemetry;
+  **safe by default** (`commitWrites = false`). Drives the existing engines; bypasses none.
+- **Objects:** `OA_Connector_Run__c` (telemetry), `OA_Enrichment_Change_Log__c` (audit + rollback),
+  `OA_Enrichment_Exception__c` (review queue), `OA_Discovered_Organization__c` (net-new + qualification).
+- **Config (CMDT):** connector registry, enrichment source, field write policy, qualification rule, pipeline.
+- **Lead schema:** 29 enrichment fields. **Runtime FLS:** `OA_Lead_Enrichment_Runtime` permission set.
 
-- **Public APIs only**
-- **Verified API behavior before build** (no connector is built against an unverified endpoint)
-- **Connector Framework** (shared SDK) — see [ADR-005](docs/decisions/ADR-005-connector-framework.md)
-- **Canonical Data Model** — [`docs/CANONICAL_DATA_MODEL.md`](docs/CANONICAL_DATA_MODEL.md) `[Proposed]`
-- **Data Dictionary** — [`docs/EVERGREEN_DATA_DICTIONARY.md`](docs/EVERGREEN_DATA_DICTIONARY.md) `[Proposed]`
-- **Entity Resolution Framework** — [`docs/ENTITY_RESOLUTION_FRAMEWORK.md`](docs/ENTITY_RESOLUTION_FRAMEWORK.md) `[Proposed]`
-- **Metadata Registry** — [`docs/METADATA_REGISTRY.md`](docs/METADATA_REGISTRY.md) `[Proposed]`
-- **Security Baseline** — [`docs/SECURITY_BASELINE.md`](docs/SECURITY_BASELINE.md) `[Proposed]`
-- **Named Credential standard** (all connectors, including public no-auth endpoints)
-- **Staging and review** — connectors write to staging objects gated by a human `Review_Status__c`
-- **No automatic campaign mutation** — connectors never write directly to Lead/Contact/Campaign/CampaignMember
+**Connector inventory (6)** `[Verified from source]`
 
-### Initial connector roadmap `[Proposed]`
+| Connector | Category | Ingestion | Auth | Live-callout status |
+|---|---|---|---|---|
+| SAM.gov | Entity/identity + certs | REST GET | data.gov `X-Api-Key` | needs endpoint + EC principal access + key |
+| USASpending | Contracts/awards | REST POST | none (public) | **ready** |
+| U.S. Census | Market context | REST GET | none | needs `OA_Census` NC |
+| IRS Tax-Exempt | Nonprofit/compliance | **bulk CSV** (no callout) | none | **ready** (validated bulk parse) |
+| SEC EDGAR | Public company | REST GET | User-Agent | needs `OA_SEC` NC |
+| State Registry (template) | State formation | REST GET (extensible) | per-state | template only |
 
-1. **USASpending** (reference implementation; client exists but is not yet production-grade)
-2. **Census Geocoder**
-3. **SAM** — Entity / Exclusions / Contract Awards
-4. **NSF / NIH / SBIR**
-5. **Opportunity intelligence** — only after a review queue exists
+**Governance (ratified — ADR-012).** Enrichment **may** write to Lead, but **only** through the per-field
+write policy engine (fill-empty / approved-overwrite / never), with a before-snapshot, change log, and
+one-command rollback; conflicts and low-confidence matches route to a human review queue. It is **dormant by
+default** (0 connectors enabled, 0 active policies, nothing scheduled) and runs under conservative controls
+until a dedicated least-privilege runtime user replaces the temporary `oauser`/MAD exception
+([`docs/RUNTIME_USER_EXCEPTION.md`](docs/RUNTIME_USER_EXCEPTION.md)).
 
-See [`docs/CONNECTOR_FRAMEWORK.md`](docs/CONNECTOR_FRAMEWORK.md) and
-[`docs/CONNECTOR_FRAMEWORK_ROADMAP.md`](docs/CONNECTOR_FRAMEWORK_ROADMAP.md).
+**Operating it:** [`docs/OPERATIONS_GUIDE.md`](docs/OPERATIONS_GUIDE.md),
+[`docs/GO_LIVE_CHECKLIST.md`](docs/GO_LIVE_CHECKLIST.md),
+[`docs/CREDENTIAL_STATUS.md`](docs/CREDENTIAL_STATUS.md),
+[`docs/SCHEDULING_PLAN.md`](docs/SCHEDULING_PLAN.md),
+[`docs/PERFORMANCE_VALIDATION.md`](docs/PERFORMANCE_VALIDATION.md),
+[`docs/MONITORING_DASHBOARDS.md`](docs/MONITORING_DASHBOARDS.md),
+[`docs/OPERATIONAL_ALERTS.md`](docs/OPERATIONAL_ALERTS.md).
 
----
-
-## Salesforce BPO Platform vs Evergreen Intelligence Platform
-
-| | **Salesforce BPO Platform** | **Evergreen Intelligence Platform** |
-|---|---|---|
-| **State** | Live / production `[Verified from source]` | Planned / design `[Proposed]` |
-| **Scope** | CRM, campaign automation, Graph, meetings, comms preferences | Public-API connectors → reviewed staging → decision layer |
-| **Writes to Lead/Campaign?** | Yes (governed automation) | **No** — staging + human review only |
-| **Home** | `force-app/` (+ `modules/`) today | Connector Framework in `force-app/` core (ADR-005) |
-| **Docs** | Architecture / Campaign / Graph / Comms docs | Connector Framework docs + `[Proposed]` data/entity docs |
-
-The two are distinct: the BPO Platform is the running system; Evergreen is an additive
-enrichment layer that must never mutate production campaign data automatically.
+**Next program:** **Opportunity Intelligence** (a new epic — not yet started). Program-level status for all
+future programs (Operational Enablement, Opportunity Intelligence, Procurement, Grant Management, AI Decision
+Support, Commercial Enrichment) lives in [`docs/PROGRAM_ROADMAP.md`](docs/PROGRAM_ROADMAP.md).
 
 ---
 
@@ -212,7 +220,10 @@ Namespace: none (`""`). Source API version: **67.0**. See
 
 1. **Production campaign operations** — live EDWOSB outreach (do not disturb). `[Verified from source]`
 2. **Communication Preference / Unsubscribe** — completed separately; may be actively maintained.
-3. **Evergreen Connector Framework — Sprint 1A** (current) — documentation/alignment only. `[Proposed]`
+3. **Lead Enrichment Platform** — **v1.0 complete & commissioned (dormant)**; Sprint 17 added the
+   operational execution layer + ops docs. Remaining work is operational enablement (credentials,
+   least-privilege runtime user, dashboards, pilots) — see [`docs/PROGRAM_ROADMAP.md`](docs/PROGRAM_ROADMAP.md).
+4. **Opportunity Intelligence** — the next program (not yet started). `[Proposed]`
 
 See [Current Sprint Status](#current-sprint-status).
 
@@ -225,7 +236,10 @@ See [Current Sprint Status](#current-sprint-status).
 - **Production state must be verified** before any production claim.
 - **No production deployment without validation.**
 - **No destructive operation** without verifying branch, `git status`, and a recovery path.
-- **No automatic Lead, Contact, Campaign, or CampaignMember mutation** from Evergreen connectors.
+- **Governed enrichment writes only** — Lead enrichment writes go **exclusively** through the per-field
+  write policy engine (fill-empty / approved-overwrite / never) with before-snapshot, change log, and
+  rollback; conflicts/low-confidence route to human review (ADR-012). No ungoverned or direct-to-Lead writes;
+  Contact/Campaign/CampaignMember are never auto-mutated by enrichment.
 
 See [`docs/GOVERNANCE_MODEL.md`](docs/GOVERNANCE_MODEL.md).
 
@@ -280,17 +294,18 @@ See [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md) and the Open Risks table 
 
 ## Current Sprint Status
 
-**Connector Framework — Sprint 1A (Repository alignment): in progress.** `[Proposed]`
+**Lead Enrichment Platform v1.0 — COMPLETE / COMMISSIONED (dormant).** `[Verified from source]`
 
-| Sprint | Scope | State |
+| Milestone | Scope | State |
 |--------|-------|-------|
-| **1A** | Repo alignment — docs, ADR-005, roadmap, README | In progress (docs only, uncommitted) |
-| 1B | Connector SDK | Pending |
-| 1C | USASpending refactor | Pending |
-| 1D | Testing → Sprint Review | Pending |
-| 2 | Census Connector | Pending |
+| Phases 7–11 | Foundation, SAM, generic framework, Wave 1 (USASpending/Census/IRS), Wave 2 (SEC/State) | ✅ Complete |
+| Sprints 12–16 | Field deploy, dormant platform deploy, FLS investigation, commissioning, canary + 5-Lead pilot, `RELEASE_1.0.md` | ✅ Complete |
+| Release consolidation | `main = 485f7dc`, tag `lead-enrichment-v1.0` (local; push pending approval) | ✅ Complete |
+| **Sprint 17** | Operational enablement — async orchestrator + ops docs (credentials, scheduling, dashboards, alerts, performance, ops guide, go-live checklist) | ✅ Complete (validated, dormant) |
+| Operational Enablement | least-privilege runtime user, Census/SEC NCs + SAM EC access, dashboards, 25/100 pilots, scheduling | ⏭️ Next |
+| Opportunity Intelligence | next development program | 🔭 Future |
 
-Full sequence: [`docs/CONNECTOR_FRAMEWORK_ROADMAP.md`](docs/CONNECTOR_FRAMEWORK_ROADMAP.md).
+Program-level roadmap: [`docs/PROGRAM_ROADMAP.md`](docs/PROGRAM_ROADMAP.md).
 Platform (non-connector) roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ---
@@ -301,7 +316,9 @@ Platform (non-connector) roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
   `OA_SendGovernor`, `OA_EmailSender`, `OA_EDWOSB_Outreach_Sequence`, and campaign email templates.
 - **Data records/automation on:** Campaign, Lead, Contact, CampaignMember, schedulers, Flows.
 - **Communication Preference / Unsubscribe** classes and permission sets (owned by a separate workstream).
-- **Any Salesforce metadata or Apex** as part of Sprint 1A (docs-only).
+- **Lead Enrichment Platform v1.0** — the frozen platform classes/engines, connectors, CMDTs, objects, the
+  29 Lead fields, and the `OA_Lead_Enrichment_Runtime` permission set (keep it assigned). Change connectors
+  only by adding new ones per the developer guide; do not edit the platform engines.
 - **No deploy / commit / push** without explicit approval.
 
 ---
@@ -337,16 +354,21 @@ Platform (non-connector) roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 Full grouped index: **[`docs/README.md`](docs/README.md)**. Frequently referenced:
 
-- [`docs/README.md`](docs/README.md)
-- [`docs/CONNECTOR_FRAMEWORK.md`](docs/CONNECTOR_FRAMEWORK.md)
-- [`docs/CONNECTOR_FRAMEWORK_ROADMAP.md`](docs/CONNECTOR_FRAMEWORK_ROADMAP.md)
-- [`docs/CANONICAL_DATA_MODEL.md`](docs/CANONICAL_DATA_MODEL.md) `[Proposed]`
-- [`docs/EVERGREEN_DATA_DICTIONARY.md`](docs/EVERGREEN_DATA_DICTIONARY.md) `[Proposed]`
-- [`docs/ENTITY_RESOLUTION_FRAMEWORK.md`](docs/ENTITY_RESOLUTION_FRAMEWORK.md) `[Proposed]`
-- [`docs/METADATA_REGISTRY.md`](docs/METADATA_REGISTRY.md) `[Proposed]`
-- [`docs/SECURITY_BASELINE.md`](docs/SECURITY_BASELINE.md) `[Proposed]`
-- [`docs/DEFINITION_OF_READY.md`](docs/DEFINITION_OF_READY.md) `[Proposed]`
-- [`docs/decisions/`](docs/decisions/)
+**Lead Enrichment Platform v1.0 (current baseline)**
+- [`docs/RELEASE_1.0.md`](docs/RELEASE_1.0.md) — permanent v1.0 baseline (architecture, connectors, deploy/validation IDs)
+- [`docs/PROGRAM_ROADMAP.md`](docs/PROGRAM_ROADMAP.md) — program-level roadmap (current → future)
+- [`docs/LEAD_ENRICHMENT_PLATFORM_SPEC.md`](docs/LEAD_ENRICHMENT_PLATFORM_SPEC.md) — connector matrix / spec
+- [`docs/CONNECTOR_DEVELOPER_GUIDE.md`](docs/CONNECTOR_DEVELOPER_GUIDE.md) — how to add a connector
+- [`docs/OPERATIONS_GUIDE.md`](docs/OPERATIONS_GUIDE.md) · [`docs/GO_LIVE_CHECKLIST.md`](docs/GO_LIVE_CHECKLIST.md)
+- [`docs/CREDENTIAL_STATUS.md`](docs/CREDENTIAL_STATUS.md) · [`docs/SCHEDULING_PLAN.md`](docs/SCHEDULING_PLAN.md) · [`docs/PERFORMANCE_VALIDATION.md`](docs/PERFORMANCE_VALIDATION.md)
+- [`docs/MONITORING_DASHBOARDS.md`](docs/MONITORING_DASHBOARDS.md) · [`docs/OPERATIONAL_ALERTS.md`](docs/OPERATIONAL_ALERTS.md)
+- [`docs/DEPLOYMENT_PACKAGE.md`](docs/DEPLOYMENT_PACKAGE.md) · [`docs/RUNTIME_USER_EXCEPTION.md`](docs/RUNTIME_USER_EXCEPTION.md)
+
+**Design / historical (superseded or pre-v1.0 design — retained for reference)**
+- [`docs/CANONICAL_DATA_MODEL.md`](docs/CANONICAL_DATA_MODEL.md), [`docs/ENTITY_RESOLUTION_FRAMEWORK.md`](docs/ENTITY_RESOLUTION_FRAMEWORK.md), [`docs/EVERGREEN_DATA_DICTIONARY.md`](docs/EVERGREEN_DATA_DICTIONARY.md), [`docs/METADATA_REGISTRY.md`](docs/METADATA_REGISTRY.md), [`docs/SECURITY_BASELINE.md`](docs/SECURITY_BASELINE.md) — early "Evergreen" design (v1.0 implementation is the current source of truth)
+- [`docs/decisions/`](docs/decisions/) — ADR-001…010 on `main`; the enrichment-governance decisions
+  (ADR-011/012) are design docs on the `design/lead-enrichment-platform` branch (see `PROGRAM_ROADMAP.md`)
+- [`docs/README.md`](docs/README.md) — full grouped documentation index
 
 ---
 
