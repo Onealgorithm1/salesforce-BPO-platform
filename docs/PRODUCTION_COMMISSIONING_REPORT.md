@@ -89,3 +89,17 @@ access + alpha-key confirmation (B5/B6). No code defects found.
 but the operational prerequisites — above all **a least-privilege runtime user (blocked by 0 spare
 licenses)** and the **missing Lead fields** — are not satisfied. **GO becomes achievable** once B1 + B2
 (and B3–B6) are closed, following the staged path in §8, each step reversible and logged.
+
+## 11. Progress update (2026-07-06)
+Per Louis's direction:
+- **B1 — handled by a documented exception (not a fix):** `oauser@pboedition.com` is the **temporary
+  runtime user** with risk accepted and conservative controls (see `RUNTIME_USER_EXCEPTION.md`). The
+  least-privilege user remains the top operational risk until a license is available.
+- **B2 — RESOLVED:** 29 Lead enrichment custom fields **deployed to production** (deploy
+  `0AfPn0000022znpKAA`, 29/29 components, 0 errors; verified 29 present on Lead). Text-typed to match the
+  frozen mappers' string output. Additive, empty, no data written.
+- **Still pending (unchanged):** B3 (deploy platform Apex/objects — NOT done), B4 (Census/SEC NCs),
+  B5 (SAM EC access), B6 (SAM key). No Apex/connectors deployed; nothing activated; nothing scheduled;
+  no live enrichment run.
+- **Revised Go/No-Go:** still **NO-GO for live enrichment**, but the schema prerequisite is now closed;
+  next reversible step is a dormant platform deploy (B3), then canary — each with explicit approval.
