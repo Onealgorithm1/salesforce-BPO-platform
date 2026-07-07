@@ -53,5 +53,5 @@ provider's `impersonate_service_account` setting.
 
 ## 5. Read-only audit
 
-After auth, run `docs/google/scripts/gcp-readonly-audit.sh` — it executes only `list`/`describe`
+After auth, run `docs/google/gcp-readonly-audit.sh` — it executes only `list`/`describe`
 calls and writes an inventory. It creates nothing.

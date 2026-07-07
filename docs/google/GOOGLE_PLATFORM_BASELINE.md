@@ -33,7 +33,7 @@ The following cannot be completed by an automated/non-interactive shell because
   OAuth clients, Secret Manager, Storage, BigQuery, Cloud Run/Functions, Pub/Sub, Scheduler,
   Artifact Registry, Logging, Monitoring, Organization, Folder, Quotas)
 
-All of these are marked **`[Needs Verification]`**. Run `docs/google/scripts/gcp-readonly-audit.sh`
+All of these are marked **`[Needs Verification]`**. Run `docs/google/gcp-readonly-audit.sh`
 (read-only) immediately after authenticating to fill them in.
 
 ## Structural caveat `[High Confidence]`
@@ -50,4 +50,4 @@ Identity/Workspace on `onealgorithm.com`). Whether an Organization exists is `[N
 - `GOOGLE_API_BASELINE.md` — enabled-API classification (KEEP/OPTIONAL/REMOVE/ENABLE LATER)
 - `GOOGLE_IAM_STRATEGY.md` — least-privilege IAM model
 - `GOOGLE_ROADMAP.md` — ordered future sprints
-- `scripts/gcp-readonly-audit.sh` — one-shot read-only inventory
+- `gcp-readonly-audit.sh` — one-shot read-only inventory
