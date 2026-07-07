@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Lead Enrichment Runtime</label>
+    <description>FLS for the enrichment runtime user (temporary: oauser) on the Lead enrichment fields, so USER_MODE writes by OA_EnrichmentWriter are permitted. Assigned JIT; revoked after runs. No Delete/ViewAll/ModifyAll.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><field>Lead.UEI__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.CAGE_Code__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.SAM_Registration_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.SAM_Registration_Expiration__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Entity_Type__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Business_Types__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Socioeconomic_Certifications__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Federal_Contractor__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Total_Award_Amount__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Award_Count__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Awarding_Agencies__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Latest_Award_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Parent_Organization__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Market_Establishments__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Market_Employment__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Market_Annual_Payroll__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Market_Industry__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.EIN__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Tax_Exempt_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Tax_Exempt_Subsection__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.NTEE_Code__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.CIK__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Ticker__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Exchange__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.SIC_Code__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.State_Entity_Number__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.State_Registration_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.State_Formation_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Lead.Registered_Agent__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>
