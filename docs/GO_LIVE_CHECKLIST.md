@@ -69,6 +69,11 @@ Do **not** enable live enrichment until every **Required** item is checked. Curr
 - [x] Preview repeated with active policies — matched Sprint 20 (8 matched, 48 fill-empty, 0 conflicts, dmlRows=0).
 - [ ] **First production write NOT completed** — USASpending rate-limited all callouts (transient); 0 Leads written; platform safe. Retry the 8-matched-Lead write after cooldown (reactivate policies → write, spaced). Detail: `SPRINT22_FIRST_PRODUCTION_WRITE.md`.
 
+## Sprint 23 update (2026-07-07) — FIRST PRODUCTION WRITE SUCCEEDED ✅
+- [x] **First controlled write complete:** 8 Leads enriched, **48 fields written**, 0 overwrites, 48 audited change logs w/ before-snapshots, rollback verified. Returned to dormant (0 active policies, 8 Leads enriched preserved).
+- [x] **Root-cause correction:** Sprint-22 "rate limit" was actually a DML-before-callout `CalloutException`. Fix = callout before DML. Not an API/connector issue.
+- [ ] 100-Lead pilot (next) · least-privilege runtime user (before 24/7) · orchestrator deploy (before batch/scheduled).
+
 ## Go/No-Go
-**GO to retry the 25-Lead (8-matched) WRITE** — after a USASpending rate-limit cooldown; reactivate the 6 fill-empty policies → write via the preview-proven path (spaced, one Lead per transaction) → verify + rollback-ready.
-**NO-GO for 100-Lead / batch / scheduled / 24-7** until a first write lands, plus §1 least-priv user and engine deploy.
+**GO for the controlled 100-Lead pilot** — proven path (callout-before-DML, per-Lead/modest batches, fill-empty, audited, reversible). Detail: `SPRINT23_FIRST_SUCCESSFUL_WRITE.md`.
+**NO-GO for scheduled / batch / 24-7** until §1 least-priv user + orchestrator deploy + a passing 100-Lead pilot.
