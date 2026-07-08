@@ -7,6 +7,12 @@
 > or parser — it is blocked by an External Credential principal grant (administration), the alpha→prod endpoint
 > (configuration), and confirmation of the data.gov key (administration/external).**
 
+## Phase 14 update (2026-07-08) — endpoint fixed; still credential-gated
+- ✅ **CONFIGURATION RESOLVED:** the `OA_SAM` Named Credential endpoint was updated **`api-alpha.sam.gov` → `api.sam.gov`** and **deployed to production** (validate `0AfPn0000023eNxKAI`; **deploy `0AfPn0000023ePZKAY` Succeeded**). The connector now targets the production SAM Entity API. (Reversible: redeploy the prior commit.)
+- ⛔ **STILL BLOCKED (unchanged):** the read-only smoke test **re-run after the endpoint fix** returns the **same** `System.CalloutException: We couldn't access the credential(s)... external credential "OA_SAM"` — because the runtime user still has **no EC principal access** (`SetupEntityAccess` = 0; permission-set assignment is a 🔴 gate, scoped to verify/document this sprint) **and** the **data.gov API key** cannot be entered (external secret; not available to engineering). The callout is blocked at the credential layer and never reaches SAM, so the prod endpoint + key are **still unvalidated end-to-end**.
+- **Net:** 1 of 3 blockers cleared (endpoint). Remaining (both required for a successful call, both non-engineering): **(a) EC principal grant** — assign `OA_SAM_Connector` permset to the runtime user (🔴 Louis); **(b) data.gov API key** in the `OA_SAM` EC (🔴 Setup/external). **SAM is NOT yet ready for a successful read-only call or the pilot** until (a)+(b) are done by Louis/admin.
+- **Production safety:** endpoint metadata deploy only (dormant NC; no connector enabled); read-only smoke test did 0 DML; **no Candidate/Lead/Account change**; data unchanged (6/13,301/1).
+
 ---
 
 ## 1. State verification (Phase 1)
