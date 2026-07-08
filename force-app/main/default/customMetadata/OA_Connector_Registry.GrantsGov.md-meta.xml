@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>GrantsGov</label>
+    <protected>false</protected>
+    <values>
+        <field>Connector_Name__c</field>
+        <value xsi:type="xsd:string">GrantsGov</value>
+    </values>
+    <values>
+        <field>Source_System__c</field>
+        <value xsi:type="xsd:string">GrantsGov</value>
+    </values>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Opportunity</value>
+    </values>
+    <values>
+        <field>Connector_Class__c</field>
+        <value xsi:type="xsd:string">OA_GrantsGovConnector</value>
+    </values>
+    <values>
+        <field>Parser_Class__c</field>
+        <value xsi:type="xsd:string">OA_GrantsGovParser</value>
+    </values>
+    <values>
+        <field>Mapper_Class__c</field>
+        <value xsi:type="xsd:string">OA_GrantsGovMapper</value>
+    </values>
+    <values>
+        <field>Staging_Object__c</field>
+        <value xsi:type="xsd:string">OA_Opportunity_Signal__c</value>
+    </values>
+    <values>
+        <field>Named_Credential__c</field>
+        <value xsi:type="xsd:string">OA_GrantsGov</value>
+    </values>
+    <values>
+        <field>Endpoint_Path__c</field>
+        <value xsi:type="xsd:string">/v1/api/search2</value>
+    </values>
+    <values>
+        <field>Dedupe_External_Id_Field__c</field>
+        <value xsi:type="xsd:string">Canonical_Key__c</value>
+    </values>
+    <values>
+        <field>Enabled__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Review_Required__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Status__c</field>
+        <value xsi:type="xsd:string">Draft</value>
+    </values>
+    <values>
+        <field>Version__c</field>
+        <value xsi:type="xsd:string">1.0.0</value>
+    </values>
+    <values>
+        <field>Owner_Steward__c</field>
+        <value xsi:type="xsd:string">Louis Rubino</value>
+    </values>
+</CustomMetadata>
