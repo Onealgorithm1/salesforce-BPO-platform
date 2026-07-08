@@ -5,7 +5,7 @@ _Engineering complete. This is the standing operations reference. For deeper det
 
 ## Current State
 - **Production Org:** `00Dbn00000plgUfEAI`
-- **Current release:** `lead-enrichment-v1.2` (commit `f8eef52`; deploy `0AfPn0000023Kx7KAE`)
+- **Current release:** `lead-enrichment-v1.2` (tag commit `f4894e9`; deploy `0AfPn0000023Kx7KAE`)
 - **Supported connectors:** USASpending (live-proven), Census, SEC (NCs live HTTP 200); SAM (prod key,
   JIT principal grant required); IRS, StateRegistry (dormant scaffolding). All disabled by default.
 - **Runtime model:** temporary MAD `oauser` (see `RUNTIME_USER_EXCEPTION.md`) — top standing risk;

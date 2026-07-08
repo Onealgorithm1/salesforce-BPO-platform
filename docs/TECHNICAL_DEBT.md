@@ -190,3 +190,34 @@ governance baseline relates to the register. Confidence labels: `[Verified from 
 
 > The Debt Summary counts above are **unchanged**; formal TD entries for items (a)–(c) should be
 > added in a later reconciliation once prioritized, so the summary is not silently desynced here.
+
+---
+
+## Lead Enrichment Hardening Sprint Reconciliation (2026-07-08)
+
+Additive note from the Lead Enrichment Platform Hardening sprint (documentation only; no Apex/metadata/production
+change). Records the engineering-debt items specific to Lead Enrichment, mapped to the full audit in
+[REPOSITORY_INTEGRITY_REVIEW.md](REPOSITORY_INTEGRITY_REVIEW.md), [CONNECTOR_REGISTRY_REVIEW.md](CONNECTOR_REGISTRY_REVIEW.md),
+and [CLEANUP_ROADMAP.md](CLEANUP_ROADMAP.md). **No prior TD entries were removed or renumbered.** New items are
+prefixed `TD-LE-` to avoid colliding with the org-baseline numbering above.
+
+| ID | Item | Sev | Class | Effort | Status |
+|---|---|---|---|---|---|
+| TD-LE-01 | **Runtime user is MAD `oauser`** (no least-privilege user; needs a Salesforce license) | 🔴 High | non-eng (license) | small once licensed | Open — top standing risk (R1) |
+| TD-LE-02 | **SAM data.gov key** unconfirmed / previously exposed; needs rotation + JIT EC principal grant | 🔴 High | non-eng (external) | small | Open (R2) |
+| TD-LE-03 | **Monitoring not deployed** — dashboards/reports/alerts designed but 0 in org | 🟡 Med | SF UI + metadata | ~1 day | Open (R9) |
+| TD-LE-04 | **Registry↔interface mismatch** — `GrantsGov`/`SAM_Opportunities` rows point at `OA_IConnector` classes the runner can't cast (dormant, latent) | 🟡 Low | CMDT | ~0.5 day | Open — Cleanup C-4 / Registry R-1 |
+| TD-LE-05 | **Dead Framework-A LE connectors** — `OA_SAMConnector`+support, `OA_USASpendingEnrichmentService`, `OA_SAM_Entity_Staging__c`, `OA_SAM_Connector` permset (0 live refs) | 🟡 Low | destructive | ~0.5–1 day | Open — Cleanup Batch 1 |
+| TD-LE-06 | **`OA_BookingPoller` duplicated** in `force-app` (DEAD copy; canonical in `modules/`) — formalizes Sprint-1A item (a) | 🟡 Low | destructive | ~1 hr | Open — Cleanup C-1 |
+| TD-LE-07 | **Two connector SDKs** (`OA_IConnector` vs `OA_IEnrichmentConnector`) — consolidate; blocked by Opportunity Intelligence on Framework A | 🟡 Med | Apex (OI program) | multi-day | Open — Cleanup M-2/C-8 |
+| TD-LE-08 | **`OA_LeadWritebackService` reads Framework-0 `OA_USASpending_Staging__c`/`OA_USASpendingClient`** — migrate to Framework-B staging | 🟡 Med | Apex | ~1–2 days | Open — Cleanup M-1/C-7 |
+| TD-LE-09 | **`OA_SAM_Connector` extra `fetch(input)` overload** — SDK-consistency nit | 🟢 Low | Apex | ~1 hr | Open — Registry R-2 |
+| TD-LE-10 | **Phantom manifest members** (`OpenAI_Access`, `lead_by_ramesh`) | 🟢 Low | manifest | ~1 hr | Open — Cleanup C-9 |
+| TD-LE-11 | **Doc version drift** v1.0/v1.1 vs certified v1.2 | 🟢 Low | docs | — | **Resolved 2026-07-08** (this sprint: banners + fixes) |
+
+**Classification roll-up (Lead Enrichment engineering debt):**
+- 🔴 **RED (blocks 24×7 automation, non-engineering):** TD-LE-01 (license), TD-LE-02 (external key). These are the only hard blockers and neither is code.
+- 🟡 **YELLOW (hygiene/consistency; does NOT block certified manual/preview scope):** TD-LE-03 monitoring build, TD-LE-04 registry fix, TD-LE-05/06 dead-code cleanup, TD-LE-07/08 SDK/staging consolidation.
+- 🟢 **GREEN (trivial / done):** TD-LE-09 overload, TD-LE-10 manifest, TD-LE-11 version drift (done).
+
+**Recommended order:** TD-LE-11 (done) → TD-LE-03 monitoring (enables everything else) → TD-LE-10/C-9 + Batch-1 cleanup (TD-LE-05/06) → TD-LE-04 registry fix → TD-LE-08 write-back migration → TD-LE-01/02 close (as license/key become available) → TD-LE-07 SDK consolidation (with the OI program). **Core Lead Enrichment engineering is complete at v1.2; every YELLOW item is optional hardening.**

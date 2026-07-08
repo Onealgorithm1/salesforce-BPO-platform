@@ -1,6 +1,10 @@
-# Operational Risk Register — Lead Enrichment Platform v1.0
+# Operational Risk Register — Lead Enrichment Platform
 
-_Sprint 18 · Org **00Dbn00000plgUfEAI** · reassessed 2026-07-07 (live-verified dormant) · pre-live-pilot baseline_
+_Sprint 18 origin · Org **00Dbn00000plgUfEAI** · reassessed 2026-07-07 (live-verified dormant) · normalized to baseline **`lead-enrichment-v1.2`** (`f4894e9`) 2026-07-08 · pre-live-pilot posture unchanged (platform DORMANT)_
+
+> **Version note:** risk scores below were assessed against the dormant platform and remain valid at v1.2. The v1.2
+> hardening release (DML bulkification, monitoring layer, rollback fix) reduced residual technical/operational risk
+> but did **not** close the two 🔴 High items (R1 runtime user, R2 SAM key), which are non-engineering blockers.
 
 Risks are scored **Likelihood × Impact** (Low / Med / High) as of the current **dormant** state (0 connectors
 enabled, 0 policies active, 0 enrichment jobs). Ranked most-severe first. Each risk names a concrete mitigation

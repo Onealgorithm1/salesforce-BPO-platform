@@ -1,6 +1,10 @@
 # Lead Enrichment — Operational Readiness Assessment
 
-_Sprint 27 · 2026-07-07 · Org 00Dbn00000plgUfEAI · v1.1 · evidence-based scoring_
+_Sprint 27 · 2026-07-07 · Org 00Dbn00000plgUfEAI · assessed at v1.1 · evidence-based scoring_
+
+> **Version note (normalized 2026-07-08):** current certified baseline is **`lead-enrichment-v1.2`** (`f4894e9`;
+> see [RELEASE_1.2.md](RELEASE_1.2.md)). This Sprint-27 scorecard predates the v1.2 hardening release and is retained
+> as the assessment record.
 
 ## Overall verdict: 🟡 **READY WITH CONDITIONS**
 Certified and safe for **controlled/manual production enrichment today**; **not** ready for **scheduled/24×7** until the operational items below close. Engineering is complete; the remaining work is operational.

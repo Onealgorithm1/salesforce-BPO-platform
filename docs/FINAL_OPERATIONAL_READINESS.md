@@ -1,6 +1,10 @@
 # Lead Enrichment — FINAL Operational Readiness
 
-_Sprint 29 · 2026-07-07 · Org 00Dbn00000plgUfEAI · v1.1 · evidence-based · platform DORMANT_
+_Sprint 29 · 2026-07-07 · Org 00Dbn00000plgUfEAI · assessed at v1.1 · platform DORMANT_
+
+> **Version note (normalized 2026-07-08):** current certified baseline is **`lead-enrichment-v1.2`** (`f4894e9`;
+> see [RELEASE_1.2.md](RELEASE_1.2.md)). This Sprint-29 readiness assessment predates the v1.2 hardening release; its
+> conclusions still hold. Live readiness roll-up: [LEAD_ENRICHMENT_PRODUCTION_READINESS_PACKAGE.md](LEAD_ENRICHMENT_PRODUCTION_READINESS_PACKAGE.md).
 
 ## Overall: 🟡 **READY WITH CONDITIONS** → **GO to FREEZE** (controlled/manual certified; automation gated on 3 known non-engineering items)
 

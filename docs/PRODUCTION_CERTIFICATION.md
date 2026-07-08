@@ -1,6 +1,11 @@
 # Lead Enrichment Platform — Production Certification
 
-_Issued 2026-07-07 (Sprint 25) · Org **00Dbn00000plgUfEAI** · Release **v1.1** · connector: USASpending_
+_Issued 2026-07-07 (Sprint 25) · Org **00Dbn00000plgUfEAI** · Assessed at Release **v1.1** · connector: USASpending_
+
+> **Version note (normalized 2026-07-08):** the current certified production baseline is **`lead-enrichment-v1.2`**
+> (commit `f4894e9` — see [RELEASE_1.2.md](RELEASE_1.2.md) and [MAINTENANCE.md](MAINTENANCE.md)). The certification
+> below was issued at v1.1 (Sprint 25); v1.2 is an additive hardening release (DML bulkification + monitoring layer)
+> that does not alter this certification's scope. This document is retained as the Sprint-25 certification record.
 
 ## Certification statement
 The Lead Enrichment Platform is **CERTIFIED for controlled/manual production enrichment**. It has been validated end-to-end on production data, both acceptance-test defects have been eliminated, the full test suite passes, the audit trail exactly matches committed data, and rollback is verified. The platform is safe, auditable, and reversible.
