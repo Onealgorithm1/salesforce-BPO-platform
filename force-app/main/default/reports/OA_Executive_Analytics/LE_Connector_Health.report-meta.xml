@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <name>LE Connector Health</name>
+    <reportType>OA_Connector_Runs</reportType>
+    <format>Summary</format>
+    <groupingsDown>
+        <field>OA_Connector_Run__c$Status__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <columns>
+        <field>OA_Connector_Run__c$Run_ID__c</field>
+    </columns>
+</Report>

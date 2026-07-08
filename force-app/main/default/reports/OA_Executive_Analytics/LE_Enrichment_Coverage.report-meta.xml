@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <name>LE Enrichment Coverage</name>
+    <reportType>OA_Leads_Enrichment</reportType>
+    <format>Summary</format>
+    <groupingsDown>
+        <field>Lead$Federal_Contractor__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <columns>
+        <field>Lead$UEI__c</field>
+    </columns>
+</Report>

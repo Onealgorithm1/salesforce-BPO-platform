@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>OA_Enrichment_Exception__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Lead Enrichment review queue: exceptions, conflicts, resolution status and age.</description>
+    <label>OA Enrichment Exceptions</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Exception_Type__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Status__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Source_System__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Field_API_Name__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Confidence__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Recommended_Resolution__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Resolved_At__c</field>
+            <table>OA_Enrichment_Exception__c</table>
+        </columns>
+        <masterLabel>Exception</masterLabel>
+    </sections>
+</ReportType>

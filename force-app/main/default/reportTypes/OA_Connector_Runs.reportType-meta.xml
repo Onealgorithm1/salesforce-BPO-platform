@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>OA_Connector_Run__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Lead Enrichment connector telemetry: runs, status, throughput, and errors.</description>
+    <label>OA Connector Runs</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Run_ID__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Source_System__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Category__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Status__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Requested__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Records_Enriched__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>HTTP_Errors__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Exceptions_Raised__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Started__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Ended__c</field>
+            <table>OA_Connector_Run__c</table>
+        </columns>
+        <masterLabel>Connector Run</masterLabel>
+    </sections>
+</ReportType>

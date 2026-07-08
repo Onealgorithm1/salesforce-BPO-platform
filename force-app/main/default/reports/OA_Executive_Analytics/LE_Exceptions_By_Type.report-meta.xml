@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <name>LE Exceptions by Type</name>
+    <reportType>OA_Enrichment_Exceptions</reportType>
+    <format>Summary</format>
+    <groupingsDown>
+        <field>OA_Enrichment_Exception__c$Exception_Type__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <columns>
+        <field>OA_Enrichment_Exception__c$Source_System__c</field>
+    </columns>
+</Report>

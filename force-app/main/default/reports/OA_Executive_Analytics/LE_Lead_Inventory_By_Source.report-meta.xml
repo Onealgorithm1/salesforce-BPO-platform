@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <name>LE Lead Inventory by Source</name>
+    <reportType>OA_Leads_Enrichment</reportType>
+    <format>Summary</format>
+    <groupingsDown>
+        <field>Lead$LeadSource</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <columns>
+        <field>Lead$UEI__c</field>
+    </columns>
+</Report>

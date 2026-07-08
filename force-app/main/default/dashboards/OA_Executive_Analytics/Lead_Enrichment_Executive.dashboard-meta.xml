@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Dashboard xmlns="http://soap.sforce.com/2006/04/metadata">
+    <backgroundEndColor>#FFFFFF</backgroundEndColor>
+    <backgroundFadeDirection>Diagonal</backgroundFadeDirection>
+    <backgroundStartColor>#FFFFFF</backgroundStartColor>
+    <dashboardType>SpecifiedUser</dashboardType>
+    <description>Lead Enrichment Executive — inventory, coverage, connector health, review + writeback queues.</description>
+    <leftSection>
+        <columnSize>Medium</columnSize>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Open review exceptions</footer>
+            <header>Open review exceptions</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/LE_Review_Queue</report>
+            <title>Review Queue</title>
+            <useReportChart>false</useReportChart>
+        </components>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Leads by source</footer>
+            <header>Leads by source</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/LE_Lead_Inventory_By_Source</report>
+            <title>Lead Inventory</title>
+            <useReportChart>false</useReportChart>
+        </components>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Enrichment coverage</footer>
+            <header>Enrichment coverage</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/LE_Enrichment_Coverage</report>
+            <title>Coverage</title>
+            <useReportChart>false</useReportChart>
+        </components>
+    </leftSection>
+    <rightSection>
+        <columnSize>Medium</columnSize>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Connector runs by status</footer>
+            <header>Connector runs by status</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/LE_Connector_Health</report>
+            <title>Connector Health</title>
+            <useReportChart>false</useReportChart>
+        </components>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Writebacks by type</footer>
+            <header>Writebacks by type</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/LE_Writeback_Activity</report>
+            <title>Writeback Activity</title>
+            <useReportChart>false</useReportChart>
+        </components>
+    </rightSection>
+    <runningUser>oauser@pboedition.com</runningUser>
+    <textColor>#000000</textColor>
+    <title>Lead Enrichment - Executive</title>
+    <titleColor>#000000</titleColor>
+    <titleSize>12</titleSize>
+</Dashboard>
