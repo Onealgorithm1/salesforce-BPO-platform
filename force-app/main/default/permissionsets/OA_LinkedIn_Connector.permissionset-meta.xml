@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA LinkedIn Connector</label>
+    <description>DORMANT, UNASSIGNED. Container permission set for LinkedIn API access. Product-agnostic (serves all approved LinkedIn products). External Credential principal access is added after OAuth setup in the UI. No data/object perms yet.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+</PermissionSet>
