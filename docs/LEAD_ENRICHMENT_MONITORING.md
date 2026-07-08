@@ -38,7 +38,7 @@ Live telemetry objects (field lists queried from the org):
 | Reports (`OA*` / enrichment) | ❌ **0 in org** | — | — | **Must build UI or use script** |
 | Dashboards (`OA*` / enrichment) | ❌ **0 in org** | — | — | **Must build UI or use script** |
 | Docs: KPI_CATALOG, KPI_BASELINE, MONITORING_UI_BUILD_GUIDE, DASHBOARD_EXECUTIVE/OPERATIONS/ADMIN, MONITORING_AND_ALERTS, DAILY_ENRICHMENT_OPERATING_PROCEDURE | ✅ | KPI definitions + dashboard build guidance | Doc | Describe dashboards not yet built in the org |
-| CLI reporting script | ✅ **new** | `scripts/daily_enrichment_audit.sh` — runnable daily audit | Run+Lead+Field+Connector | — |
+| CLI reporting script | ✅ **new** | `scripts/shell/daily_enrichment_audit.sh` — runnable daily audit | Run+Lead+Field+Connector | — |
 
 **Current org state (evidence, 2026-07-07):** 0 enabled connectors · 0 active write policies · 0 enrichment
 cron jobs · 0 running Apex jobs · 18 runs (14 Succeeded, 4 PartialErrors) · 474 change logs (0 Rollback) ·
@@ -97,7 +97,7 @@ dashboard filter later proves them necessary. This keeps the build minimal and f
 
 Delivered in this change — **docs + one script only, no org metadata**:
 
-- `scripts/daily_enrichment_audit.sh` — runnable SOQL audit pack (run/lead/field/connector/dormant), emits
+- `scripts/shell/daily_enrichment_audit.sh` — runnable SOQL audit pack (run/lead/field/connector/dormant), emits
   PASS / WARN / FAIL. This is the primary daily-audit instrument.
 - This document (`LEAD_ENRICHMENT_MONITORING.md`) — audit, gap analysis, dashboard build steps, daily
   procedure, automation mode.
@@ -131,14 +131,14 @@ are custom objects, so standard report types exist). (2) `Reports → New Folder
 share to the ops user. (3) For each row above: `New Report → pick the source object → add filters →
 group → add chart → Save into "Lead Enrichment"`. (4) `Dashboards → New Dashboard → "Lead Enrichment
 Operations"`, running user = the enrichment runtime user; add one component per report using the chart
-above. (5) Set the dashboard to refresh daily. Until this is built, `scripts/daily_enrichment_audit.sh`
+above. (5) Set the dashboard to refresh daily. Until this is built, `scripts/shell/daily_enrichment_audit.sh`
 provides the same evidence from the CLI. Reference detail: `MONITORING_UI_BUILD_GUIDE.md`, `KPI_CATALOG.md`.
 
 ---
 
 ## Phase 6 — Daily Claude Audit Procedure
 
-Run `scripts/daily_enrichment_audit.sh` (below) — it answers each question from live SOQL and prints a
+Run `scripts/shell/daily_enrichment_audit.sh` (below) — it answers each question from live SOQL and prints a
 verdict. Manual equivalent (what Claude checks and how):
 
 | Audit question | Evidence source |
@@ -198,7 +198,7 @@ past Mode 3 without both.
 | Deployed metadata changed | **none** (docs + script only) |
 | Validation / deploy ID | n/a (no org deploy) |
 | Tests run | n/a (no code change) |
-| Monitoring assets created | `scripts/daily_enrichment_audit.sh`, `docs/LEAD_ENRICHMENT_MONITORING.md` |
+| Monitoring assets created | `scripts/shell/daily_enrichment_audit.sh`, `docs/LEAD_ENRICHMENT_MONITORING.md` |
 | Dashboards/reports | 0 in org — exact UI build steps documented (§5) |
 | Remaining monitoring gaps | all **Deferred** (optional `Commit_Mode__c` + HTTP error sub-categories); none block the daily audit |
 | Recommended automation mode | **3 — Scheduled preview + human-approved write** |
