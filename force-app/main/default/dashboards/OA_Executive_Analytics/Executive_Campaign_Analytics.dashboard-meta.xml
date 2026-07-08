@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Dashboard xmlns="http://soap.sforce.com/2006/04/metadata">
+    <backgroundEndColor>#FFFFFF</backgroundEndColor>
+    <backgroundFadeDirection>Diagonal</backgroundFadeDirection>
+    <backgroundStartColor>#FFFFFF</backgroundStartColor>
+    <dashboardType>SpecifiedUser</dashboardType>
+    <description>Reusable, campaign-agnostic executive analytics: delivery, opens, bounces, and current funnel. Complements the legacy BPO Campaign Command Center. Add trend chart components and a Campaign filter in the UI as needed.</description>
+    <leftSection>
+        <columnSize>Medium</columnSize>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Total campaign members, all campaigns</footer>
+            <header>FUNNEL</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/Funnel_By_Campaign</report>
+            <title>Total Members</title>
+            <useReportChart>false</useReportChart>
+        </components>
+    </leftSection>
+    <middleSection>
+        <columnSize>Medium</columnSize>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Total outbound emails sent</footer>
+            <header>DELIVERY</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>100</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/Outreach_Sent_By_Day</report>
+            <title>Total Sent</title>
+            <useReportChart>false</useReportChart>
+        </components>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Emails flagged as bounced</footer>
+            <header></header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>10</indicatorBreakpoint2>
+            <indicatorHighColor>#C25454</indicatorHighColor>
+            <indicatorLowColor>#54C254</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/Email_Bounces</report>
+            <title>Bounces</title>
+            <useReportChart>false</useReportChart>
+        </components>
+    </middleSection>
+    <rightSection>
+        <columnSize>Medium</columnSize>
+        <components>
+            <componentType>Metric</componentType>
+            <displayUnits>Auto</displayUnits>
+            <footer>Emails recipients have opened (directional)</footer>
+            <header>ENGAGEMENT</header>
+            <indicatorBreakpoint1>1</indicatorBreakpoint1>
+            <indicatorBreakpoint2>50</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
+            <report>OA_Executive_Analytics/Email_Opens</report>
+            <title>Total Opens</title>
+            <useReportChart>false</useReportChart>
+        </components>
+    </rightSection>
+    <runningUser>oauser@pboedition.com</runningUser>
+    <textColor>#000000</textColor>
+    <title>Executive Campaign Analytics</title>
+    <titleColor>#000000</titleColor>
+    <titleSize>12</titleSize>
+</Dashboard>

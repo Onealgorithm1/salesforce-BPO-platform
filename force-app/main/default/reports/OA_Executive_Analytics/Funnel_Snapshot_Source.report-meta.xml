@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>CAMPAIGN_NAME</field>
+    </columns>
+    <columns>
+        <field>MEMBER_STATUS</field>
+    </columns>
+    <description>Tabular feed for the OA Daily Funnel Snapshot reporting snapshot: one row per campaign member (campaign + current status) across all campaigns. Not for direct executive viewing — its only job is to source the daily snapshot. Campaign-agnostic.</description>
+    <format>Tabular</format>
+    <name>Funnel Snapshot Source</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>CampaignLead</reportType>
+    <scope>orgAll</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+</Report>
