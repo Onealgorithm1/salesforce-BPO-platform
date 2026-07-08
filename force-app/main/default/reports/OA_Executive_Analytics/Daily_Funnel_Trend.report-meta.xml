@@ -4,12 +4,12 @@
     <format>Matrix</format>
     <groupingsAcross>
         <dateGranularity>Day</dateGranularity>
-        <field>Campaign_Funnel_Snapshot__c.Snapshot_Date__c</field>
+        <field>Campaign_Funnel_Snapshot__c$Snapshot_Date__c</field>
         <sortOrder>Asc</sortOrder>
     </groupingsAcross>
     <groupingsDown>
         <dateGranularity>Day</dateGranularity>
-        <field>Campaign_Funnel_Snapshot__c.Member_Status__c</field>
+        <field>Campaign_Funnel_Snapshot__c$Member_Status__c</field>
         <sortOrder>Asc</sortOrder>
     </groupingsDown>
     <name>Daily Funnel Trend</name>
@@ -17,7 +17,7 @@
         <name>co</name>
         <value>1</value>
     </params>
-    <reportType>OA_Campaign_Funnel_Snapshots</reportType>
+    <reportType>OA_Campaign_Funnel_Snapshots__c</reportType>
     <scope>organization</scope>
     <showDetails>false</showDetails>
     <showGrandTotal>true</showGrandTotal>

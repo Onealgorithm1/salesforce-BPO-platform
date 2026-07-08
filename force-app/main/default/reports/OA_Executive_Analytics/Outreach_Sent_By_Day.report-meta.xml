@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Report xmlns="http://soap.sforce.com/2006/04/metadata">
     <columns>
-        <field>EmailMessage.Subject</field>
+        <field>EmailMessage$Subject</field>
     </columns>
     <columns>
-        <field>EmailMessage.ToAddress</field>
+        <field>EmailMessage$ToAddress</field>
     </columns>
     <columns>
-        <field>EmailMessage.MessageDate</field>
-    </columns>
-    <columns>
-        <field>EmailMessage.Status</field>
+        <field>EmailMessage$Status</field>
     </columns>
     <description>Outbound emails sent per day (delivery volume trend). Counts outgoing email messages grouped by day. Campaign-agnostic; pairs with the funnel to show pacing against the daily send cap.</description>
     <filter>
         <criteriaItems>
-            <column>EmailMessage.Incoming</column>
+            <column>EmailMessage$Incoming</column>
             <columnToColumn>false</columnToColumn>
             <isUnlocked>false</isUnlocked>
             <operator>equals</operator>
@@ -25,7 +22,7 @@
     <format>Summary</format>
     <groupingsDown>
         <dateGranularity>Day</dateGranularity>
-        <field>EmailMessage.MessageDate</field>
+        <field>EmailMessage$MessageDate</field>
         <sortOrder>Desc</sortOrder>
     </groupingsDown>
     <name>Outreach Sent By Day</name>
@@ -33,7 +30,7 @@
         <name>co</name>
         <value>1</value>
     </params>
-    <reportType>OA_Email_Messages</reportType>
+    <reportType>OA_Email_Messages__c</reportType>
     <scope>organization</scope>
     <showDetails>false</showDetails>
     <showGrandTotal>true</showGrandTotal>
