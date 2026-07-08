@@ -1,5 +1,12 @@
 # Project Status — One Algorithm BPO Platform
 
+> **⚠️ HISTORICAL SNAPSHOT (superseded).** This file records the **Phase 0 / June 19, 2026** project-inception
+> status and is **no longer the current state**. As of 2026-07-08 the Lead Enrichment Platform is production-certified
+> at **`lead-enrichment-v1.2`** (`f4894e9`; `main` = `dbf8d12`) and in maintenance mode. For current status see
+> [`README.md`](../README.md) §Current Sprint Status, [`MAINTENANCE.md`](MAINTENANCE.md),
+> [`RELEASE_1.2.md`](RELEASE_1.2.md), and [`LEAD_ENRICHMENT_HARDENING_REPORT.md`](LEAD_ENRICHMENT_HARDENING_REPORT.md).
+> Retained for historical reference; recommend retiring or refreshing (see `DOCUMENT_CROSS_REFERENCE_REPORT.md`).
+
 **Last Updated:** June 19, 2026
 **Updated By:** Louis Rubino (lrubino@onealgorithm.com)
 **Branch:** main

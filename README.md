@@ -319,16 +319,24 @@ See [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md) and the Open Risks table 
 
 ## Current Sprint Status
 
-**Lead Enrichment Platform v1.0 — COMPLETE / COMMISSIONED (dormant).** `[Verified from source]`
+**Lead Enrichment Platform — PRODUCTION-CERTIFIED v1.2 / MAINTENANCE MODE (dormant).** `[Verified from source]`
+
+> **Current baseline (2026-07-08):** release `lead-enrichment-v1.2` (tag commit `f4894e9`); latest `main` = `dbf8d12`.
+> Engineering is complete; the platform is in maintenance mode and fully dormant. Authoritative current-state docs:
+> [`docs/RELEASE_1.2.md`](docs/RELEASE_1.2.md), [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md),
+> [`docs/LEAD_ENRICHMENT_HARDENING_REPORT.md`](docs/LEAD_ENRICHMENT_HARDENING_REPORT.md). The table below records the
+> historical v1.0→v1.2 milestone path.
 
 | Milestone | Scope | State |
 |--------|-------|-------|
 | Phases 7–11 | Foundation, SAM, generic framework, Wave 1 (USASpending/Census/IRS), Wave 2 (SEC/State) | ✅ Complete |
 | Sprints 12–16 | Field deploy, dormant platform deploy, FLS investigation, commissioning, canary + 5-Lead pilot, `RELEASE_1.0.md` | ✅ Complete |
-| Release consolidation | `main = 485f7dc`, tag `lead-enrichment-v1.0` (local; push pending approval) | ✅ Complete |
+| Release consolidation | tag `lead-enrichment-v1.0` (`485f7dc`, historical) | ✅ Complete |
 | **Sprint 17** | Operational enablement — async orchestrator + ops docs (credentials, scheduling, dashboards, alerts, performance, ops guide, go-live checklist) | ✅ Complete (validated, dormant) |
-| Operational Enablement | least-privilege runtime user, Census/SEC NCs + SAM EC access, dashboards, 25/100 pilots, scheduling | ⏭️ Next |
-| Opportunity Intelligence | next development program | 🔭 Future |
+| Production hardening | v1.1 (`RELEASE_1.1.md`) then **v1.2** (`RELEASE_1.2.md`, `f4894e9`) — DML bulkification, rollback multi-field fix, monitoring layer | ✅ Complete (certified, dormant) |
+| Repository hardening + certification | integrity/registry reviews, cleanup roadmap, readiness package, repository certification | ✅ Complete (docs) |
+| Operational Enablement | least-privilege runtime user, dashboards deploy, 25/100 pilots, scheduling | ⏭️ Next (gated; non-engineering blockers) |
+| Opportunity Intelligence | separate program — Phase 0–2 connectors shipped dormant on `main` | 🔭 In progress |
 
 Program-level roadmap: [`docs/PROGRAM_ROADMAP.md`](docs/PROGRAM_ROADMAP.md).
 Platform (non-connector) roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
