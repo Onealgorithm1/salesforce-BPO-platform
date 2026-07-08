@@ -39,4 +39,4 @@ can act on it without guessing._
 
 ## Related Decisions
 
-- _Links to related ADRs (e.g., [ADR-00X](ADR-00X-….md)) and governance docs._
+- _Links to related ADRs (by relative Markdown link, e.g. `ADR-0NN-<slug>.md`) and governance docs._
