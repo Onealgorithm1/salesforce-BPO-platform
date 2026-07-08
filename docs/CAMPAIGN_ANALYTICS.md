@@ -83,6 +83,18 @@ Why native UI and not metadata: the Reporting Snapshot mapping/schedule is a dec
 
 ---
 
+## 4a. Field-Level Security (remediation — 2026-07-08)
+
+**Root cause.** Custom fields deployed via the Metadata API carry **no field-level security** by default — not even for the System Administrator. As deployed, the four `Campaign_Funnel_Snapshot__c` fields (`Campaign_Name__c`, `Member_Status__c`, `Member_Count__c`, `Snapshot_Date__c`) were invisible to all users in SOQL, reports, and the Reporting Snapshot mapping wizard.
+
+**Fix.** Dedicated permission set **`OA_Executive_Analytics_Access`** grants Read + Create/Edit on the object and Read/Edit on all four fields (no prospect-object access). Preferred over editing the System Administrator profile. Deploy ID **`0AfPn0000023VR7KAM`** (1 component, 0 errors; validation `0AfPn0000023VPVKA2`).
+
+**Verification.** Four `FieldPermissions` rows now exist for the fields (Read=Edit=true) under `OA_Executive_Analytics_Access`.
+
+**Activation.** Field visibility (SOQL success, report data, snapshot target-field mapping) becomes effective for a user once the permission set is **assigned** — assign it to analytics viewers and to the Reporting Snapshot running user (`oauser@pboedition.com`). Assignment was intentionally left as an operational step.
+
+---
+
 ## 5. Deployment (when approved)
 
 Custom report types must exist **before** the reports that use them. Deploy in two phases:
