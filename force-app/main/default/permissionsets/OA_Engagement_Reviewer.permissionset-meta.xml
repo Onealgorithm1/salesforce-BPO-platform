@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Engagement Reviewer</label>
+    <description>ERE Phase 1 review-only access: READ on the OA Engagement Resolution shadow log and its fields. No Create/Edit/Delete, no ViewAll/ModifyAll. No new access to prospect objects. Unassigned by default.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <object>OA_Engagement_Resolution__c</object>
+        <allowRead>true</allowRead>
+        <allowCreate>false</allowCreate>
+        <allowEdit>false</allowEdit>
+        <allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords>
+        <modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Signal_Type__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Direction__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Source_Record_Id__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Party_Email__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Party_Domain__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Matched_Level__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Confidence__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Resolved_Lead__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Resolved_Contact__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Resolved_CampaignMember__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Candidate_Json__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Status__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Engagement_Resolution__c.Internal_Mislink__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+</PermissionSet>

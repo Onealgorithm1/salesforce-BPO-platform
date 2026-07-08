@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>OA_Engagement_Resolution__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Reports on the ERE shadow log (OA Engagement Resolution) for the human review queue.</description>
+    <label>OA Engagement Resolutions</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Signal_Type__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Direction__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Party_Email__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Party_Domain__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Matched_Level__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Confidence__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Status__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Internal_Mislink__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Resolved_Lead__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Resolved_Contact__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Resolved_CampaignMember__c</field>
+            <table>OA_Engagement_Resolution__c</table>
+        </columns>
+        <masterLabel>Engagement Resolution Fields</masterLabel>
+    </sections>
+</ReportType>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Internal_Mislink__c</fullName>
+    <description>True when the signal (e.g. a Teams Event) is linked only to an internal One Algorithm user/contact with no prospect - the systemic Event mislink pattern this engine surfaces.</description>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <label>Internal Mislink</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>
