@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>EmailMessage$Subject</field>
+    </columns>
+    <columns>
+        <field>EmailMessage$ToAddress</field>
+    </columns>
+    <columns>
+        <field>EmailMessage$FirstOpenedDate</field>
+    </columns>
+    <columns>
+        <field>EmailMessage$LastOpenedDate</field>
+    </columns>
+    <description>Outbound emails that recipients have opened (First Opened date present). Directional engagement signal only — pixel-based open tracking is unreliable (see docs/CAMPAIGN_ANALYTICS.md limitations). Campaign-agnostic.</description>
+    <filter>
+        <criteriaItems>
+            <column>EmailMessage$Incoming</column>
+            <columnToColumn>false</columnToColumn>
+            <isUnlocked>false</isUnlocked>
+            <operator>equals</operator>
+            <value>0</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>EmailMessage$FirstOpenedDate</column>
+            <columnToColumn>false</columnToColumn>
+            <isUnlocked>false</isUnlocked>
+            <operator>notEqual</operator>
+            <value></value>
+        </criteriaItems>
+        <booleanFilter>1 AND 2</booleanFilter>
+    </filter>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>EmailMessage$MessageDate</field>
+        <sortOrder>Desc</sortOrder>
+    </groupingsDown>
+    <name>Email Opens</name>
+    <params>
+        <name>co</name>
+        <value>1</value>
+    </params>
+    <reportType>OA_Email_Messages__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <showGrandTotal>true</showGrandTotal>
+    <showSubTotals>true</showSubTotals>
+</Report>

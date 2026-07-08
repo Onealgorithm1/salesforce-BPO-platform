@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>EmailMessage</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Campaign-agnostic reporting on email messages: sends, opens (FirstOpenedDate), and bounces (IsBounced). Backs the Executive Analytics Opens, Bounces, and Sent-by-Day reports. Read-only analytics; does not change email behavior.</description>
+    <label>OA Email Messages</label>
+    <sections>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Subject</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>MessageDate</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Status</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>Incoming</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>IsBounced</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>FirstOpenedDate</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>LastOpenedDate</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>FromAddress</field>
+            <table>EmailMessage</table>
+        </columns>
+        <columns>
+            <checkedByDefault>true</checkedByDefault>
+            <field>ToAddress</field>
+            <table>EmailMessage</table>
+        </columns>
+        <masterLabel>Email Message Fields</masterLabel>
+    </sections>
+</ReportType>
