@@ -226,6 +226,53 @@ This registry is the authoritative record of every external system that the One 
 
 ---
 
+### INT-010 — SAM.gov Entity Management API (public federal entity registration)
+
+| Field | Value |
+|-------|-------|
+| **Integration ID** | INT-010 |
+| **Name** | SAM.gov Entity Management API v3 |
+| **Status** | **Metadata present; dormant / blocked** — `[Verified from source]` connector `OA_SAM_Connector` + `OA_SAM` Named/External Credential + `OA_SAM_Connector` permission set exist; `Enabled__c=false`; not invoked. **Blocked** on key + endpoint + principal access (see Notes). |
+| **Owner** | Louis Rubino |
+| **Purpose** | Enrich teaming/EDWOSB leads with SAM entity registration (UEI, CAGE, registration status/expiration, socioeconomic certifications). |
+| **Protocol** | HTTPS REST (`GET /entity-information/v3/entities`) |
+| **Auth Method** | data.gov API key via **`X-Api-Key` header** (External Credential `OA_SAM`); secret UI-only, git-ignored. |
+| **Salesforce Mechanism** | Named Credential `OA_SAM` → Apex `OA_SAM_Connector` (framework-dispatched); staging → `OA_Discovered_Organization__c`. |
+| **Data Flow: Outbound** | UEI or legal business name (public identifiers) |
+| **Data Flow: Inbound to SF** | Entity registration fields (public) → canonical → Lead field proposals, human-review gated |
+| **Data Classification** | Public — federal open data, no PII |
+| **PII Exposure** | None |
+| **Risk Level** | Low (public data, read-only) |
+| **Business Criticality** | Medium (Lead Enrichment identity/compliance source) |
+| **Review Date** | At key provisioning |
+| **Notes** | **⚠️ Blocked** (Sprint-19 live re-verification): NC endpoint is on **alpha** `https://api-alpha.sam.gov` (move to prod `api.sam.gov`); **EC principal access = 0** (permset has 0 assignments; MAD does not substitute); **data.gov key unconfirmed** (prior alpha smoke = non-2xx). Legacy dead classes `OA_SAMConnector`/`OA_SAMMapper`/`OA_SAMParser`/`OA_SAMRequest` are a separate cleanup candidate (recommend a TECHNICAL_DEBT entry). See `docs/SAM_CONNECTOR_RUNBOOK.md`, `docs/CREDENTIAL_STATUS.md`. |
+
+---
+
+### INT-011 — SAM.gov Get Opportunities API (public federal contract solicitations)
+
+| Field | Value |
+|-------|-------|
+| **Integration ID** | INT-011 |
+| **Name** | SAM.gov Get Opportunities Public API v2 |
+| **Status** | **Planned — design only** (Opportunity Intelligence Program 2, connector slice **P2**). No code, no credential, not enabled. Design: `docs/SAM_OPPORTUNITIES_CONNECTOR_DESIGN.md`. |
+| **Owner** | Louis Rubino |
+| **Purpose** | Ingest federal **contract solicitations** as opportunity signals for review (Go/No-Go pursuit intelligence). **Distinct from INT-010** — different API, endpoint, credential, and data grain (solicitation, not entity). |
+| **Protocol** | HTTPS REST (`GET /opportunities/v2/search`) |
+| **Auth Method** | data.gov API key — **new** External Credential `OA_SAM_Opportunities` (`X-Api-Key` header); do **not** reuse the INT-010 `OA_SAM` credential. Secret UI-only, git-ignored. |
+| **Salesforce Mechanism** | New Named Credential `OA_SAM_Opportunities` (→ prod `https://api.sam.gov`) → Apex `OA_SAMOpportunities_Connector` (framework-dispatched); target object `OA_Opportunity_Signal__c` (review-gated). |
+| **Data Flow: Outbound** | Search filters only (date window, NAICS, set-aside, agency) — no PII |
+| **Data Flow: Inbound to SF** | Public solicitation notices → `OA_Opportunity_Signal__c` (Pending review) |
+| **Data Classification** | Public — federal open data, no PII |
+| **PII Exposure** | None |
+| **Risk Level** | Low (public data, read-only) |
+| **Business Criticality** | High once live (primary opportunity feed for OI) |
+| **Key Requirements Before Activation** | (1) Provision + confirm (2xx) a data.gov key; (2) create NC/EC `OA_SAM_Opportunities` + grant EC principal access (RED); (3) P1 OI MVP infra (`OA_Opportunity_Signal__c` + `OA_OpportunitySignalService`) landed first; (4) dormant (`Enabled__c=false`) until human preview→approve gates. |
+| **Review Date** | Before implementation |
+| **Notes** | Highest-value OI feed but gated on the data.gov key. Requires real pagination (offset/limit → totalRecords) and a ≤1-year `postedFrom/postedTo` window. See `docs/SAM_OPPORTUNITIES_CONNECTOR_DESIGN.md`, `docs/OI_CONNECTOR_INVENTORY.md`, ADR-015/016/017. |
+
+---
+
 ## Planned Integrations (Not Yet Active)
 
 ---
