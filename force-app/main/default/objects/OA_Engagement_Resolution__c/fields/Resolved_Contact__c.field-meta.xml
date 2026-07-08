@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Resolved_Contact__c</fullName>
+    <description>Contact the signal was matched to (candidate). Populated on the shadow log ONLY; the Contact itself is never modified.</description>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Resolved Contact</label>
+    <referenceTo>Contact</referenceTo>
+    <relationshipLabel>Engagement Resolutions</relationshipLabel>
+    <relationshipName>Engagement_Resolutions</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

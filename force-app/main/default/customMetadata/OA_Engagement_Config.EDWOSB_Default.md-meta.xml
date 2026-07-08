@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <label>EDWOSB Default</label>
+    <protected>false</protected>
+    <values>
+        <field>Active__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Assistant_Prefixes__c</field>
+        <value xsi:type="xsd:string">admin,adminasst,administration,contracts,procurement,proposals,capture,bd,businessdevelopment,info,office,teaming,gov,contracting</value>
+    </values>
+    <values>
+        <field>Campaign_Id__c</field>
+        <value xsi:type="xsd:string">701Pn00001ZOyj8IAD</value>
+    </values>
+    <values>
+        <field>Enable_L1__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Enable_L2__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Enable_L3__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Enable_L6_Review__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Free_Domains__c</field>
+        <value xsi:type="xsd:string">gmail.com,yahoo.com,hotmail.com,outlook.com,aol.com,icloud.com,protonmail.com,proton.me,live.com,msn.com,gmx.com,mail.com,ymail.com,me.com,comcast.net</value>
+    </values>
+    <values>
+        <field>Internal_Domain__c</field>
+        <value xsi:type="xsd:string">onealgorithm.com</value>
+    </values>
+    <values>
+        <field>Observe_Only__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+</CustomMetadata>
