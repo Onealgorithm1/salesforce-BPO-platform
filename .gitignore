@@ -48,3 +48,7 @@ scripts/
 # External Credential metadata — contains live secrets (API keys in parameterValue)
 # Retrieve locally for inspection only; never commit
 **/externalCredentials/
+
+# Auth Provider metadata — contains Consumer Secret; create/manage in Setup UI only
+# Retrieve locally for inspection only; never commit
+**/authproviders/
