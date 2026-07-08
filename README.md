@@ -10,6 +10,27 @@
 
 ---
 
+## Current Project Status
+
+- **`main` is the production baseline.** It reflects what is deployed to the production org.
+- **Lead Enrichment Platform v1.2** is **engineering complete, production certified, and in Maintenance
+  Mode.** See [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md), [`docs/RELEASE_1.2.md`](docs/RELEASE_1.2.md),
+  and [`docs/LEAD_ENRICHMENT_MONITORING.md`](docs/LEAD_ENRICHMENT_MONITORING.md).
+- **Future Lead Enrichment work is limited to** production defects, security fixes, connector/API
+  maintenance, Salesforce platform compatibility, or governor-limit regressions — **no new features.**
+- **Active / non-`main` workstreams live on feature or backup branches**, not on `main`. Currently known:
+  - Meta/Facebook Integration
+  - LinkedIn / Authentication foundation
+  - Meeting Tracking
+  - Opportunity Intelligence (design)
+- The branch **`backup/untracked-auth-linkedin-meta-2026-07-08`** exists **only** to preserve uncommitted
+  design/metadata work; it is **not production-ready** and must not be treated as such.
+
+**Before starting work, check:** current branch · org ID · working tree · which workstream you are in ·
+and whether the change belongs on `main`, a feature branch, or a backup branch.
+
+---
+
 ## Executive Summary
 
 This repository contains the Salesforce-native **BPO Platform** for One Algorithm. It is the
