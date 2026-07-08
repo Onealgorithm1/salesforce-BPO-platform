@@ -1,129 +1,116 @@
 /**
- * OA_CandidateDiscoveryService — Lead Acquisition candidate persistence + duplicate detection.
+ * OA_CandidateDiscoveryService — Lead Acquisition candidate persistence with Identity Resolution + multi-source fusion.
  *
- * Takes canonical organizations produced by any OA_IEnrichmentConnector (via OA_ConnectorResult.organizations)
- * and persists them as Candidate records in the EXISTING staging object OA_Discovered_Organization__c.
+ * Pipeline per incoming canonical org: OA_IdentityResolution.resolve -> decision -> fusion/insert.
+ *   - EXACT_DUPLICATE (same payload hash already staged) -> Skipped (no change)
+ *   - MATCH -> CANDIDATE  -> FUSE incoming into the existing Candidate (fill-empty + provenance); UPDATE (no new record)
+ *   - MATCH -> LEAD/ACCOUNT -> mark Duplicate + link (Matched_Lead__c/Matched_Account__c); insert an auditable marker
+ *   - REVIEW (ambiguous)  -> insert as Needs Review with the match rationale (never auto-merges)
+ *   - NONE                -> insert as a new Needs Review Candidate
  *
- * SAFE BY DEFAULT: preview mode (commit == false) performs NO DML and returns the classification only.
- * DML runs only when the caller explicitly passes commit == true, and ONLY inserts OA_Discovered_Organization__c
- * (never Lead / Account / Contact). Duplicate detection runs BEFORE any insert:
- *   - idempotency: same Source_Payload_Hash__c already staged  -> Skipped (no duplicate Candidate)
- *   - existing Candidate with same Canonical_Key__c            -> Duplicate (linked, not re-inserted)
- *   - existing Lead by UEI / CAGE                              -> Duplicate (Matched_Lead__c set)
- *   - otherwise                                                -> Needs Review (eligible for human approval)
- *
- * Reuses OA_CanonicalOrg (canonicalKey(), payloadHash()). No new object/field; no scheduler; no Lead creation.
- * Human approval (Qualification_Status__c = 'Approved') and Lead creation remain separate, gated steps.
+ * SAFE BY DEFAULT: preview (commit == false) performs NO DML. Commit inserts/updates ONLY
+ * OA_Discovered_Organization__c (never Lead / Account / Contact). Human approval + Lead creation remain gated.
+ * Connector-agnostic (no source branching). NOTE: Identity Resolution runs per-org SOQL — intended for controlled/
+ * pilot batches; bulk volume needs a batched resolver (documented limitation).
  */
 public with sharing class OA_CandidateDiscoveryService {
 
     public class Outcome {
         public Integer evaluated = 0;
-        public Integer wouldInsert = 0;    // Needs Review (new, unique)
-        public Integer duplicates = 0;     // matched an existing Lead or Candidate
-        public Integer skipped = 0;        // idempotent (same payload hash already staged)
-        public Integer inserted = 0;       // actual DML rows (0 in preview)
+        public Integer wouldInsert = 0;    // new (NONE) -> Needs Review
+        public Integer review = 0;         // ambiguous (REVIEW) -> Needs Review with rationale
+        public Integer duplicates = 0;     // matched an existing Lead/Account
+        public Integer fused = 0;          // merged into an existing Candidate
+        public Integer skipped = 0;        // exact duplicate (idempotent)
+        public Integer inserted = 0;       // actual insert DML rows (0 in preview)
+        public Integer updated = 0;        // actual update DML rows from fusion (0 in preview)
         public Boolean committed = false;
         public List<OA_Discovered_Organization__c> staged = new List<OA_Discovered_Organization__c>();
     }
 
-    // Preview: never writes.
-    public static Outcome preview(List<OA_CanonicalOrg> orgs) {
-        return run(orgs, false);
-    }
-
-    // Persist: inserts new, non-duplicate Candidates only when commitWrites == true.
-    public static Outcome persist(List<OA_CanonicalOrg> orgs, Boolean commitWrites) {
-        return run(orgs, commitWrites == true);
-    }
+    public static Outcome preview(List<OA_CanonicalOrg> orgs) { return run(orgs, false); }
+    public static Outcome persist(List<OA_CanonicalOrg> orgs, Boolean commitWrites) { return run(orgs, commitWrites == true); }
 
     private static Outcome run(List<OA_CanonicalOrg> orgs, Boolean commitWrites) {
         Outcome o = new Outcome();
         o.committed = commitWrites;
         if (orgs == null || orgs.isEmpty()) { return o; }
 
-        // Collect dedup keys.
-        Set<String> hashes = new Set<String>();
-        Set<String> keys = new Set<String>();
-        Set<String> ueis = new Set<String>();
-        Set<String> cages = new Set<String>();
-        for (OA_CanonicalOrg c : orgs) {
-            if (c == null) { continue; }
-            String h = c.payloadHash();      if (String.isNotBlank(h)) { hashes.add(h); }
-            String k = c.canonicalKey();     if (String.isNotBlank(k)) { keys.add(k); }
-            if (String.isNotBlank(c.uei))      { ueis.add(c.uei); }
-            if (String.isNotBlank(c.cageCode)) { cages.add(c.cageCode); }
-        }
-
-        // Existing staged candidates (idempotency + candidate-level dedup).
-        Set<String> stagedHashes = new Set<String>();
-        Set<String> stagedKeys = new Set<String>();
-        for (OA_Discovered_Organization__c d : [
-                SELECT Source_Payload_Hash__c, Canonical_Key__c
-                FROM OA_Discovered_Organization__c
-                WHERE Source_Payload_Hash__c IN :hashes OR Canonical_Key__c IN :keys
-                WITH USER_MODE ]) {
-            if (String.isNotBlank(d.Source_Payload_Hash__c)) { stagedHashes.add(d.Source_Payload_Hash__c); }
-            if (String.isNotBlank(d.Canonical_Key__c)) { stagedKeys.add(d.Canonical_Key__c); }
-        }
-
-        // Existing Leads by deterministic id (read-only; never modified).
-        Map<String, Id> leadByUei = new Map<String, Id>();
-        Map<String, Id> leadByCage = new Map<String, Id>();
-        for (Lead l : [
-                SELECT Id, UEI__c, CAGE_Code__c FROM Lead
-                WHERE UEI__c IN :ueis OR CAGE_Code__c IN :cages
-                WITH USER_MODE ]) {
-            if (String.isNotBlank(l.UEI__c)) { leadByUei.put(l.UEI__c, l.Id); }
-            if (String.isNotBlank(l.CAGE_Code__c)) { leadByCage.put(l.CAGE_Code__c, l.Id); }
-        }
-
         List<OA_Discovered_Organization__c> toInsert = new List<OA_Discovered_Organization__c>();
+        Map<Id, OA_Discovered_Organization__c> toUpdate = new Map<Id, OA_Discovered_Organization__c>();
         Set<String> seenThisRun = new Set<String>();
 
         for (OA_CanonicalOrg c : orgs) {
             if (c == null) { continue; }
             o.evaluated++;
             String h = c.payloadHash();
-            String k = c.canonicalKey();
 
-            // Idempotency: already staged, or duplicated within this batch by payload hash.
-            if ((String.isNotBlank(h) && (stagedHashes.contains(h) || seenThisRun.contains(h)))) {
+            // Guard against processing the same incoming org twice within one batch.
+            if (String.isNotBlank(h) && seenThisRun.contains(h)) { o.skipped++; continue; }
+            if (String.isNotBlank(h)) { seenThisRun.add(h); }
+
+            OA_IdentityResolution.MatchResult mr = OA_IdentityResolution.resolve(c);
+
+            if (mr.decision == OA_IdentityResolution.Decision.EXACT_DUPLICATE) {
                 o.skipped++;
                 continue;
             }
-            if (String.isNotBlank(h)) { seenThisRun.add(h); }
+
+            if (mr.decision == OA_IdentityResolution.Decision.MATCH
+                    && mr.matchedType == OA_IdentityResolution.MatchedType.CANDIDATE
+                    && mr.matchedId != null) {
+                // FUSION: merge into the existing candidate (fill-empty + provenance).
+                OA_Discovered_Organization__c existing = toUpdate.containsKey(mr.matchedId)
+                    ? toUpdate.get(mr.matchedId)
+                    : loadCandidate(mr.matchedId);
+                if (existing != null) {
+                    OA_SourceFusion.fuse(existing, c);
+                    toUpdate.put(existing.Id, existing);
+                    o.fused++;
+                    o.staged.add(existing);
+                    continue;
+                }
+                // fall through to insert if the record could not be loaded
+            }
 
             OA_Discovered_Organization__c d = toRecord(c);
 
-            // Duplicate detection.
-            Id matchLead = null;
-            if (String.isNotBlank(c.uei) && leadByUei.containsKey(c.uei)) { matchLead = leadByUei.get(c.uei); }
-            else if (String.isNotBlank(c.cageCode) && leadByCage.containsKey(c.cageCode)) { matchLead = leadByCage.get(c.cageCode); }
-
-            if (matchLead != null) {
-                d.Matched_Lead__c = matchLead;
+            if (mr.decision == OA_IdentityResolution.Decision.MATCH
+                    && (mr.matchedType == OA_IdentityResolution.MatchedType.LEAD
+                        || mr.matchedType == OA_IdentityResolution.MatchedType.ACCOUNT)) {
+                if (mr.matchedType == OA_IdentityResolution.MatchedType.LEAD) { d.Matched_Lead__c = mr.matchedId; }
+                else { d.Matched_Account__c = mr.matchedId; }
                 d.Qualification_Status__c = 'Duplicate';
-                d.Recommended_Action__c = 'Link to existing Lead; do not create';
+                d.Recommended_Action__c = 'Matches existing ' + mr.matchedType + ' (' + String.join(mr.matchedIdentifiers, '+') + '); do not create';
                 o.duplicates++;
-            } else if (String.isNotBlank(k) && stagedKeys.contains(k)) {
-                d.Qualification_Status__c = 'Duplicate';
-                d.Recommended_Action__c = 'Existing candidate with same canonical key';
-                o.duplicates++;
+            } else if (mr.decision == OA_IdentityResolution.Decision.REVIEW) {
+                d.Qualification_Status__c = 'Needs Review';
+                d.Recommended_Action__c = 'Ambiguous match (' + mr.rationale + ') - human review before create/merge';
+                o.review++;
             } else {
                 d.Qualification_Status__c = 'Needs Review';
-                d.Recommended_Action__c = 'Human review before Lead creation';
+                d.Recommended_Action__c = 'New organization - human review before Lead creation';
                 o.wouldInsert++;
             }
             o.staged.add(d);
             toInsert.add(d);
         }
 
-        if (commitWrites && !toInsert.isEmpty()) {
-            insert as user toInsert;
-            o.inserted = toInsert.size();
+        if (commitWrites) {
+            if (!toInsert.isEmpty()) { insert as user toInsert; o.inserted = toInsert.size(); }
+            if (!toUpdate.isEmpty()) { update as user toUpdate.values(); o.updated = toUpdate.size(); }
         }
         return o;
+    }
+
+    private static OA_Discovered_Organization__c loadCandidate(Id id) {
+        List<OA_Discovered_Organization__c> rows = [
+            SELECT Id, Organization_Name__c, Normalized_Name__c, UEI__c, CAGE_Code__c, CIK__c, EIN__c, NPI__c,
+                   NAICS__c, Address__c, City__c, State__c, Postal_Code__c, Website__c, Phone__c,
+                   Source_System__c, Source_Confidence__c, Source_Payload_Hash__c, Canonical_Key__c,
+                   Discovery_Metadata__c, Last_Evaluated__c
+            FROM OA_Discovered_Organization__c WHERE Id = :id WITH USER_MODE LIMIT 1 ];
+        return rows.isEmpty() ? null : rows[0];
     }
 
     private static OA_Discovered_Organization__c toRecord(OA_CanonicalOrg c) {
