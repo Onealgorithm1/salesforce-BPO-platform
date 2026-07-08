@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>PSC__c</fullName>
+    <description>Product/Service Code (SAM classificationCode). Used by the Phase-3 scorer. Null when the source does not provide it.</description>
+    <label>PSC</label>
+    <length>40</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+</CustomField>

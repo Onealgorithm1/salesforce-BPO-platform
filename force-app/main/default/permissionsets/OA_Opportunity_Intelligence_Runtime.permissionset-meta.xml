@@ -76,6 +76,16 @@
         <editable>true</editable>
     </fieldPermissions>
     <fieldPermissions>
+        <field>OA_Opportunity_Signal__c.PSC__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <field>OA_Opportunity_Signal__c.Place_of_Performance__c</field>
+        <readable>true</readable>
+        <editable>true</editable>
+    </fieldPermissions>
+    <fieldPermissions>
         <field>OA_Opportunity_Signal__c.Posted_Date__c</field>
         <readable>true</readable>
         <editable>true</editable>
