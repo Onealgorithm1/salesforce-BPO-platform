@@ -373,6 +373,7 @@ Platform (non-connector) roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Unsubscribe / communication-preference docs:** no dedicated design doc yet `[Proposed]`; implemented in `OA_CommPreferenceService`, `OA_UnsubscribeEndpoint`, `OA_UnsubscribeTokenService`, `OA_UnsubscribeEventHandler`. Summarized in the [Communication Preference / Unsubscribe Framework](#communication-preference--unsubscribe-framework) section above.
 - **Campaign automation docs:** [`docs/BPO_PILOT_OPERATOR_RUNBOOK.md`](docs/BPO_PILOT_OPERATOR_RUNBOOK.md), [`docs/PLATFORM_ROADMAP.md`](docs/PLATFORM_ROADMAP.md), and the [Campaign Automation Overview](#campaign-automation-overview) above.
 - **Microsoft Graph docs:** [`docs/BOOKINGS_INTEGRATION_DESIGN.md`](docs/BOOKINGS_INTEGRATION_DESIGN.md), [`docs/MEETING_CAPTURE_DESIGN.md`](docs/MEETING_CAPTURE_DESIGN.md), [`docs/INTEGRATION_REGISTRY.md`](docs/INTEGRATION_REGISTRY.md) (INT-001).
+- **Social connector credentials (LinkedIn / Meta):** [`docs/SOCIAL_CREDENTIAL_SETUP.md`](docs/SOCIAL_CREDENTIAL_SETUP.md) (click-by-click UI setup, rollback, security notes) and [`docs/SOCIAL_CONNECTOR_READINESS.md`](docs/SOCIAL_CONNECTOR_READINESS.md) (readiness snapshot). Named/External Credential pattern; secrets stay in the org (UI-only), never in Git. `[Verified from source]`
 - **Technical debt / risk docs:** [`docs/TECHNICAL_DEBT.md`](docs/TECHNICAL_DEBT.md), [`docs/STATUS.md`](docs/STATUS.md) (Open Risks), [`docs/SECURITY_MODEL.md`](docs/SECURITY_MODEL.md).
 
 ## Documentation Index
