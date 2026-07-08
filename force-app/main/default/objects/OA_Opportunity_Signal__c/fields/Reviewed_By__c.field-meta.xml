@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Reviewed_By__c</fullName>
+    <description>User who actioned this signal (blank until reviewed).</description>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <label>Reviewed By</label>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>OA Opportunity Signals</relationshipLabel>
+    <relationshipName>OA_Opportunity_Signals</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

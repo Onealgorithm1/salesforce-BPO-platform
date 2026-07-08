@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Raw_Payload_Ref__c</fullName>
+    <description>Non-PII pointer/reference to the source payload for lineage (e.g. search2 record reference).</description>
+    <label>Raw Payload Ref</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+</CustomField>
