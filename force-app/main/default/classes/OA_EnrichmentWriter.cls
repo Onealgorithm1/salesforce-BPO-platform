@@ -26,6 +26,16 @@ public with sharing class OA_EnrichmentWriter {
         }
     }
 
+    /** One target record + the proposals to evaluate against it (one connector match). */
+    public class WorkItem {
+        public SObject target;
+        public List<FieldProposal> proposals;
+        public WorkItem(SObject target, List<FieldProposal> proposals) {
+            this.target = target;
+            this.proposals = proposals;
+        }
+    }
+
     public class Result {
         public Boolean committed = false;
         public Integer proposed = 0;
@@ -46,90 +56,126 @@ public with sharing class OA_EnrichmentWriter {
 
     /**
      * Evaluate (and optionally commit) enrichment of one target record.
+     * Thin wrapper over {@link #enrichAll} — preserved for existing callers/tests.
      * @param commitWrites false = preview (NO DML); true = apply writes with FLS + audit.
      */
     public static Result enrich(SObject target, List<FieldProposal> proposals, Id runId, Boolean commitWrites) {
-        Result r = new Result();
         if (target == null || proposals == null) {
+            Result r = new Result();
             r.messages.add('No target or proposals supplied.');
             return r;
         }
-        String obj = target.getSObjectType().getDescribe().getName();
-        Id targetId = (Id) target.get('Id');
-        Boolean dirty = false;
+        return enrichAll(new List<WorkItem>{ new WorkItem(target, proposals) }, runId, commitWrites);
+    }
 
-        for (FieldProposal fp : proposals) {
-            r.proposed++;
-            Object currentValue = safeGet(target, fp.fieldApiName);
-            OA_FieldWritePolicyEngine.Decision d = OA_FieldWritePolicyEngine.evaluate(
-                obj, fp.fieldApiName, fp.sourceSystem, fp.confidenceBand, currentValue, fp.newValue);
-            r.outcomeByField.put(fp.fieldApiName, d.outcome.name());
+    /**
+     * Evaluate (and optionally commit) enrichment for MANY (target, proposals) work items,
+     * committing with BULK DML: exactly one Lead update + one change-log insert + one exception
+     * insert for the whole scope, regardless of how many Leads or connector matches are supplied.
+     *
+     * This is the scalability-safe write path: the per-field policy/audit/exception logic is
+     * identical to the single-record path; only the DML is deferred and batched so DML-statement
+     * consumption is O(1) instead of O(Leads x matches). A target that appears in several work items
+     * (one per connector match) is written in-memory across items and updated once — so FillEmptyOnly
+     * still fills from the first match and routes later differing matches to the conflict queue.
+     */
+    public static Result enrichAll(List<WorkItem> items, Id runId, Boolean commitWrites) {
+        Result r = new Result();
+        if (items == null || items.isEmpty()) { return r; }
 
-            if (d.outcome == OA_FieldWritePolicyEngine.Outcome.WRITE) {
-                String snap = OA_ChangeLogService.snapshot(target, new Set<String>{ fp.fieldApiName });
-                Boolean applied = safePut(target, fp.fieldApiName, fp.newValue);
-                if (!applied) {
+        // ---- Evaluate every item in memory (NO DML). Track the distinct targets that got a write. ----
+        Map<Id, SObject> targetsToUpdate = new Map<Id, SObject>();
+        for (WorkItem wi : items) {
+            if (wi == null || wi.target == null || wi.proposals == null) { continue; }
+            SObject target = wi.target;
+            String obj = target.getSObjectType().getDescribe().getName();
+            Id targetId = (Id) target.get('Id');
+
+            for (FieldProposal fp : wi.proposals) {
+                r.proposed++;
+                Object currentValue = safeGet(target, fp.fieldApiName);
+                OA_FieldWritePolicyEngine.Decision d = OA_FieldWritePolicyEngine.evaluate(
+                    obj, fp.fieldApiName, fp.sourceSystem, fp.confidenceBand, currentValue, fp.newValue);
+                r.outcomeByField.put(fp.fieldApiName, d.outcome.name());
+
+                if (d.outcome == OA_FieldWritePolicyEngine.Outcome.WRITE) {
+                    String snap = OA_ChangeLogService.snapshot(target, new Set<String>{ fp.fieldApiName });
+                    Boolean applied = safePut(target, fp.fieldApiName, fp.newValue);
+                    if (!applied) {
+                        r.skipped++;
+                        r.exceptions.add(OA_ExceptionRoutingService.policyException(
+                            obj, targetId, fp.fieldApiName, fp.sourceSystem,
+                            'Value could not be assigned to the field (type mismatch).', runId));
+                        r.outcomeByField.put(fp.fieldApiName, 'SKIP_TYPE_ERROR');
+                        continue;
+                    }
+                    r.written++;
+                    targetsToUpdate.put(targetId, target);
+                    r.changeLogs.add(OA_ChangeLogService.buildLog(
+                        obj, targetId, fp.fieldApiName, currentValue, fp.newValue, fp.sourceSystem,
+                        d.policy != null ? d.policy.Write_Mode__c : null, fp.confidenceBand, runId,
+                        snap, OA_ChangeLogService.TYPE_ENRICH));
+
+                } else if (d.outcome == OA_FieldWritePolicyEngine.Outcome.ROUTE_CONFLICT) {
+                    r.conflicts++;
+                    r.exceptions.add(OA_ExceptionRoutingService.sourceConflict(
+                        obj, targetId, fp.fieldApiName, fp.sourceSystem, fp.confidenceBand,
+                        'FillEmptyOnly policy: target already holds a different value ('
+                            + String.valueOf(currentValue) + ') than the source proposed ('
+                            + String.valueOf(fp.newValue) + ').', runId));
+
+                } else if (d.outcome == OA_FieldWritePolicyEngine.Outcome.NO_CHANGE) {
+                    r.noChange++;
+                } else {
                     r.skipped++;
-                    r.exceptions.add(OA_ExceptionRoutingService.policyException(
-                        obj, targetId, fp.fieldApiName, fp.sourceSystem,
-                        'Value could not be assigned to the field (type mismatch).', runId));
-                    r.outcomeByField.put(fp.fieldApiName, 'SKIP_TYPE_ERROR');
-                    continue;
+                    r.messages.add(fp.fieldApiName + ': ' + d.outcome.name() + ' — ' + d.reason);
                 }
-                dirty = true;
-                r.written++;
-                r.changeLogs.add(OA_ChangeLogService.buildLog(
-                    obj, targetId, fp.fieldApiName, currentValue, fp.newValue, fp.sourceSystem,
-                    d.policy != null ? d.policy.Write_Mode__c : null, fp.confidenceBand, runId,
-                    snap, OA_ChangeLogService.TYPE_ENRICH));
-
-            } else if (d.outcome == OA_FieldWritePolicyEngine.Outcome.ROUTE_CONFLICT) {
-                r.conflicts++;
-                r.exceptions.add(OA_ExceptionRoutingService.sourceConflict(
-                    obj, targetId, fp.fieldApiName, fp.sourceSystem, fp.confidenceBand,
-                    'FillEmptyOnly policy: target already holds a different value ('
-                        + String.valueOf(currentValue) + ') than the source proposed ('
-                        + String.valueOf(fp.newValue) + ').', runId));
-
-            } else if (d.outcome == OA_FieldWritePolicyEngine.Outcome.NO_CHANGE) {
-                r.noChange++;
-            } else {
-                r.skipped++;
-                r.messages.add(fp.fieldApiName + ': ' + d.outcome.name() + ' — ' + d.reason);
             }
         }
 
+        // ---- Single bulk commit for the whole scope ----
         if (commitWrites == true) {
-            Boolean saveOk = true;
-            if (dirty) {
-                // Sprint 25 Defect #2 fix: inspect the SaveResult. A failed CRM write must NOT
-                // leave misleading "written" audit — discard the change logs, route an exception
-                // capturing the reason, and reflect that nothing persisted.
-                Database.SaveResult sr =
-                    Database.update(new List<SObject>{ target }, false, AccessLevel.USER_MODE)[0];
-                saveOk = sr.isSuccess();
-                if (!saveOk) {
+            r.committed = true;
+            Set<String> failedIds = new Set<String>();
+            List<SObject> toUpdate = targetsToUpdate.values();
+            if (!toUpdate.isEmpty()) {
+                // Sprint 25 Defect #2 (preserved, now per-target within one bulk call): inspect every
+                // SaveResult. A failed CRM write must NOT leave misleading audit — discard that target's
+                // change logs, route an exception, and reflect that nothing persisted for it.
+                List<Database.SaveResult> srs =
+                    Database.update(toUpdate, false, AccessLevel.USER_MODE);
+                for (Integer i = 0; i < toUpdate.size(); i++) {
+                    if (srs[i].isSuccess()) { continue; }
+                    Id tid = (Id) toUpdate[i].get('Id');
+                    failedIds.add(String.valueOf(tid));
+                    String obj = toUpdate[i].getSObjectType().getDescribe().getName();
                     List<String> errs = new List<String>();
-                    for (Database.Error e : sr.getErrors()) {
+                    for (Database.Error e : srs[i].getErrors()) {
                         String flds = (e.getFields() != null && !e.getFields().isEmpty())
                             ? ' [' + String.join(e.getFields(), ',') + ']' : '';
                         errs.add(e.getStatusCode() + ': ' + e.getMessage() + flds);
                     }
                     String reason = String.join(errs, ' | ');
                     r.exceptions.add(OA_ExceptionRoutingService.policyException(
-                        obj, targetId, null, null,
+                        obj, tid, null, null,
                         'Enrichment write failed; no fields persisted: ' + reason, runId));
                     r.messages.add('Update failed — change logs discarded: ' + reason);
-                    r.skipped += r.written;   // nothing actually persisted
-                    r.written = 0;
-                    r.changeLogs.clear();     // do not persist misleading audit
                 }
             }
-            if (saveOk) {
-                OA_ChangeLogService.commitLogs(r.changeLogs);
+            if (!failedIds.isEmpty()) {
+                List<OA_Enrichment_Change_Log__c> kept = new List<OA_Enrichment_Change_Log__c>();
+                for (OA_Enrichment_Change_Log__c cl : r.changeLogs) {
+                    if (failedIds.contains(cl.Target_Record_Id__c)) {
+                        r.written--;                 // nothing actually persisted for this target
+                        r.skipped++;
+                    } else {
+                        kept.add(cl);
+                    }
+                }
+                r.changeLogs = kept;                 // do not persist misleading audit
             }
-            OA_ExceptionRoutingService.commitExceptions(r.exceptions);
-            r.committed = true;
+            OA_ChangeLogService.commitLogs(r.changeLogs);              // one insert
+            OA_ExceptionRoutingService.commitExceptions(r.exceptions); // one insert
         }
         return r;
     }

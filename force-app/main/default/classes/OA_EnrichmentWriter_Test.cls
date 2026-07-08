@@ -126,6 +126,85 @@ private class OA_EnrichmentWriter_Test {
     }
 
     @isTest
+    static void testBatchCommitUsesBoundedDml() {
+        // Scalability regression: many connector matches across several Leads must commit with a
+        // CONSTANT number of DML statements (one Lead update + one change-log insert + one exception
+        // insert), NOT one-per-match. Reproduces the OAT defect shape: 3 Leads x 10 "award matches".
+        OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
+            pol('Website', 'FillEmptyOnly')
+        };
+        List<Lead> leads = new List<Lead>();
+        for (Integer i = 0; i < 3; i++) {
+            leads.add(new Lead(LastName = 'B', Company = 'Batch' + i,
+                Email = 'batch' + i + '@example.com'));
+        }
+        insert leads;
+        leads = [SELECT Id, Website FROM Lead WHERE Id IN :leads];
+
+        List<OA_EnrichmentWriter.WorkItem> work = new List<OA_EnrichmentWriter.WorkItem>();
+        for (Lead l : leads) {
+            for (Integer k = 0; k < 10; k++) {      // 10 matches per Lead, each proposing a Website
+                work.add(new OA_EnrichmentWriter.WorkItem(l,
+                    new List<OA_EnrichmentWriter.FieldProposal>{
+                        new OA_EnrichmentWriter.FieldProposal(
+                            'Website', 'https://site' + k + '.example.com', 'SAM', 'HIGH') }));
+            }
+        }
+
+        Test.startTest();
+        Integer before = Limits.getDmlStatements();
+        OA_EnrichmentWriter.Result r = OA_EnrichmentWriter.enrichAll(work, null, true);
+        Integer used = Limits.getDmlStatements() - before;
+        Test.stopTest();
+
+        System.assert(r.committed, 'committed');
+        System.assertEquals(3, r.written, 'first match fills each Lead once (FillEmptyOnly)');
+        System.assertEquals(27, r.conflicts, '9 later matches per Lead x 3 route to conflict');
+        System.assert(used <= 3,
+            'bulk commit must use <=3 DML statements regardless of match count; used=' + used);
+        System.assertEquals(3, [SELECT COUNT() FROM Lead WHERE Website != null AND Id IN :leads],
+            'all three Leads persisted in one update');
+        System.assertEquals(27, [SELECT COUNT() FROM OA_Enrichment_Exception__c],
+            'conflicts persisted in one insert');
+    }
+
+    @isTest
+    static void testBatchPartialFailureDiscardsOnlyFailedTarget() {
+        // Bulk SaveResult handling: one Lead's write fails (STRING_TOO_LONG) while others succeed.
+        // Only the failed target's audit is discarded; the healthy targets still persist.
+        OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
+            pol('FirstName', 'Overwrite')
+        };
+        Lead ok1 = newLead('OK-A', null, 'Hot');
+        Lead bad = newLead('BAD',  null, 'Hot');
+        Lead ok2 = newLead('OK-B', null, 'Hot');
+        String tooLong = '0123456789012345678901234567890123456789012345678901234567890123'; // 64 > 40
+        List<OA_EnrichmentWriter.WorkItem> work = new List<OA_EnrichmentWriter.WorkItem>{
+            new OA_EnrichmentWriter.WorkItem(ok1, new List<OA_EnrichmentWriter.FieldProposal>{
+                new OA_EnrichmentWriter.FieldProposal('FirstName', 'Aaron', 'SAM', 'HIGH') }),
+            new OA_EnrichmentWriter.WorkItem(bad, new List<OA_EnrichmentWriter.FieldProposal>{
+                new OA_EnrichmentWriter.FieldProposal('FirstName', tooLong, 'SAM', 'HIGH') }),
+            new OA_EnrichmentWriter.WorkItem(ok2, new List<OA_EnrichmentWriter.FieldProposal>{
+                new OA_EnrichmentWriter.FieldProposal('FirstName', 'Bella', 'SAM', 'HIGH') })
+        };
+        Test.startTest();
+        OA_EnrichmentWriter.Result r = OA_EnrichmentWriter.enrichAll(work, null, true);
+        Test.stopTest();
+
+        System.assertEquals(2, r.written, 'two healthy targets persisted; failed one discarded');
+        System.assertEquals(2, [SELECT COUNT() FROM OA_Enrichment_Change_Log__c],
+            'only the two successful writes have audit rows');
+        System.assert([SELECT COUNT() FROM OA_Enrichment_Exception__c] >= 1,
+            'the failed target routed a PolicyException');
+        System.assertEquals(null, [SELECT FirstName FROM Lead WHERE Id = :bad.Id].FirstName,
+            'failed target not persisted');
+        System.assertEquals('Aaron', [SELECT FirstName FROM Lead WHERE Id = :ok1.Id].FirstName,
+            'healthy target A persisted');
+        System.assertEquals('Bella', [SELECT FirstName FROM Lead WHERE Id = :ok2.Id].FirstName,
+            'healthy target B persisted');
+    }
+
+    @isTest
     static void testTypeErrorAndNoChange() {
         OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
             pol('NumberOfEmployees', 'Overwrite'),

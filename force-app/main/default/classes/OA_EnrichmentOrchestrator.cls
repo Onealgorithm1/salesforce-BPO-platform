@@ -123,26 +123,41 @@ public with sharing class OA_EnrichmentOrchestrator
             }
         }
 
-        // ---- Phase 2: ALL writes after every callout is complete ----
+        // ---- Phase 2: evaluate ALL Leads/matches, then ONE bulk write for the whole scope ----
+        // Build a single work-list (one item per connector match) and hand it to the writer's
+        // batch path, so DML is O(1) for the scope instead of O(Leads x matches) — the scalability
+        // fix. The writer still applies FillEmptyOnly, audit, conflict routing and SaveResult
+        // handling identically; only the DML is deferred and batched.
+        List<OA_EnrichmentWriter.WorkItem> work = new List<OA_EnrichmentWriter.WorkItem>();
         for (Integer i = 0; i < outcomes.size(); i++) {
-            Lead ld = fetchedLeads[i];
             OA_ConnectorRunner.RunOutcome o = outcomes[i];
-            Integer enrichedThisLead = 0;
-            if (o.organizations != null) {
-                for (OA_CanonicalOrg org : o.organizations) {
-                    List<OA_EnrichmentWriter.FieldProposal> proposals =
-                        OA_ProposalAdapter.toLeadProposals(source, org);
-                    if (proposals == null || proposals.isEmpty()) { continue; }
-                    OA_EnrichmentWriter.Result wr =
-                        OA_EnrichmentWriter.enrich(ld, proposals, null, doCommit == true);
-                    m.recordsEnriched += nz(wr.written);
-                    enrichedThisLead  += nz(wr.written);
-                    m.conflicts       += nz(wr.conflicts);
-                    m.exceptionsRaised += (wr.exceptions == null ? 0 : wr.exceptions.size());
-                }
+            if (o.organizations == null) { continue; }
+            for (OA_CanonicalOrg org : o.organizations) {
+                List<OA_EnrichmentWriter.FieldProposal> proposals =
+                    OA_ProposalAdapter.toLeadProposals(source, org);
+                if (proposals == null || proposals.isEmpty()) { continue; }
+                work.add(new OA_EnrichmentWriter.WorkItem(fetchedLeads[i], proposals));
             }
-            if (telemetryOut != null && o.runRecord != null) {
-                o.runRecord.Records_Enriched__c = enrichedThisLead;
+        }
+        OA_EnrichmentWriter.Result wr = OA_EnrichmentWriter.enrichAll(work, null, doCommit == true);
+        m.recordsEnriched  += nz(wr.written);
+        m.conflicts        += nz(wr.conflicts);
+        m.exceptionsRaised += (wr.exceptions == null ? 0 : wr.exceptions.size());
+
+        // Per-Lead telemetry attribution, re-derived from the change logs (Target_Record_Id__c).
+        Map<String, Integer> writtenByLead = new Map<String, Integer>();
+        if (wr.changeLogs != null) {
+            for (OA_Enrichment_Change_Log__c cl : wr.changeLogs) {
+                Integer n = writtenByLead.get(cl.Target_Record_Id__c);
+                writtenByLead.put(cl.Target_Record_Id__c, (n == null ? 0 : n) + 1);
+            }
+        }
+        if (telemetryOut != null) {
+            for (Integer i = 0; i < outcomes.size(); i++) {
+                OA_ConnectorRunner.RunOutcome o = outcomes[i];
+                if (o.runRecord == null) { continue; }
+                Integer n = writtenByLead.get(String.valueOf(fetchedLeads[i].Id));
+                o.runRecord.Records_Enriched__c = (n == null ? 0 : n);
                 o.runRecord.Initiated_By__c = UserInfo.getUserId();
                 telemetryOut.add(o.runRecord);
             }
