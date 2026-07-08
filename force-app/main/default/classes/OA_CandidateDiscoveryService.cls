@@ -40,7 +40,11 @@ public with sharing class OA_CandidateDiscoveryService {
         Map<Id, OA_Discovered_Organization__c> toUpdate = new Map<Id, OA_Discovered_Organization__c>();
         Set<String> seenThisRun = new Set<String>();
 
-        for (OA_CanonicalOrg c : orgs) {
+        // BULK: one identity-resolution pass for the whole batch (fixed SOQL, no per-record query).
+        List<OA_IdentityResolution.MatchResult> results = OA_IdentityResolution.resolveAll(orgs);
+
+        for (Integer i = 0; i < orgs.size(); i++) {
+            OA_CanonicalOrg c = orgs[i];
             if (c == null) { continue; }
             o.evaluated++;
             String h = c.payloadHash();
@@ -49,7 +53,7 @@ public with sharing class OA_CandidateDiscoveryService {
             if (String.isNotBlank(h) && seenThisRun.contains(h)) { o.skipped++; continue; }
             if (String.isNotBlank(h)) { seenThisRun.add(h); }
 
-            OA_IdentityResolution.MatchResult mr = OA_IdentityResolution.resolve(c);
+            OA_IdentityResolution.MatchResult mr = results[i];
 
             if (mr.decision == OA_IdentityResolution.Decision.EXACT_DUPLICATE) {
                 o.skipped++;
@@ -59,10 +63,12 @@ public with sharing class OA_CandidateDiscoveryService {
             if (mr.decision == OA_IdentityResolution.Decision.MATCH
                     && mr.matchedType == OA_IdentityResolution.MatchedType.CANDIDATE
                     && mr.matchedId != null) {
-                // FUSION: merge into the existing candidate (fill-empty + provenance).
+                // FUSION: merge into the existing candidate (fill-empty + provenance). The matched record is
+                // carried by resolveAll (no extra query); reuse the in-progress copy if this candidate was already
+                // matched earlier in the batch so multiple sources accumulate into one record.
                 OA_Discovered_Organization__c existing = toUpdate.containsKey(mr.matchedId)
                     ? toUpdate.get(mr.matchedId)
-                    : loadCandidate(mr.matchedId);
+                    : (mr.matchedCandidate != null ? mr.matchedCandidate : loadCandidate(mr.matchedId));
                 if (existing != null) {
                     OA_SourceFusion.fuse(existing, c);
                     toUpdate.put(existing.Id, existing);

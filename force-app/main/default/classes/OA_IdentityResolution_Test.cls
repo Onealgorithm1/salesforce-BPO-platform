@@ -75,4 +75,17 @@ private class OA_IdentityResolution_Test {
     @isTest static void null_input_safe() {
         System.assertEquals(OA_IdentityResolution.Decision.NONE, OA_IdentityResolution.resolve(null).decision);
     }
+
+    @isTest static void bulk_resolveAll_is_soql_bounded() {
+        // Many incoming orgs must NOT scale SOQL per-record: resolveAll issues a fixed handful of queries.
+        List<OA_CanonicalOrg> many = new List<OA_CanonicalOrg>();
+        for (Integer i = 0; i < 50; i++) { many.add(org('Bulk ' + i, 'UEIBULK' + i, null, null, null, 'CA', null)); }
+        Test.startTest();
+        Integer before = Limits.getQueries();
+        List<OA_IdentityResolution.MatchResult> results = OA_IdentityResolution.resolveAll(many);
+        Integer used = Limits.getQueries() - before;
+        Test.stopTest();
+        System.assertEquals(50, results.size(), 'one result per input');
+        System.assert(used <= 5, 'bulk resolve uses a fixed, small number of queries regardless of batch size; used=' + used);
+    }
 }
