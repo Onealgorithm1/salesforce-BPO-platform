@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Compliance_Decision__c</fullName><label>Compliance Decision</label><type>Picklist</type><valueSet><valueSetDefinition><sorted>false</sorted>
+<value><fullName>GO</fullName><default>false</default><label>GO</label></value>
+<value><fullName>CONDITIONAL GO</fullName><default>false</default><label>CONDITIONAL GO</label></value>
+<value><fullName>NO-GO</fullName><default>false</default><label>NO-GO</label></value>
+<value><fullName>REVIEW REQUIRED</fullName><default>true</default><label>REVIEW REQUIRED</label></value>
+</valueSetDefinition></valueSet></CustomField>

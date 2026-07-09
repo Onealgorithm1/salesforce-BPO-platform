@@ -14,6 +14,7 @@
             <value><fullName>SAM.gov</fullName><default>false</default><label>SAM.gov</label></value>
             <value><fullName>SBIR</fullName><default>false</default><label>SBIR</label></value>
             <value><fullName>Federal Register</fullName><default>false</default><label>Federal Register</label></value>
+            <value><fullName>Outlook Email</fullName><default>false</default><label>Outlook Email</label></value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>
