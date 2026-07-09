@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+<fullName>Recommended_Role__c</fullName><label>Recommended Role</label><type>Picklist</type><valueSet><valueSetDefinition><sorted>false</sorted>
+<value><fullName>Prime</fullName><default>false</default><label>Prime</label></value>
+<value><fullName>Subcontractor</fullName><default>false</default><label>Subcontractor</label></value>
+<value><fullName>Teaming</fullName><default>false</default><label>Teaming</label></value>
+<value><fullName>Monitor</fullName><default>false</default><label>Monitor</label></value>
+<value><fullName>N/A</fullName><default>true</default><label>N/A</label></value>
+</valueSetDefinition></valueSet></CustomField>

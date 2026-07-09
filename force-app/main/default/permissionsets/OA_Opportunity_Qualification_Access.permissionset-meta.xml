@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Program 024A: FLS for qualification-intelligence fields on OA_Opportunity_Signal__c. Additive, assign to runtime user.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Opportunity Qualification Access</label>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Qualification_Decision__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Recommended_Role__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Recommended_Partner__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Fit_Score__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Effort_Score__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Urgency_Score__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Qualification_Rationale__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Capability_Gaps__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>
