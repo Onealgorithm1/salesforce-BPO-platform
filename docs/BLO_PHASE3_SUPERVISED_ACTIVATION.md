@@ -48,8 +48,30 @@
 - **Rollback:** `OA_LeadCreationService.rollbackCreated([leadId])` → delete Lead, reset candidate to Lead Ready, log `TYPE_ROLLBACK`.
 - **Success criteria:** exactly 1 Lead created (13,301→13,302); candidate → Converted + `Matched_Lead__c` set; `TYPE_CREATE` audit; Accounts unchanged; no schedules/async; rollback proven.
 
-### Phase 4 — STOP GATE (conversion NOT executed)
-Held before commit per the Production Change Gate. Requires from Louis: (1) explicit approval to convert; (2) ONE verified contact email for ORG-00011. **Go/No-Go recommendation:** **GO** on Change B once the email is supplied — dependencies validated, dedup clean, rollback ready, risk Low.
+### Phase 4 — STOP GATE (passed: Louis approved + supplied verified email)
+
+### Phase 5 — SINGLE SUPERVISED PILOT ✅ EXECUTED (Louis-approved)
+**Candidate:** ORG-00011 THE AEROSPACE CORPORATION (`a0qPn00000jySqkIAE`). **Exactly one conversion.**
+- **Workflow:** approval `Needs Review → Approved` (dml=1) → preview `PREVIEW_OK` (0 Lead DML) → commit `created=1, failed=0, dup=0`.
+- **Contact email:** supplied via the governed contact-map parameter (`actual.email@aerospace.org`). *Note:* the persisted `Reviewed_Contact_Email__c` field was NOT written because `oauser` lacks FLS on it (permset `OA_BLO_Contact_Access` deployed but **unassigned**, and permission assignment was prohibited this turn) — the email was instead passed through the service's supplied-email map, which the deployed class reads in system mode. The Lead validation rule was still enforced at insert (not bypassed).
+- **Created Lead `00QPn000012SyPNMA0`:** THE AEROSPACE CORPORATION · UEI YA8LJBJCND19 · CAGE 12782 · El Segundo CA · aerospace.org · Contact_Person_s_Email__c = actual.email@aerospace.org · **LeadSource null** (website notification flow did NOT fire) · Status Open.
+
+**Before / After evidence:**
+| Metric | Before | After |
+|---|---|---|
+| Leads | 13,301 | **13,302** ✅ |
+| Converted candidates | 0 | **1** (only ORG-00011) ✅ |
+| ORG-00011 status | Needs Review | **Converted** ✅ |
+| ORG-00011 `Matched_Lead__c` | null | **`00QPn000012SyPNMA0`** ✅ |
+| `TYPE_CREATE` audit (Lead) | — | **present** (Change_Type=Create, Source=USASpending, New_Value=UEI:YA8LJBJCND19) ✅ |
+| Accounts | 1 | 1 ✅ |
+| BLO/acq async · new schedules | 0 · 0 | **0 · 0** (no unintended automation) ✅ |
+| `OA_BLO_Contact_Access` assignments | 0 | **0** (no permission assigned) ✅ |
+| Other candidates converted | 0 | **0** (single conversion only) ✅ |
+
+**Duplicate handling:** BLO dedup = would-create (no UEI/CAGE match); org `OA_Partner_Duplicate_Rule` = Allow (no block). **Validation:** `Require_Email_Or_Contact_Person_Email` satisfied by the supplied email. **Flows:** website notification did not fire (LeadSource null); no PostMeeting Nurture effect.
+**Rollback path (available, not executed):** `OA_LeadCreationService.rollbackCreated(new List<Id>{'00QPn000012SyPNMA0'})` → deletes the Lead, resets ORG-00011 to Lead Ready, logs `TYPE_ROLLBACK`.
+**Result: 🟢 PASS.**
 
 ---
 
