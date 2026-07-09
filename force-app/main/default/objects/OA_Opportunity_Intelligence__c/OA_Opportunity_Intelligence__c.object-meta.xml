@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Opportunity Intelligence scorecard (Program 020). Observe/recommend-only: one record per generated assessment of a CRM Opportunity. Deterministic scores + AI narrative (via OA_AI_Gateway). NEVER writes to the Opportunity. Human-gated via Status__c (system writes Draft only).</description>
+    <enableActivities>false</enableActivities>
+    <enableHistory>true</enableHistory>
+    <enableReports>true</enableReports>
+    <label>Opportunity Intelligence</label>
+    <pluralLabel>Opportunity Intelligence</pluralLabel>
+    <nameField>
+        <displayFormat>OI-{0000000}</displayFormat>
+        <label>Assessment #</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <sharingModel>ReadWrite</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>
