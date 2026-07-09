@@ -22,11 +22,16 @@ private class OA_BusinessLifecycle_Test {
                 Source_System__c='USASpending', Qualification_Status__c='Approved'),
             // Delta: approved, NO reviewed email (readiness / no-email blocking)
             new OA_Discovered_Organization__c(Organization_Name__c='Delta Corp', UEI__c='UEIDELTA0004',
-                Source_System__c='SAM', Qualification_Status__c='Approved')
+                Source_System__c='SAM', Qualification_Status__c='Approved'),
+            // Epsilon: approved, SEC/CIK-only (no UEI/CAGE) — matches an existing Lead by CIK
+            new OA_Discovered_Organization__c(Organization_Name__c='Epsilon Corp', CIK__c='0000012345',
+                Source_System__c='SEC', Qualification_Status__c='Approved')
         };
         insert cs;
         insert new Lead(Company='Gamma Existing', LastName='Gamma Existing',
             UEI__c='UEIDEDUP0003', Contact_Person_s_Email__c='gamma@example.com');
+        insert new Lead(Company='Epsilon Existing', LastName='Epsilon Existing',
+            CIK__c='0000012345', Contact_Person_s_Email__c='epsilon@example.com');
     }
 
     private static OA_Discovered_Organization__c candByName(String n) {
@@ -120,6 +125,16 @@ private class OA_BusinessLifecycle_Test {
         System.assertEquals('IDEMPOTENCY',
             OA_LeadCreationService.create(new List<Id>{gamma}, null, true).rows[0].gate);
         Test.stopTest();
+    }
+
+    @isTest static void testCikAwareDedup() {
+        Id eps = candByName('Epsilon Corp').Id;   // CIK-only; matches existing Lead by CIK
+        Test.startTest();
+        OA_LeadCreationService.RunSummary s = OA_LeadCreationService.create(new List<Id>{eps}, null, true);
+        Test.stopTest();
+        System.assertEquals(1, s.duplicates, 'CIK-only candidate should link via CIK, not create');
+        System.assertEquals('MATCH', s.rows[0].gate);
+        System.assertEquals(0, s.created);
     }
 
     @isTest static void testRollbackCreated() {

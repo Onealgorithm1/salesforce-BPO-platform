@@ -61,17 +61,21 @@ public with sharing class OA_LeadCreationService {
         // Bulk dedup: existing Leads sharing UEI or CAGE with any candidate in scope.
         Set<String> ueis = new Set<String>();
         Set<String> cages = new Set<String>();
+        Set<String> ciks = new Set<String>();
         for (OA_Discovered_Organization__c c : cands) {
             if (String.isNotBlank(c.UEI__c)) { ueis.add(c.UEI__c); }
             if (String.isNotBlank(c.CAGE_Code__c)) { cages.add(c.CAGE_Code__c); }
+            if (String.isNotBlank(c.CIK__c)) { ciks.add(c.CIK__c); }
         }
         Map<String, Id> leadByUei = new Map<String, Id>();
         Map<String, Id> leadByCage = new Map<String, Id>();
-        if (!ueis.isEmpty() || !cages.isEmpty()) {
-            for (Lead l : [SELECT Id, UEI__c, CAGE_Code__c FROM Lead
-                           WHERE UEI__c IN :ueis OR CAGE_Code__c IN :cages]) {
+        Map<String, Id> leadByCik = new Map<String, Id>();   // CIK-aware dedup for SEC-origin candidates
+        if (!ueis.isEmpty() || !cages.isEmpty() || !ciks.isEmpty()) {
+            for (Lead l : [SELECT Id, UEI__c, CAGE_Code__c, CIK__c FROM Lead
+                           WHERE UEI__c IN :ueis OR CAGE_Code__c IN :cages OR CIK__c IN :ciks]) {
                 if (String.isNotBlank(l.UEI__c) && !leadByUei.containsKey(l.UEI__c)) { leadByUei.put(l.UEI__c, l.Id); }
                 if (String.isNotBlank(l.CAGE_Code__c) && !leadByCage.containsKey(l.CAGE_Code__c)) { leadByCage.put(l.CAGE_Code__c, l.Id); }
+                if (String.isNotBlank(l.CIK__c) && !leadByCik.containsKey(l.CIK__c)) { leadByCik.put(l.CIK__c, l.Id); }
             }
         }
 
@@ -98,6 +102,7 @@ public with sharing class OA_LeadCreationService {
             // MATCH (dedup vs existing Leads) — link, never create/overwrite
             Id matchLead = (String.isNotBlank(c.UEI__c) ? leadByUei.get(c.UEI__c) : null);
             if (matchLead == null && String.isNotBlank(c.CAGE_Code__c)) { matchLead = leadByCage.get(c.CAGE_Code__c); }
+            if (matchLead == null && String.isNotBlank(c.CIK__c)) { matchLead = leadByCik.get(c.CIK__c); }
             if (matchLead != null) {
                 o.status = 'SKIPPED'; o.gate = 'MATCH'; o.leadId = matchLead;
                 o.reason = 'Existing Lead matches UEI/CAGE; linked (no new Lead).';
