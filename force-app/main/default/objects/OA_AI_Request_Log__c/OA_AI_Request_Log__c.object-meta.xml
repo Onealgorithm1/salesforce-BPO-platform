@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Enterprise AI Gateway per-request telemetry (tokens, cost, latency, routing). Written by OA_AI_Gateway.</description>
+    <label>OA AI Request Log</label>
+    <pluralLabel>OA AI Request Logs</pluralLabel>
+    <nameField><label>AI Request</label><type>AutoNumber</type><displayFormat>AIREQ-{00000}</displayFormat></nameField>
+    <sharingModel>ReadWrite</sharingModel>
+    <enableReports>true</enableReports>
+    <enableActivities>false</enableActivities>
+    <enableHistory>false</enableHistory>
+</CustomObject>
