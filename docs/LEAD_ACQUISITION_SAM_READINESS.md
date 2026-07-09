@@ -166,4 +166,25 @@ This is a **Named/External Credential change (CLAUDE.md §9 protected; §2 RED)*
 
 **Smoke did NOT reach HTTP 200 → per the sprint gate, preview / pilot / fusion were NOT executed.** No Candidate/Lead/Account write; 0 DML; connector still dormant (`Enabled__c=false`); no schedule; no automation. Data unchanged (6 candidates / 13,301 leads / 1 account). Standing change this sprint: `OA_SAM_Temp_Principal` assigned to the runtime user (authorized; it carries the `ExternalCredentialParameter` grant). Naming note: it is the Sprint-31 *test* permset — recommend later consolidating the EC principal grant onto a properly-named production permset and retiring the temp one.
 
-**Verdict: 🟡 WARN** — Salesforce runtime credential **access** resolved (CalloutException → SAM gateway reached); IP allowlist confirmed covering; a **live credential-configuration dependency** (EC not transmitting the api key as an `X-Api-Key` header) still blocks execution and requires a 🔴 EC change by Louis.
+**Verdict (mid-Phase-17): 🟡 WARN** — Salesforce runtime credential **access** resolved (CalloutException → SAM gateway reached); IP allowlist confirmed covering; a **live credential-configuration dependency** (EC not transmitting the api key as an `X-Api-Key` header) still blocks execution and requires a 🔴 EC change by Louis.
+
+---
+
+## 11. Phase 17b — RESOLVED + first production cross-source fusion (🟢 PASS, 2026-07-08/09)
+Louis added a **Custom Header** on the `OA_SAM` EC: `Name=X-Api-Key`, `Value=`<data.gov key> (the merge-field form `{!$Credential.OA_SAM.X-Api-Key}` failed on the hyphenated parameter name; the raw-key value resolved it — an api.data.gov key is a low-sensitivity revocable rate-limit key, stored encrypted in the EC, never in URL/metadata/logs).
+
+**Smoke (read-only, 0 DML): `HTTP 200`**, 3,398-byte JSON. Parser (Phase 4) on `YA8LJBJCND19`: name=THE AEROSPACE CORPORATION, UEI=YA8LJBJCND19, CAGE=12782, addr=2310 E EL SEGUNDO BLVD / EL SEGUNDO / CA / 90245, website=https://aerospace.org, canonicalKey=`UEI:YA8LJBJCND19`, payloadHash=`c13a…bb965`, confidence=HIGH.
+
+**Preview (0 DML):** 3 UEIs → `YA8LJBJCND19` fused=1, `KAA7ML3GU9A6` fused=1, `RNLAYLG64XA5` parsed=0 (no active SAM entity). 0 inserts, 0 Lead/Account matches.
+
+**Supervised pilot (Phase 6/7) — FIRST PRODUCTION CROSS-SOURCE FUSION (USASpending × SAM), 2 updates, 0 inserts:**
+| Candidate | UEI | Before (USASpending) | SAM filled | Completeness |
+|---|---|---|---|---|
+| ORG-00011 THE AEROSPACE CORPORATION | YA8LJBJCND19 | name+UEI+state only | CAGE 12782, website aerospace.org, 2310 E EL Segundo Blvd, El Segundo, 90245 | **23 → 47** |
+| ORG-00013 NATIONAL AEROSPACE SOLUTIONS LLC | KAA7ML3GU9A6 | name+UEI+state only | CAGE 77SY4, 12011 Sunset Hills Rd Ste 110, Reston, 20190 | **23 → 37** |
+
+Fill-empty verified (existing state CA/TN not overwritten); provenance written to `Discovery_Metadata__c` (`{"fusionCount":1,"sources":[{"system":"SAM","payloadHash":…,"confidence":"HIGH","fusedAt":…}]}`); both stayed **Needs Review**; `Matched_Lead__c`/`Matched_Account__c` null.
+
+**Validation (Phase 8):** candidates 6 (0 new inserts; 0 SAM-source records; all 6 Needs Review; 0 Lead/Account links); Leads 13,301 unchanged; Accounts 1 unchanged; 0 acquisition async jobs; 0 schedules; SAM connector `Enabled__c=false` (pilot was a manual synchronous run — nothing activated). Total pilot DML = 2 update rows on the candidate object only.
+
+**Verdict: 🟢 PASS.** Runtime credential issue resolved; HTTP 200; parser validated; ≤3-candidate supervised production pilot completed; first cross-source fusion demonstrated; no Lead/Account change; no automation; no scheduling. **Standing changes:** `OA_SAM_Temp_Principal` permset assigned to `oauser`; `OA_SAM` EC now carries an `X-Api-Key` Custom Header (Louis). **Housekeeping (non-blocking):** consolidate the EC principal grant onto a properly-named production permset and retire the Sprint-31 temp one; consider whether the header value should be migrated from raw-key to a hyphen-free merge-field parameter.
