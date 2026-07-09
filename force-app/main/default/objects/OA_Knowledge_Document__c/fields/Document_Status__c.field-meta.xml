@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Document_Status__c</fullName><label>Document Status</label><type>Picklist</type><valueSet><valueSetDefinition><sorted>false</sorted>
+<value><fullName>Original</fullName><default>true</default><label>Original</label></value>
+<value><fullName>Revision</fullName><default>false</default><label>Revision</label></value>
+<value><fullName>Amendment</fullName><default>false</default><label>Amendment</label></value>
+<value><fullName>Superseded</fullName><default>false</default><label>Superseded</label></value>
+<value><fullName>Withdrawn</fullName><default>false</default><label>Withdrawn</label></value>
+<value><fullName>Duplicate</fullName><default>false</default><label>Duplicate</label></value>
+</valueSetDefinition></valueSet></CustomField>
