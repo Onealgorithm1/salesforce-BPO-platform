@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Program 024B: FLS for pursuit-investment fields on OA_Opportunity_Signal__c. Additive, assign to runtime user.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Pursuit Investment Access</label>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Investment_Level__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Investment_Rationale__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Opportunity_Signal__c.Win_Probability__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>
