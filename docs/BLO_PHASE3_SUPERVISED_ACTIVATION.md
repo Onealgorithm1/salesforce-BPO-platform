@@ -1,7 +1,55 @@
 # BLO Phase 3 — Supervised Candidate→Lead Activation Pilot (Preflight, Validation & Gated Proposal)
 
 **Date:** 2026-07-08 · **Org:** `00Dbn00000plgUfEAI` (verified by ID) · **Branch:** `feature/blo-phase3-supervised-activation`
-**Status:** read-only preflight + validation + design **COMPLETE**. Deploy + pilot **HELD at the Production Change Gate** (awaiting explicit Louis approval). **No production changes made.**
+**Status:** preflight + validation + design **COMPLETE**; **BLO bundle DEPLOYED dormant** (`0AfPn0000023g4nKAA`, 9/9 tests). Single Candidate→Lead conversion **HELD at the Production Change Gate** (awaiting explicit Louis approval + one verified email). **Only additive dormant metadata deployed; no data changed.**
+
+---
+
+## EXECUTION RESULTS (this sprint)
+
+### Phase 1 — Deploy BLO Bundle ✅ (authorized)
+- **Deploy ID:** `0AfPn0000023g4nKAA` — **Succeeded**, 7 components, **9/9 tests pass**.
+- **Components:** `OA_LifecycleStates`, `OA_CandidateApprovalService`, `OA_LeadCreationService`, `OA_BusinessLifecycleService`, `OA_BusinessLifecycle_Test`, `Reviewed_Contact_Email__c` field, `OA_BLO_Contact_Access` permset.
+- **Before:** BLO classes in prod = 0. **After:** 4 classes + field + permset present.
+- **Warnings:** none.
+
+### Phase 2 — Post-Deploy Validation ✅
+| Check | Result |
+|---|---|
+| BLO classes in prod | 4 ✅ |
+| `Reviewed_Contact_Email__c` field | present ✅ |
+| `OA_BLO_Contact_Access` permset | present, **0 assignments (unassigned)** ✅ |
+| Candidates / Leads / Accounts | **6 / 13,301 / 1 — unchanged** (deploy created no data) ✅ |
+| Converted candidates | **0** ✅ |
+| Acquisition schedules / async jobs | **0 / 0** (no automation activated) ✅ |
+| Active Lead flows | 2 (unchanged) ✅ |
+| Duplicate rule | `OA_Partner_Duplicate_Rule` still Allow + Alert/Report ✅ |
+| Audit objects | `OA_Enrichment_Change_Log__c` available ✅ |
+| Rollback package | destructive-change for the 7 components; `rollbackCreated` for any pilot Lead ✅ |
+
+### Phase 3 — Pilot Readiness Package
+- **Candidate selected:** **ORG-00011 — THE AEROSPACE CORPORATION** (`a0qPn00000jySqkIAE`).
+- **Source:** USASpending (SAM-enriched via prior cross-source fusion).
+- **Current status:** `Needs Review` (must be human-approved → Lead Ready before conversion).
+- **Duplicate check (0 DML):** existing-Lead match by UEI/CAGE = **0 → WOULD CREATE** (all 6 candidates create-clean). Org rule = Allow (no block).
+- **Expected Lead record (from live candidate data):**
+  | Lead field | Value |
+  |---|---|
+  | Company / LastName / Company_Name__c | THE AEROSPACE CORPORATION |
+  | UEI__c | YA8LJBJCND19 |
+  | CAGE_Code__c | 12782 |
+  | Address_line_1__c | 2310 E EL SEGUNDO BLVD |
+  | City__c / State__c / (Postal) | EL SEGUNDO / CA / 90245 |
+  | Website__c | https://aerospace.org |
+  | Contact_Person_s_Email__c | **PENDING — reviewer-supplied verified email (never fabricated)** |
+  | LeadSource | null (so `OA New Website Lead Notification` will NOT fire) |
+  | Status / OwnerId | default / running user |
+- **Human approval evidence required:** reviewer sets `Reviewed_Contact_Email__c` + approves Needs Review → Approved → Lead Ready (READINESS gate) — captured in `OA_Enrichment_Change_Log__c`.
+- **Rollback:** `OA_LeadCreationService.rollbackCreated([leadId])` → delete Lead, reset candidate to Lead Ready, log `TYPE_ROLLBACK`.
+- **Success criteria:** exactly 1 Lead created (13,301→13,302); candidate → Converted + `Matched_Lead__c` set; `TYPE_CREATE` audit; Accounts unchanged; no schedules/async; rollback proven.
+
+### Phase 4 — STOP GATE (conversion NOT executed)
+Held before commit per the Production Change Gate. Requires from Louis: (1) explicit approval to convert; (2) ONE verified contact email for ORG-00011. **Go/No-Go recommendation:** **GO** on Change B once the email is supplied — dependencies validated, dedup clean, rollback ready, risk Low.
 
 ---
 
