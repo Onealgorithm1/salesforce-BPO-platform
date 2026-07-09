@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+<fullName>Document_Type__c</fullName><label>Document Type</label><type>Picklist</type><valueSet><valueSetDefinition><sorted>false</sorted>
+<value><fullName>Solicitation</fullName><default>false</default><label>Solicitation</label></value>
+<value><fullName>RFP</fullName><default>false</default><label>RFP</label></value>
+<value><fullName>RFQ</fullName><default>false</default><label>RFQ</label></value>
+<value><fullName>RFI</fullName><default>false</default><label>RFI</label></value>
+<value><fullName>SOW</fullName><default>false</default><label>SOW</label></value>
+<value><fullName>PWS</fullName><default>false</default><label>PWS</label></value>
+<value><fullName>Amendment</fullName><default>false</default><label>Amendment</label></value>
+<value><fullName>Evaluation Criteria</fullName><default>false</default><label>Evaluation Criteria</label></value>
+<value><fullName>Capability Statement</fullName><default>false</default><label>Capability Statement</label></value>
+<value><fullName>Certification</fullName><default>false</default><label>Certification</label></value>
+<value><fullName>Past Performance</fullName><default>false</default><label>Past Performance</label></value>
+<value><fullName>Resume</fullName><default>false</default><label>Resume</label></value>
+<value><fullName>Pricing</fullName><default>false</default><label>Pricing</label></value>
+<value><fullName>Contract Vehicle</fullName><default>false</default><label>Contract Vehicle</label></value>
+<value><fullName>Other</fullName><default>true</default><label>Other</label></value>
+</valueSetDefinition></valueSet></CustomField>

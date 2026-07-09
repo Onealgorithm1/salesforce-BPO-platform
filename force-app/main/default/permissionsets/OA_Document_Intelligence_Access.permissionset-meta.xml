@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA Document Intelligence Access</label>
+    <description>Program 024C: object + FLS for the Enterprise Evidence &amp; Document Intelligence layer (OA_Knowledge_Document__c). Least-privilege; read/edit on evidence fields. No Opportunity access.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions><object>OA_Knowledge_Document__c</object><allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>false</allowDelete><viewAllRecords>true</viewAllRecords><modifyAllRecords>false</modifyAllRecords></objectPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Source__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Document_Type__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Version__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Checksum__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Content_Document_Id__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Acquisition_Source__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Opportunity_Signal__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Company_Profile__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extraction_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.AI_Summary__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_Requirements__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_Certifications__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_Technologies__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_NAICS__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_PSC__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_Agencies__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_Dates__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Extracted_Clauses__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Confidence__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Provenance__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.Review_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.AI_Provider__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.AI_Model__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.AI_Total_Tokens__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OA_Knowledge_Document__c.AI_Estimated_Cost__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>

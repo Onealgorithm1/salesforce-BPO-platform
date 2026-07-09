@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Opportunity_Signal__c</fullName><label>Opportunity Signal</label><type>Lookup</type><referenceTo>OA_Opportunity_Signal__c</referenceTo><relationshipLabel>Knowledge Documents</relationshipLabel><relationshipName>Kd_Opportunity_Signal</relationshipName><deleteConstraint>SetNull</deleteConstraint></CustomField>

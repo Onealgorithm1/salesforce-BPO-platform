@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Enterprise Evidence &amp; Document Intelligence (Program 024C): structured, traceable, confidence-scored intelligence extracted from a document. Points to the actual file in Salesforce Files (ContentDocument) — never duplicates storage. Links evidence to Opportunity Signal / Company Profile / Acquisition Source so every recommendation is traceable to source+document+confidence. AI summarizes evidence; it never replaces it.</description>
+    <enableHistory>true</enableHistory>
+    <enableReports>true</enableReports>
+    <label>Knowledge Document</label>
+    <pluralLabel>Knowledge Documents</pluralLabel>
+    <nameField><displayFormat>KD-{0000000}</displayFormat><label>Document #</label><type>AutoNumber</type></nameField>
+    <sharingModel>ReadWrite</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>
