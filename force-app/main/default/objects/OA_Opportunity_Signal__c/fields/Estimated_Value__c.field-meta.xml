@@ -2,10 +2,12 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Estimated_Value__c</fullName>
     <description>Estimated value / award ceiling when present. Null for Grants.gov list MVP.</description>
+    <externalId>false</externalId>
     <label>Estimated Value</label>
     <precision>16</precision>
     <required>false</required>
     <scale>2</scale>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Currency</type>
 </CustomField>

@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Auto_Verification_Method__c</fullName>
-    <label>Auto Verification Method</label>
     <description>Which deterministic tier authorized the write.</description>
+    <externalId>false</externalId>
+    <label>Auto Verification Method</label>
     <required>false</required>
+    <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
-            <value><fullName>Tier A UEI</fullName><default>false</default><label>Tier A UEI</label></value>
-            <value><fullName>Tier B Provenance</fullName><default>false</default><label>Tier B Provenance</label></value>
+            <value>
+                <fullName>Tier A UEI</fullName>
+                <default>false</default>
+                <label>Tier A UEI</label>
+            </value>
+            <value>
+                <fullName>Tier B Provenance</fullName>
+                <default>false</default>
+                <label>Tier B Provenance</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
-    <trackTrending>false</trackTrending>
 </CustomField>

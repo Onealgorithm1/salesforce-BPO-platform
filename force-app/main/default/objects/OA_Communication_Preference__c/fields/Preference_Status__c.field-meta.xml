@@ -2,9 +2,11 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Preference_Status__c</fullName>
     <description>Current effective preference status for this channel and scope.</description>
+    <externalId>false</externalId>
     <label>Preference Status</label>
     <required>false</required>
     <trackHistory>true</trackHistory>
+    <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>

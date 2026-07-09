@@ -3,10 +3,13 @@
     <fullName>Campaign__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <description>Campaign associated with this token.</description>
+    <externalId>false</externalId>
     <label>Campaign</label>
     <referenceTo>Campaign</referenceTo>
     <relationshipLabel>Communication Preference Tokens</relationshipLabel>
     <relationshipName>OA_Comm_Preference_Tokens</relationshipName>
     <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

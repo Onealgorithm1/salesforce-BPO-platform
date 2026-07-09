@@ -2,6 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Review_Status__c</fullName>
     <description>Human review gate for a SAM.gov staging row. Nothing flows to a Lead until a reviewer advances this. Default Pending.</description>
+    <externalId>false</externalId>
     <label>Review Status</label>
     <required>false</required>
     <trackTrending>false</trackTrending>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>OA LinkedIn Connector</label>
     <description>DORMANT, UNASSIGNED. Least-privilege: grants only OA_LinkedIn External Credential principal access for LinkedIn API callouts (OAuth via Auth Provider; secret in UI). No object/data permissions.</description>
-    <hasActivationRequired>false</hasActivationRequired>
     <externalCredentialPrincipalAccesses>
         <enabled>true</enabled>
         <externalCredentialPrincipal>OA_LinkedIn-OA_LinkedIn_Principal</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA LinkedIn Connector</label>
 </PermissionSet>

@@ -2,8 +2,10 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Request_Metadata__c</fullName>
     <description>Request metadata captured by the caller, such as user agent or source context.</description>
+    <externalId>false</externalId>
     <label>Request Metadata</label>
     <length>32768</length>
+    <trackTrending>false</trackTrending>
     <type>LongTextArea</type>
     <visibleLines>4</visibleLines>
 </CustomField>

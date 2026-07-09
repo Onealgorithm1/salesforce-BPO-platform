@@ -3,6 +3,8 @@
     <fullName>Prior_Lead_Opt_Out__c</fullName>
     <defaultValue>false</defaultValue>
     <description>Lead.HasOptedOutOfEmail value before processing this event.</description>
+    <externalId>false</externalId>
     <label>Prior Lead Opt Out</label>
+    <trackTrending>false</trackTrending>
     <type>Checkbox</type>
 </CustomField>

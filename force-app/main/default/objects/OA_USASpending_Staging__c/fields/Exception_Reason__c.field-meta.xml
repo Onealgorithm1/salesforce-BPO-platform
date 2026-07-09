@@ -1,31 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Exception_Reason__c</fullName>
-    <label>Exception Reason</label>
     <description>Which gate failed, routing this staging row to the exception queue (no Lead write).</description>
+    <externalId>false</externalId>
+    <label>Exception Reason</label>
     <required>false</required>
+    <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
-            <value><fullName>no-lead-uei</fullName><default>false</default><label>no-lead-uei</label></value>
-            <value><fullName>no-staging-uei</fullName><default>false</default><label>no-staging-uei</label></value>
-            <value><fullName>uei-mismatch</fullName><default>false</default><label>uei-mismatch</label></value>
-            <value><fullName>ambiguous-uei</fullName><default>false</default><label>ambiguous-uei</label></value>
-            <value><fullName>uei-unverified</fullName><default>false</default><label>uei-unverified</label></value>
-            <value><fullName>malformed-uei</fullName><default>false</default><label>malformed-uei</label></value>
-            <value><fullName>no-provenance</fullName><default>false</default><label>no-provenance</label></value>
-            <value><fullName>name-not-exact</fullName><default>false</default><label>name-not-exact</label></value>
-            <value><fullName>multiple-candidates</fullName><default>false</default><label>multiple-candidates</label></value>
-            <value><fullName>parent-subsidiary</fullName><default>false</default><label>parent-subsidiary</label></value>
-            <value><fullName>missing-email</fullName><default>false</default><label>missing-email</label></value>
-            <value><fullName>call-complete-excluded</fullName><default>false</default><label>call-complete-excluded</label></value>
-            <value><fullName>duplicate-rule-block</fullName><default>false</default><label>duplicate-rule-block</label></value>
-            <value><fullName>permission-block</fullName><default>false</default><label>permission-block</label></value>
-            <value><fullName>field-missing</fullName><default>false</default><label>field-missing</label></value>
-            <value><fullName>post-write-mismatch</fullName><default>false</default><label>post-write-mismatch</label></value>
+            <value>
+                <fullName>no-lead-uei</fullName>
+                <default>false</default>
+                <label>no-lead-uei</label>
+            </value>
+            <value>
+                <fullName>no-staging-uei</fullName>
+                <default>false</default>
+                <label>no-staging-uei</label>
+            </value>
+            <value>
+                <fullName>uei-mismatch</fullName>
+                <default>false</default>
+                <label>uei-mismatch</label>
+            </value>
+            <value>
+                <fullName>ambiguous-uei</fullName>
+                <default>false</default>
+                <label>ambiguous-uei</label>
+            </value>
+            <value>
+                <fullName>uei-unverified</fullName>
+                <default>false</default>
+                <label>uei-unverified</label>
+            </value>
+            <value>
+                <fullName>malformed-uei</fullName>
+                <default>false</default>
+                <label>malformed-uei</label>
+            </value>
+            <value>
+                <fullName>no-provenance</fullName>
+                <default>false</default>
+                <label>no-provenance</label>
+            </value>
+            <value>
+                <fullName>name-not-exact</fullName>
+                <default>false</default>
+                <label>name-not-exact</label>
+            </value>
+            <value>
+                <fullName>multiple-candidates</fullName>
+                <default>false</default>
+                <label>multiple-candidates</label>
+            </value>
+            <value>
+                <fullName>parent-subsidiary</fullName>
+                <default>false</default>
+                <label>parent-subsidiary</label>
+            </value>
+            <value>
+                <fullName>missing-email</fullName>
+                <default>false</default>
+                <label>missing-email</label>
+            </value>
+            <value>
+                <fullName>call-complete-excluded</fullName>
+                <default>false</default>
+                <label>call-complete-excluded</label>
+            </value>
+            <value>
+                <fullName>duplicate-rule-block</fullName>
+                <default>false</default>
+                <label>duplicate-rule-block</label>
+            </value>
+            <value>
+                <fullName>permission-block</fullName>
+                <default>false</default>
+                <label>permission-block</label>
+            </value>
+            <value>
+                <fullName>field-missing</fullName>
+                <default>false</default>
+                <label>field-missing</label>
+            </value>
+            <value>
+                <fullName>post-write-mismatch</fullName>
+                <default>false</default>
+                <label>post-write-mismatch</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
-    <trackTrending>false</trackTrending>
 </CustomField>
