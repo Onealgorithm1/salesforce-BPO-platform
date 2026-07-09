@@ -95,5 +95,30 @@ Everything else (design, CRUD/FLS matrix, login/security, audit) is **complete**
 ## 15. PASS / WARN / FAIL — 🟢 PASS
 Repeatable supervised acquisition readiness demonstrated with human approval, auditability, rollback, monitoring, Lead quality, duplicate protection, and operational governance intact. **No unattended automation, no scheduling, no bulk conversion, no production changes.** Gated enablers held for approval.
 
+## Appendix A — Monitoring script (committed here; `scripts/` is gitignored)
+Save as `scripts/apex/blo_supervised_monitoring.apex` locally and run:
+`sf apex run --file scripts/apex/blo_supervised_monitoring.apex -o oauser@pboedition.com` (0 DML).
+```apex
+Map<String, Integer> funnel = new Map<String, Integer>();
+for (AggregateResult ar : [SELECT Qualification_Status__c s, COUNT(Id) c FROM OA_Discovered_Organization__c GROUP BY Qualification_Status__c]) {
+    funnel.put((String) ar.get('s'), (Integer) ar.get('c'));
+}
+System.debug('[BLO-MON] M1 conversion funnel = ' + funnel);
+Integer creates = [SELECT COUNT() FROM OA_Enrichment_Change_Log__c WHERE Target_Object__c='Lead' AND Change_Type__c='Create'];
+Integer rollbacks = [SELECT COUNT() FROM OA_Enrichment_Change_Log__c WHERE Target_Object__c='Lead' AND Change_Type__c='Rollback'];
+System.debug('[BLO-MON] M2 audit: TYPE_CREATE=' + creates + ' TYPE_ROLLBACK=' + rollbacks);
+Integer approvedNoConvert = [SELECT COUNT() FROM OA_Discovered_Organization__c WHERE Qualification_Status__c IN ('Approved','Lead Ready')];
+System.debug('[BLO-MON] M3 conversion-ready-or-blocked (Approved/Lead Ready) = ' + approvedNoConvert);
+Integer convertedCands = [SELECT COUNT() FROM OA_Discovered_Organization__c WHERE Qualification_Status__c='Converted'];
+Integer linkedLeads = [SELECT COUNT() FROM OA_Discovered_Organization__c WHERE Matched_Lead__c != null];
+System.debug('[BLO-MON] M4 converted candidates=' + convertedCands + ' linked-to-Lead=' + linkedLeads);
+Integer bloAsync = [SELECT COUNT() FROM AsyncApexJob WHERE Status IN ('Queued','Processing','Holding') AND (ApexClass.Name LIKE '%Lifecycle%' OR ApexClass.Name LIKE '%LeadCreation%')];
+Integer failed24 = [SELECT COUNT() FROM AsyncApexJob WHERE Status='Failed' AND CreatedDate=LAST_N_DAYS:1];
+Integer bloSched = [SELECT COUNT() FROM CronTrigger WHERE CronJobDetail.Name LIKE '%Lifecycle%' OR CronJobDetail.Name LIKE '%Candidate%'];
+System.debug('[BLO-MON] M5 BLO async=' + bloAsync + ' failedAsync24h=' + failed24 + ' BLO schedules=' + bloSched + ' => ' + (bloAsync==0 && bloSched==0 ? 'NO UNEXPECTED AUTOMATION' : 'REVIEW'));
+Integer permAssign = [SELECT COUNT() FROM PermissionSetAssignment WHERE PermissionSet.Name='OA_BLO_Contact_Access'];
+System.debug('[BLO-MON] guardrails: OA_BLO_Contact_Access assignments=' + permAssign + ' | DMLrows=' + Limits.getDmlRows());
+```
+
 ## 16. Exact Next Engineering Sprint
 **BLO Phase 6 — First Supervised Batch Execution (gated):** on approval, 🔴 provision/assign `OA_BLO_Runtime` + `OA_BLO_Contact_Access`; reviewers set verified `Reviewed_Contact_Email__c` on **ORG-00012 + ORG-00013** (UEI-based, clean-dedup); run one **≤2–3 supervised batch** via the persisted-field path as the runtime user, with `blo_supervised_monitoring.apex` before/after and rollback ready. Defer SEC/CIK candidates until CIK-aware dedup ships. No automation, no scheduling, no bulk.
