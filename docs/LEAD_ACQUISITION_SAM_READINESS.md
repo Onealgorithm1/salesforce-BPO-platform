@@ -13,6 +13,33 @@
 - **Net:** 1 of 3 blockers cleared (endpoint). Remaining (both required for a successful call, both non-engineering): **(a) EC principal grant** — assign `OA_SAM_Connector` permset to the runtime user (🔴 Louis); **(b) data.gov API key** in the `OA_SAM` EC (🔴 Setup/external). **SAM is NOT yet ready for a successful read-only call or the pilot** until (a)+(b) are done by Louis/admin.
 - **Production safety:** endpoint metadata deploy only (dormant NC; no connector enabled); read-only smoke test did 0 DML; **no Candidate/Lead/Account change**; data unchanged (6/13,301/1).
 
+## Phase 16 gate check (2026-07-08) — permset alone is INSUFFICIENT; key/principal is the true blocker
+**Material finding (surfaced, not assumed):** assigning the `OA_SAM_Connector` permission set — even though authorized this
+sprint — would **NOT** grant SAM access. The permset contains **no `externalCredentialPrincipalAccesses` block** (only
+`OA_SAM_Entity_Staging__c` CRUD/FLS); its own description states *"EC principal access added at the key gate."* Evidence:
+- Repo permsets granting EC principal access: **only `OA_LinkedIn_Connector`, `OA_Meta_Connector`** — **none for `OA_SAM`**.
+- Live `SetupEntityAccess` for ExternalCredential org-wide = **0**; `OA_SAM_Connector` assignments = 0.
+- Read-only smoke re-confirmed: `System.CalloutException: We couldn't access the credential(s)... external credential "OA_SAM"`.
+
+**Therefore the permset was NOT assigned** (a hollow RED change that wouldn't unblock SAM and would add an unnecessary
+standing grant). The true, ordered blocker chain is **administrative + external**, requiring the data.gov key first:
+
+**Exact Setup steps (admin, requires the data.gov API key):**
+1. **Setup → Security → Named Credentials → External Credentials → `OA_SAM` → Principals** → edit the Named Principal →
+   under **Authentication Parameters** set the **`X-Api-Key`** header value = the **data.gov API key**. *(The key is an
+   external secret; engineering cannot invent/obtain it. Prior sessions: alpha 401 / prod 200 with a valid key.)*
+2. **Setup → Permission Sets → `OA_SAM_Connector` → External Credential Principal Access → Edit** → enable the **`OA_SAM`**
+   principal → Save. *(Adds the `externalCredentialPrincipalAccesses` grant / `SetupEntityAccess` row — metadata-deployable
+   as a permset update, but requires the EC principal from step 1 to exist first.)*
+3. **Assign `OA_SAM_Connector`** (now carrying the EC grant) to the runtime user `oauser@pboedition.com`.
+
+Only after steps 1–3 will the read-only smoke return **HTTP 200**; then the supervised ≤3-Candidate pilot (§6) can run.
+
+**Why engineering cannot proceed:** step 1 needs the **data.gov API key** (external secret, not held by engineering) and
+Setup-UI entry; step 2's principal grant depends on step 1. `OA_SAM_Connector` was therefore **not** assigned this sprint
+(it would not help). **STOPPED per Phase 3.** No permset assigned; no key; no smoke 200; no preview; no pilot; **0 DML;
+data unchanged (6/13,301/1).**
+
 ---
 
 ## 1. State verification (Phase 1)
