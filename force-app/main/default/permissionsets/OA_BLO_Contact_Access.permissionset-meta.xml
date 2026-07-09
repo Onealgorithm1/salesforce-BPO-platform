@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>OA BLO Contact Access</label>
+    <description>BLO: FLS for the reviewer-supplied Reviewed_Contact_Email__c on OA_Discovered_Organization__c. Unassigned by default; assign to reviewers/runtime user at activation.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions>
+        <field>OA_Discovered_Organization__c.Reviewed_Contact_Email__c</field>
+        <editable>true</editable>
+        <readable>true</readable>
+    </fieldPermissions>
+</PermissionSet>

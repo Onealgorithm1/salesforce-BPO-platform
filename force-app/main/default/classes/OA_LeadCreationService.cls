@@ -53,7 +53,7 @@ public with sharing class OA_LeadCreationService {
             SELECT Id, Organization_Name__c, Normalized_Name__c, UEI__c, CAGE_Code__c, CIK__c, EIN__c, NAICS__c,
                    Address__c, City__c, State__c, Postal_Code__c, Website__c, Phone__c, Source_System__c,
                    Source_Confidence__c, Confidence_Score__c, Canonical_Key__c, Qualification_Status__c,
-                   Matched_Lead__c, Connector_Run__c
+                   Matched_Lead__c, Connector_Run__c, Reviewed_Contact_Email__c
             FROM OA_Discovered_Organization__c
             WHERE Id IN :candidateIds
         ];
@@ -113,12 +113,15 @@ public with sharing class OA_LeadCreationService {
                 sum.failed++; sum.rows.add(o); continue;
             }
 
-            Lead l = buildLead(c, emails.get(c.Id));
+            // Reviewed contact email: explicit map param overrides; else the reviewer-supplied field on the
+            // candidate. NEVER fabricated. Absence => the org validation rule will (correctly) block creation.
+            String resolvedEmail = String.isNotBlank(emails.get(c.Id)) ? emails.get(c.Id) : c.Reviewed_Contact_Email__c;
+            Lead l = buildLead(c, resolvedEmail);
             if (commitWrites != true) {
                 o.status = 'PREVIEW_OK'; o.gate = 'OK';
-                o.reason = String.isBlank(emails.get(c.Id))
-                    ? 'Would create (WARN: no contact email — org validation rule will block until contact is supplied).'
-                    : 'Would create.';
+                o.reason = String.isBlank(resolvedEmail)
+                    ? 'Would attempt (WARN: NOT Lead Ready — no reviewed contact email; org rule will block until a reviewer supplies one).'
+                    : 'Would create (Lead Ready: reviewed contact email present).';
                 sum.rows.add(o); continue;
             }
             toInsert.add(l);

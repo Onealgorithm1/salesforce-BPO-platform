@@ -48,7 +48,8 @@ public with sharing class OA_CandidateApprovalService {
 
         List<OA_Discovered_Organization__c> cands = [
             SELECT Id, Qualification_Status__c, Recommended_Action__c, Qualification_Reasons__c,
-                   Matched_Lead__c, Source_System__c, Canonical_Key__c, Connector_Run__c, Source_Confidence__c
+                   Matched_Lead__c, Source_System__c, Canonical_Key__c, Connector_Run__c, Source_Confidence__c,
+                   Reviewed_Contact_Email__c
             FROM OA_Discovered_Organization__c
             WHERE Id IN :candidateIds
         ];
@@ -78,6 +79,13 @@ public with sharing class OA_CandidateApprovalService {
                 o.reason = 'Illegal transition ' + o.fromState + ' -> ' + toState + '.';
                 sum.blocked++; sum.outcomes.add(o); continue;
             }
+            // READINESS: a candidate cannot become Lead Ready without a reviewed contact email
+            // (satisfies the Lead Require_Email_Or_Contact_Person_Email rule; never fabricated).
+            if (OA_LifecycleStates.LEAD_READY.equals(toState) && String.isBlank(c.Reviewed_Contact_Email__c)) {
+                o.gate = 'READINESS';
+                o.reason = 'Lead Ready requires a reviewer-supplied Reviewed_Contact_Email__c.';
+                sum.blocked++; sum.outcomes.add(o); continue;
+            }
 
             o.gate = 'OK';
             o.applied = true;
@@ -89,11 +97,14 @@ public with sharing class OA_CandidateApprovalService {
                     'OA_Discovered_Organization__c', c.Id, 'Qualification_Status__c',
                     o.fromState, toState, 'BLO-Approval', 'Overwrite',
                     c.Source_Confidence__c, c.Connector_Run__c, before, OA_ChangeLogService.TYPE_ENRICH));
-                c.Qualification_Status__c = toState;
+                // Build a fresh sObject with ONLY the changed fields so a USER_MODE update never touches
+                // fields the running user may lack FLS on (e.g. the new Reviewed_Contact_Email__c).
+                OA_Discovered_Organization__c upd = new OA_Discovered_Organization__c(
+                    Id = c.Id, Qualification_Status__c = toState);
                 if (String.isNotBlank(reason)) {
-                    c.Recommended_Action__c = ((reviewer == null ? '' : reviewer + ': ') + reason).abbreviate(80);
+                    upd.Recommended_Action__c = ((reviewer == null ? '' : reviewer + ': ') + reason).abbreviate(80);
                 }
-                toUpdate.add(c);
+                toUpdate.add(upd);
             }
             sum.outcomes.add(o);
         }

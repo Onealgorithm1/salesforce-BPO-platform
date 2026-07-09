@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Reviewed_Contact_Email__c</fullName>
+    <description>Reviewer-supplied contact email captured during human approval. Read by OA_LeadCreationService to satisfy the Lead Require_Email_Or_Contact_Person_Email rule at conversion. NEVER auto-populated, NEVER fabricated — set only by a human reviewer (or a future approved contact-resolution source).</description>
+    <externalId>false</externalId>
+    <label>Reviewed Contact Email</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Email</type>
+    <unique>false</unique>
+</CustomField>
