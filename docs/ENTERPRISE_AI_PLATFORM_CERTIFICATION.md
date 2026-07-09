@@ -2,7 +2,7 @@
 
 **Org:** 00Dbn00000plgUfEAI (verified by ID) · **Date:** 2026-07-09 · **Branch:** feature/enterprise-ai-platform-certification
 
-**Verdict: WARN → conditional PASS.** Every subsystem is certified working against live production endpoints. The single gating item is that the **production credential `OA_OpenRouter` has no `ApiKey`** (removed during Program-018 diagnosis and not yet re-entered). Its config is byte-identical to the two working credentials; it needs only the key pasted into Setup. Until then, production inference falls back to Anthropic on every call.
+**Verdict: PASS — AI Platform Engineering Complete → Maintenance Mode.** Every subsystem is certified working against live production endpoints. Production `OA_OpenRouter` key re-entered and confirmed live 2026-07-09: direct completion HTTP 200 ("PROD-OK", 18 tok, $0.0000045), `/models` 200, gateway routed through **OpenRouter** (provider=OpenRouter, retry=0 — no fallback) HTTP 200 logged as AIREQ-00013, registry `discover()` via prod NC = 346 models. OpenRouter is now the effective default.
 
 ---
 
@@ -16,7 +16,7 @@
 ## Validation evidence (live)
 | Phase | Result | Evidence |
 |---|---|---|
-| 1 · Production inference | ❌ BLOCKED | `Field OA_OpenRouter.ApiKey does not exist` — missing key |
+| 1 · Production inference | ✅ HTTP 200 | `gpt-4o-mini` → "PROD-OK", 18 tok, cost $0.0000045, 541 ms; `/models` 200; gateway via OpenRouter retry=0 (AIREQ-00013) |
 | 2 · Development inference | ✅ HTTP 200 | `gpt-4o-mini` → "CERT-OK", tokens 14/4/18, **cost $0.0000045**, 1800 ms |
 | 3 · Management API | ✅ HTTP 200 | `/key`: is_management=true, is_provisioning=true |
 | 4 · Model registry | ✅ (logic) | 343 models · 56 providers · 23 free · 4 variable-priced · 343 with context |
@@ -33,9 +33,9 @@
 No secrets in repository, Apex, or docs. Keys live only in the encrypted per-principal credential store (UI-entered). Production / Development / Management credentials are fully separated (distinct ECs, NCs, keys, principals). Runtime user holds only the AI permission sets (least privilege).
 
 ## Debt
-- **Operational (blocking PASS):** re-enter `OA_OpenRouter` `ApiKey` in Setup (Custom EC principal → Authentication Parameter `ApiKey` = the production key). Removed during Program-018 diagnosis.
-- **Governance:** budget/spend is *measured* (per-request cost logged) but not *enforced* (no hard stop on exceed); dashboards are report-ready but not built.
+- **Operational:** RESOLVED — production `ApiKey` re-entered and confirmed live.
+- **Governance:** budget/spend is *measured* (per-request cost logged) but not *enforced* (no hard stop on exceed); dashboards are report-ready but not built. (Deferred to Maintenance Mode / future governance work — not required for engineering completeness.)
 - **Technical (minor):** `OA_AI_ModelRegistry.discover()` and the gateway call `callout:OA_OpenRouter` (prod) directly, so a broken prod credential also breaks catalog discovery; consider a public-catalog fallback / configurable NC.
 
-## Definition of Done
-Production inference 200 · Development inference 200 ✅ · Management API 200 ✅ · Gateway routing + fallback + retry ✅ · Telemetry (tokens/cost/latency/provider/model/status/failure) ✅ · Model registry (live, no hardcoding) ✅ · Security certified ✅ · **Remaining: production `ApiKey` re-entry → then OpenRouter becomes the effective default and Phase 1 flips to 200.**
+## Definition of Done — MET
+Production inference 200 ✅ · Development inference 200 ✅ · Management API 200 ✅ · Gateway routing + fallback + retry ✅ · Telemetry (tokens/cost/latency/provider/model/status/failure) ✅ · Model registry (live, no hardcoding) ✅ · Security certified ✅ · OpenRouter is the effective default ✅. **AI Platform is Engineering Complete → Maintenance Mode. Next: Engineering Program 020 — Enterprise Opportunity Intelligence.**
