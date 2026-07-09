@@ -75,9 +75,20 @@ Candidate Needs Review
 ```
 **UI/config needs (no automation):** assign `OA_BLO_Contact_Access` to reviewers; add `Reviewed_Contact_Email__c` + `Qualification_Status__c` + `Recommended_Action__c` to the candidate page layout / a review list view; provide a "Lead Ready" quick action or reviewers run the manual conversion. No trigger/flow/schedule.
 
+## 8b. Lead target-state preflight (live org — inspected BEFORE the pilot, not after)
+Runtime constraints on **Lead insert** that the pilot must account for:
+| Constraint | Finding | Pilot implication |
+|---|---|---|
+| Validation rule | `Require_Email_Or_Contact_Person_Email` (active) | satisfied by the reviewed contact email (handled) |
+| Required create fields | Company, LastName(→Name), Status(default), OwnerId(=running user) | set/defaulted by the service (handled) |
+| **Duplicate rule** | **`OA_Partner_Duplicate_Rule` ACTIVE** on Lead | evaluates on the BLO insert; **confirm alert-vs-block + matching criteria first** — a block action could reject the insert (captured as `FAILED`, not bypassed) |
+| **After-save flows** | **`OA New Website Lead Notification`, `OA PostMeeting Nurture`** fire on new Leads | **confirm entry criteria** so an acquired Lead does not wrongly notify as a "website lead" |
+| Apex trigger | `updatePackages` (LMA managed) | benign |
+| Approval process / assignment rule | none active | Owner = running user (handled) |
+
 ## 9. Supervised Pilot Runbook (execute only if authorized after this sprint)
 - **Scope:** max **1** candidate; human-approved; **reviewed contact email required**; no Accounts; no campaign automation; no enrichment activation; no scheduling.
-- **Prereqs (RED):** deploy the 4 classes + field + permset; assign `OA_BLO_Contact_Access` to the runtime user; least-privilege runtime user.
+- **Prereqs (RED):** deploy the 4 classes + field + permset; assign `OA_BLO_Contact_Access` to the runtime user; least-privilege runtime user. **Confirm `OA_Partner_Duplicate_Rule` action and the two after-save flows' entry criteria (§8b) before the insert.**
 - **Steps:**
   1. Reviewer sets `Reviewed_Contact_Email__c` on ONE approved candidate (verified email).
   2. `OA_CandidateApprovalService.transition([id],'Lead Ready','<reviewer>','verified',true)` → expect `applied=1` (READINESS satisfied).
