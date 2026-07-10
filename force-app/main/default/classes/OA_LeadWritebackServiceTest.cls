@@ -289,14 +289,14 @@ private class OA_LeadWritebackServiceTest {
     // Regression for WARN #12 (duplicate-Id abort). Before the fix this threw
     // System.ListException "Duplicate id in list" and rolled the whole batch back.
     @IsTest static void testTwoApprovedRowsSameLeadNoAbortSingleWrite() {
-        Scn sc = setup('Approved', true, false); // row 1: AWD-001 / ENR-001 on sc.leadId
+        Scn sc = setup('Approved', true, false); // row 1: AWD-001 / amount 12345.67 on sc.leadId
         OA_LeadWritebackService.RunSummary sum;
-        Id secondId;
+        Id highId;
         System.runAs(sc.fullUser) {
-            secondId = addApprovedRow(sc.leadId, 'AWD-002', 99999.00, 'ENR-002');
+            highId = addApprovedRow(sc.leadId, 'AWD-002', 99999.00, 'ENR-002'); // higher amount
             Test.startTest();
-            // Caller lists the FIRST row first => it wins (explicit order).
-            sum = OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId, secondId }, 25, true);
+            // List the LOWER-amount row first; the highest amount must still win.
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId, highId }, 25, true);
             Test.stopTest();
         }
         // Reaching here at all proves no uncaught ListException aborted the batch.
@@ -304,37 +304,57 @@ private class OA_LeadWritebackServiceTest {
         System.assertEquals(0, sum.failed, 'no failures (no ListException)');
         System.assertEquals(1, sum.dedupedSameLead, 'the extra same-Lead row was deduped');
         System.assertEquals(1, sum.attempted, 'only the winner is attempted');
-        System.assertEquals('WRITTEN', outcomeFor(sum, sc.stagingId).status, 'first-listed row won');
-        OA_LeadWritebackService.RowOutcome dup = outcomeFor(sum, secondId);
-        System.assertEquals('SKIPPED', dup.status, 'extra row skipped');
+        System.assertEquals('WRITTEN', outcomeFor(sum, highId).status, 'highest-amount row won');
+        OA_LeadWritebackService.RowOutcome dup = outcomeFor(sum, sc.stagingId);
+        System.assertEquals('SKIPPED', dup.status, 'lower-amount row skipped');
         System.assertEquals('DEDUPE', dup.gate, 'skipped via DEDUPE gate');
 
         Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
-        System.assertEquals('AWD-001', after.USASpending_Latest_Award_ID__c, 'Lead carries the winner award');
-        OA_USASpending_Staging__c w = [SELECT Review_Status__c FROM OA_USASpending_Staging__c WHERE Id = :sc.stagingId];
-        OA_USASpending_Staging__c d = [SELECT Review_Status__c FROM OA_USASpending_Staging__c WHERE Id = :secondId];
+        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'Lead carries the highest-amount winner');
+        OA_USASpending_Staging__c w = [SELECT Review_Status__c FROM OA_USASpending_Staging__c WHERE Id = :highId];
+        OA_USASpending_Staging__c d = [SELECT Review_Status__c FROM OA_USASpending_Staging__c WHERE Id = :sc.stagingId];
         System.assertEquals('Written Back', w.Review_Status__c, 'winner stamped Written Back');
         System.assertEquals('Approved', d.Review_Status__c, 'deduped row left Approved (deferred, not lost)');
     }
 
-    // 14b — winner selection is deterministic by caller order: list AWD-002 FIRST => it wins.
-    @IsTest static void testDedupeHonorsCallerOrder() {
-        Scn sc = setup('Approved', true, false); // AWD-001
+    // 14b — highest Award_Amount__c wins regardless of list order (here the winner is listed FIRST;
+    // test 14 lists the winner LAST — together they prove amount, not order, decides).
+    @IsTest static void testDedupeHighestAmountWinsRegardlessOfOrder() {
+        Scn sc = setup('Approved', true, false); // AWD-001 amount 12345.67
         OA_LeadWritebackService.RunSummary sum;
-        Id secondId;
+        Id highId;
         System.runAs(sc.fullUser) {
-            secondId = addApprovedRow(sc.leadId, 'AWD-002', 1.00, 'ENR-002');
+            highId = addApprovedRow(sc.leadId, 'AWD-002', 88888.00, 'ENR-002'); // higher amount
             Test.startTest();
-            // Second row listed FIRST => it must win regardless of amount/insert order.
-            sum = OA_LeadWritebackService.writeBack(new List<Id>{ secondId, sc.stagingId }, 25, true);
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ highId, sc.stagingId }, 25, true);
             Test.stopTest();
         }
         System.assertEquals(1, sum.succeeded, 'one write');
         System.assertEquals(1, sum.dedupedSameLead, 'one deduped');
-        System.assertEquals('WRITTEN', outcomeFor(sum, secondId).status, 'first-listed (AWD-002) won');
-        System.assertEquals('DEDUPE', outcomeFor(sum, sc.stagingId).gate, 'AWD-001 deduped');
+        System.assertEquals('WRITTEN', outcomeFor(sum, highId).status, 'highest-amount row won');
+        System.assertEquals('DEDUPE', outcomeFor(sum, sc.stagingId).gate, 'lower-amount row deduped');
         Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
-        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'Lead carries first-listed winner');
+        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'Lead carries highest-amount award');
+    }
+
+    // 14e — tie-break: EQUAL Award_Amount__c falls back to caller order (first-listed wins).
+    @IsTest static void testDedupeEqualAmountsFallBackToCallerOrder() {
+        Scn sc = setup('Approved', true, false); // AWD-001 amount 12345.67
+        OA_LeadWritebackService.RunSummary sum;
+        Id tieId;
+        System.runAs(sc.fullUser) {
+            tieId = addApprovedRow(sc.leadId, 'AWD-002', 12345.67, 'ENR-002'); // SAME amount as AWD-001
+            Test.startTest();
+            // Equal amounts => the row listed FIRST (AWD-002) wins the tie-break.
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ tieId, sc.stagingId }, 25, true);
+            Test.stopTest();
+        }
+        System.assertEquals(1, sum.succeeded, 'one write');
+        System.assertEquals(1, sum.dedupedSameLead, 'one deduped');
+        System.assertEquals('WRITTEN', outcomeFor(sum, tieId).status, 'equal amount => first-listed (AWD-002) won');
+        System.assertEquals('DEDUPE', outcomeFor(sum, sc.stagingId).gate, 'AWD-001 deduped on tie-break');
+        Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
+        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'tie-break winner on Lead');
     }
 
     // 14c — two Approved rows on one Lead in PREVIEW: winner PREVIEW_OK, extra DEDUPE, no DML.

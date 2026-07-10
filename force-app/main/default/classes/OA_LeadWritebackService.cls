@@ -243,21 +243,25 @@ public with sharing class OA_LeadWritebackService {
         // SAME Lead they collide into a single Database.update as duplicate Ids, which throws an
         // uncaught System.ListException ("Duplicate id in list") and rolls the whole batch back
         // (verified: thrown pre-DML even with allOrNone=false). Instead, elect ONE winner per
-        // Lead deterministically — the row the caller listed FIRST (explicit order; the caller
-        // controls precedence by ordering stagingIds) — and defer the rest as SKIPPED/DEDUPE,
-        // left Approved so a later batch can process them. One update per Lead => a duplicate Id
-        // can never reach the DML.
+        // Lead deterministically — the HIGHEST Award_Amount__c (the flagship award represents the
+        // Lead), tie-broken by the row the caller listed FIRST (lowest position) — and defer the
+        // rest as SKIPPED/DEDUPE, left Approved so a later batch can process them. One update per
+        // Lead => a duplicate Id can never reach the DML. (Eligible rows always have a non-null
+        // Award_Amount__c — the DATA gate above requires it.)
         Map<Id, Integer> callerPos = new Map<Id, Integer>();
         for (Integer i = 0; i < idsToProcess.size(); i++) {
             if (!callerPos.containsKey(idsToProcess[i])) { callerPos.put(idsToProcess[i], i); }
         }
-        Map<Id, Id> winnerByLead = new Map<Id, Id>();   // Lead Id -> winning staging Id (lowest caller position)
+        Map<Id, Id> winnerByLead = new Map<Id, Id>();   // Lead Id -> winning staging Id (highest amount, then caller-first)
         for (Id sid : stillEligible) {
             Id leadId = eligible.get(sid).Lead__c;
             Id cur = winnerByLead.get(leadId);
-            if (cur == null || callerPos.get(sid) < callerPos.get(cur)) {
-                winnerByLead.put(leadId, sid);
-            }
+            if (cur == null) { winnerByLead.put(leadId, sid); continue; }
+            Decimal candAmt = eligible.get(sid).Award_Amount__c;
+            Decimal winAmt  = eligible.get(cur).Award_Amount__c;
+            Boolean candWins = (candAmt > winAmt)
+                || (candAmt == winAmt && callerPos.get(sid) < callerPos.get(cur));
+            if (candWins) { winnerByLead.put(leadId, sid); }
         }
         List<Id> dedupedEligible = new List<Id>();
         for (Id sid : stillEligible) {
