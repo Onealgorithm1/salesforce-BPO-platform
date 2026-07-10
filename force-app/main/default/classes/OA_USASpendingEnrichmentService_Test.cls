@@ -83,11 +83,14 @@ private class OA_USASpendingEnrichmentService_Test {
     @isTest
     static void testLeadLinkedAndUeiPopulatedForWriteback() {
         User u = connectorUser();
-        Lead ld = new Lead(LastName = 'Cohort', Company = 'ZOLON TECH',
-                           Email = 'cohort@example.com.invalid');
-        insert ld;
         Test.setMock(HttpCalloutMock.class, new OA_ConnectorMock(200, awardJsonWithUei('XVE2FA8DRTL7')));
         System.runAs(u) {
+            // Insert the Lead INSIDE runAs: connectorUser() did setup-object DML (User +
+            // PermissionSetAssignment); a non-setup insert must be inside a runAs boundary
+            // to avoid MIXED_DML_OPERATION (same reason the sibling tests stage inside runAs).
+            Lead ld = new Lead(LastName = 'Cohort', Company = 'ZOLON TECH',
+                               Email = 'cohort@example.com.invalid');
+            insert ld;
             Integer leadModsBefore = [SELECT COUNT() FROM Lead];
 
             Test.startTest();

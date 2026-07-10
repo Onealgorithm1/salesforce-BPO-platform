@@ -38,5 +38,19 @@ Zolon's 5 rows were **refreshed in place** (same dedupe key) — now carry UEI +
 - **Legacy `OA_USASpendingClient`** — same snake_case `recipient_uei` latent bug, but **dead code** (referenced only by its own test, superseded by the SDK parser/request). Per Louis (025G-B): **leave untouched**; tracked here beside Path B's ungated commit.
 - **Path B ungated commit** (`OA_EnrichmentWriter commitWrites=true`) — still tech debt (025G-A decision: Path A only).
 
-## Next approval gate (RED — needs Louis's explicit numbers)
-To certify the write-back, Louis must supply explicit approved numbers per Lead. Only then: set the chosen staging rows `Review_Status__c='Approved'` → run `OA_LeadWritebackService.writeBack(stagingIds, limit, commitWrites=true)` (requires the `OA_Lead_Writeback_Automation` permset FLS). **Nothing is Approved or written until then.**
+## Pilot certification — DONE (Louis-approved, 2026-07-10)
+**Approved & executed:** Zolon Tech (`00QPn000011DshSMAS`), staging `a0kPn00001NbqBZIAZ`, award `SAQMMA12C0014` ($97.44M, Dept of State) — ONE bundle. See **`CERT_MATRIX_025G-B.md`** (12 PASS · 3 WARN/NOTE · 0 FAIL; full suite 365/365).
+- Happy-path write (15 fields), snapshot-first, isolation (only Zolon modstamp moved), zero side effects (Opp=1, CampaignMember=1, Task=3), rollback→null, reapply→data, negative controls (Pending/Rejected blocked, idempotent re-run skipped), all tripwires 0.
+- **Final data state:** Zolon Lead holds approved write-back values; staging `Written Back` (snapshot retained, approval in `Notes__c`); Zolon's 4 other rows + all 1 Source / 1 Sync rows still Pending (untouched); other 3 cohort Leads unchanged.
+
+## Config decision for Louis (NOT changed)
+- **Field-history tracking** on the 16 write-back fields is **off** → a committed write produces 0 `LeadHistory` rows. Enable tracking for native change-log, or accept the staging-snapshot + Lead run-id/verified-by audit trail. No tracking config changed this session.
+
+## Production test-state (needs a deploy decision — RED)
+The corrected `OA_USASpendingEnrichmentService_Test` (MIXED_DML fix) is committed + check-only-clean but **not deployed**; production still runs the pre-fix test (fails interactive `RunLocalTests`; test-only, no runtime impact). Deploy the corrected class to green the org suite (or it lands with this PR's merge).
+
+## Next approval gates (RED)
+1. **Certify further Leads** — 1 Source / 1 Sync best rows are staged & eligible. Supply approved numbers → approve ONE row per Lead → `writeBack`.
+2. **Required fix before multi-lead / scheduled write-back:** the duplicate-Id abort (WARN #12) — dedupe `leadUpdates` per Lead, with a test.
+3. **Deploy** the corrected test class (above).
+4. **Merge** this PR to `main`.
