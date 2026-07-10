@@ -38,19 +38,20 @@ Zolon's 5 rows were **refreshed in place** (same dedupe key) — now carry UEI +
 - **Legacy `OA_USASpendingClient`** — same snake_case `recipient_uei` latent bug, but **dead code** (referenced only by its own test, superseded by the SDK parser/request). Per Louis (025G-B): **leave untouched**; tracked here beside Path B's ungated commit.
 - **Path B ungated commit** (`OA_EnrichmentWriter commitWrites=true`) — still tech debt (025G-A decision: Path A only).
 
-## Pilot certification — DONE (Louis-approved, 2026-07-10)
-**Approved & executed:** Zolon Tech (`00QPn000011DshSMAS`), staging `a0kPn00001NbqBZIAZ`, award `SAQMMA12C0014` ($97.44M, Dept of State) — ONE bundle. See **`CERT_MATRIX_025G-B.md`** (12 PASS · 3 WARN/NOTE · 0 FAIL; full suite 365/365).
-- Happy-path write (15 fields), snapshot-first, isolation (only Zolon modstamp moved), zero side effects (Opp=1, CampaignMember=1, Task=3), rollback→null, reapply→data, negative controls (Pending/Rejected blocked, idempotent re-run skipped), all tripwires 0.
-- **Final data state:** Zolon Lead holds approved write-back values; staging `Written Back` (snapshot retained, approval in `Notes__c`); Zolon's 4 other rows + all 1 Source / 1 Sync rows still Pending (untouched); other 3 cohort Leads unchanged.
+## Cohort certification — DONE (Louis-approved, 2026-07-10)
+**3 of 4 Leads certified & written** (one best row each, same lifecycle). See **`CERT_MATRIX_025G-B.md`** (12 PASS · 3 WARN/NOTE · 0 FAIL; full suite 365/365).
+| Lead | Award | UEI | $ / Agency | Modstamp |
+|---|---|---|---|---|
+| Zolon Tech `00QPn000011DshSMAS` | `SAQMMA12C0014` | XVE2FA8DRTL7 | $97.44M / State (+ rollback→reapply proof) | 13:19:59Z |
+| 1 Source `00QPn000011Dxb0MAC` | `TPDTTB13K0013` | EXEYN7TNGWH7 | $78.50M / Treasury | 13:38:22Z |
+| 1 Sync `00QPn000011DzGxMAK` | `FA330022C0055` | SHKSNU48JHZ7 | $3.90M / Air Force | 13:39:24Z |
+| @Orchard `00QPn000011Dv2xMAC` | — | — | excluded (no verifiable match) | unchanged 07-07 |
+- Per Lead: 15 fields written, snapshot-first, isolation (only that Lead's modstamp moved), zero side effects, tripwires 0. Negative controls (Pending/Rejected blocked, idempotent skip) + rollback→reapply proven once on Zolon.
+- **Staging landscape:** 3 Written Back · 12 Pending (4 untouched sibling rows per certified Lead). @Orchard has 0 rows.
+- **Corrected test class deployed** (MIXED_DML fix; deploy `0AfPn00000243qzKAA`; interactive suite 11/11). Org suite green.
 
-## Config decision for Louis (NOT changed)
-- **Field-history tracking** on the 16 write-back fields is **off** → a committed write produces 0 `LeadHistory` rows. Enable tracking for native change-log, or accept the staging-snapshot + Lead run-id/verified-by audit trail. No tracking config changed this session.
+## Config decision (Louis: accept snapshot audit trail — NO change)
+Field-history tracking on the 16 write-back fields stays **off** → 0 `LeadHistory` rows. Audit relies on staging `Before_Snapshot__c` + Lead `USASpending_Source_Run_ID__c`/`UEI_Verified_By/Date`. No tracking config changed.
 
-## Production test-state (needs a deploy decision — RED)
-The corrected `OA_USASpendingEnrichmentService_Test` (MIXED_DML fix) is committed + check-only-clean but **not deployed**; production still runs the pre-fix test (fails interactive `RunLocalTests`; test-only, no runtime impact). Deploy the corrected class to green the org suite (or it lands with this PR's merge).
-
-## Next approval gates (RED)
-1. **Certify further Leads** — 1 Source / 1 Sync best rows are staged & eligible. Supply approved numbers → approve ONE row per Lead → `writeBack`.
-2. **Required fix before multi-lead / scheduled write-back:** the duplicate-Id abort (WARN #12) — dedupe `leadUpdates` per Lead, with a test.
-3. **Deploy** the corrected test class (above).
-4. **Merge** this PR to `main`.
+## Next session (RED — deferred by Louis)
+1. **Duplicate-Id abort fix (WARN #12)** — dedupe `leadUpdates` per Lead (or process per-Lead) + regression test, **before any multi-lead or scheduled write-back**. Approved as next session's task.

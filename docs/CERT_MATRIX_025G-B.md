@@ -3,6 +3,16 @@
 **Date:** 2026-07-10 · **Org:** `00Dbn00000plgUfEAI` · **Path:** A (`OA_USASpendingEnrichmentService` → `OA_USASpending_Staging__c` → `OA_LeadWritebackService`).
 **Pilot unit:** ONE Lead write-back bundle (writer is atomic per Lead). **Pilot record:** Zolon Tech (`00QPn000011DshSMAS`), staging `a0kPn00001NbqBZIAZ`, award `SAQMMA12C0014` ($97,441,995.15, Dept of State). **Approved by:** Louis (025G-B certification pilot).
 
+**Cohort certified (Louis-approved, all checks 1–5/11 re-verified per Lead — one row each, same lifecycle):**
+| Lead | Staging (Award ID) | UEI | Amount / Agency | Result | Modstamp |
+|---|---|---|---|---|---|
+| Zolon Tech | `SAQMMA12C0014` | XVE2FA8DRTL7 | $97.44M / Dept of State | **WRITTEN** (+ rollback→reapply proof) | 13:19:59Z |
+| 1 Source Consulting | `TPDTTB13K0013` | EXEYN7TNGWH7 | $78.50M / Treasury | **WRITTEN** | 13:38:22Z |
+| 1 Sync Technologies | `FA330022C0055` | SHKSNU48JHZ7 | $3.90M / Air Force (DoD) | **WRITTEN** | 13:39:24Z |
+| @Orchard LLC | — | — | — | **excluded (no verifiable match)** | unchanged 07-07 |
+
+All 3: succeeded=1, snapshot captured, tripwires 0, staging Written Back, only that Lead's modstamp moved, Opp=1, CampaignMember/Task unchanged. Staging landscape: **3 Written Back · 12 Pending** (4 remaining rows per certified Lead, all untouched).
+
 ## Result summary: **12 PASS · 3 WARN/NOTE · 0 FAIL** · full suite 365/365 pass (after a test-only fix — see #15)
 
 | # | Certification check | Expectation | Result | Evidence |
@@ -23,8 +33,8 @@
 | 14 | Cross-operation audit fidelity | Every op leaves a durable trace | **⚠️ NOTE** | `Gate_Results__c` is last-write-wins for write-back (append-only for rollback), so a reapply overwrites the intermediate rollback line. **`Before_Snapshot__c` + approval `Notes__c` are preserved.** |
 | 15 | Full local test suite | All local tests pass | **PASS (after fix)** | `RunLocalTests` = **365 ran, 365 pass** after correcting one test I introduced (`testLeadLinkedAndUeiPopulatedForWriteback` hit `MIXED_DML_OPERATION` — Lead insert moved inside `System.runAs`). Deploy-context masked it (async setup DML); interactive run caught it. See "Production test-state" below. |
 
-## Production test-state (needs a decision — NOT deployed this session)
-The earlier authorized deploy shipped `OA_USASpendingEnrichmentService_Test` with the MIXED_DML bug (it passed in deploy-context, so the deploy succeeded). The corrected test is committed on the branch and check-only-validates clean, but **production still holds the pre-fix test**, which fails under interactive `RunLocalTests` (test-only; **no runtime/data impact**). Recommend deploying the corrected test class (RED — your gate) so the org's suite is green; it will also land when this PR is deployed/merged.
+## Production test-state — RESOLVED
+Corrected `OA_USASpendingEnrichmentService_Test` **deployed** (Louis-approved, deploy `0AfPn00000243qzKAA`). Interactive `RunLocalTests` on the class now **11/11 Pass** (the MIXED_DML method passes). Org suite green.
 
 ## WARN / NOTE detail
 
