@@ -1,4 +1,4 @@
-@IsTest
+@IsTest(isParallel=false)
 private class OA_PartnerIntelligence_Test {
     private class Mock implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {

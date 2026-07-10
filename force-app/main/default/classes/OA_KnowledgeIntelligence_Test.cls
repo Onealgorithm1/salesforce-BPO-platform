@@ -3,7 +3,7 @@
  * (deterministic completeness + AI narrative + telemetry) via a mocked gateway, upserts one per
  * account, and never modifies the Account.
  */
-@IsTest
+@IsTest(isParallel=false)
 private class OA_KnowledgeIntelligence_Test {
 
     private class MockOR implements HttpCalloutMock {

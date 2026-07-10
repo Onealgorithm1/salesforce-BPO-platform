@@ -1,7 +1,7 @@
 /**
  * OA_ComplianceScreen_Test — proves deterministic Go/No-Go outcomes for the EDWOSB prime.
  */
-@IsTest
+@IsTest(isParallel=false)
 private class OA_ComplianceScreen_Test {
 
     @IsTest

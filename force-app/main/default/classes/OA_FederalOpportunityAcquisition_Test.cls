@@ -1,4 +1,4 @@
-@IsTest
+@IsTest(isParallel=false)
 private class OA_FederalOpportunityAcquisition_Test {
 
     private class MultiMock implements HttpCalloutMock {
