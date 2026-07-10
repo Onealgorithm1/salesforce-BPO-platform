@@ -53,6 +53,10 @@ Zolon's 5 rows were **refreshed in place** (same dedupe key) — now carry UEI +
 ## Config decision (Louis: accept snapshot audit trail — NO change)
 Field-history tracking on the 16 write-back fields stays **off** → 0 `LeadHistory` rows. Audit relies on staging `Before_Snapshot__c` + Lead `USASpending_Source_Run_ID__c`/`UEI_Verified_By/Date`. No tracking config changed.
 
-## Next session (RED — deferred by Louis)
-1. **Duplicate-Id abort fix (WARN #12)** — dedupe `leadUpdates` per Lead (or process per-Lead) + regression test, **before any multi-lead or scheduled write-back**. Approved as next session's task. *(In progress on branch `feature/writeback-dedupe-leadupdates`: winner = highest `Award_Amount__c` per Lead, tie-broken caller-first; extras → `SKIPPED/DEDUPE`, left Approved.)*
-   - **Note:** deferred same-Lead rows are left `Approved` but are **not guaranteed to write later** — because a Lead's rows usually share one `Enrichment_Run_ID__c`, once the winner writes, the others hit the existing **idempotency skip** (source run already applied to the Lead) on any later run. To actually write a different award for that Lead, it must carry a different `Enrichment_Run_ID__c`.
+## WARN #12 — CLOSED (2026-07-10)
+**Duplicate-Id abort fixed, deployed, and merged.** `OA_LeadWritebackService` now elects ONE winner per Lead — **highest `Award_Amount__c`, tie-broken caller-first** — and defers the rest as `SKIPPED/DEDUPE` (left Approved). One update per Lead ⇒ no `System.ListException`. `RunSummary.dedupedSameLead` + `DEDUPE` gate added. Multi-lead / scheduled write-back is no longer blocked by this defect.
+- **Deploy** `0AfPn00000245BFKAY` (24 tests / 0 failures). **PR #95** merged to `main` (`69a966e`). Branch `feature/writeback-dedupe-leadupdates` preserved.
+- **Note:** deferred same-Lead rows are left `Approved` but are **not guaranteed to write later** — because a Lead's rows usually share one `Enrichment_Run_ID__c`, once the winner writes, the others hit the existing **idempotency skip** (source run already applied to the Lead) on any later run. To write a different award for that Lead, it must carry a different `Enrichment_Run_ID__c`.
+
+## Next session (RED)
+- No outstanding write-back defects. Remaining tech debt unchanged: legacy `OA_USASpendingClient` (dead code, leave), Path B ungated commit (`OA_EnrichmentWriter commitWrites=true`).
