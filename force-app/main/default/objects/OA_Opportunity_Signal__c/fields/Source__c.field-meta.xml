@@ -2,18 +2,41 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Source__c</fullName>
     <description>Origin public source of this opportunity signal.</description>
+    <externalId>false</externalId>
     <label>Source</label>
     <required>false</required>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
-            <value><fullName>Grants.gov</fullName><default>false</default><label>Grants.gov</label></value>
-            <value><fullName>SAM.gov</fullName><default>false</default><label>SAM.gov</label></value>
-            <value><fullName>SBIR</fullName><default>false</default><label>SBIR</label></value>
-            <value><fullName>Federal Register</fullName><default>false</default><label>Federal Register</label></value>
+            <value>
+                <fullName>Grants.gov</fullName>
+                <default>false</default>
+                <label>Grants.gov</label>
+            </value>
+            <value>
+                <fullName>SAM.gov</fullName>
+                <default>false</default>
+                <label>SAM.gov</label>
+            </value>
+            <value>
+                <fullName>SBIR</fullName>
+                <default>false</default>
+                <label>SBIR</label>
+            </value>
+            <value>
+                <fullName>Federal Register</fullName>
+                <default>false</default>
+                <label>Federal Register</label>
+            </value>
+            <value>
+                <fullName>Outlook Email</fullName>
+                <default>false</default>
+                <label>Outlook Email</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

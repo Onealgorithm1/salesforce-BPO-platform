@@ -2,9 +2,12 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Agency_Code__c</fullName>
     <description>Issuing agency code.</description>
+    <externalId>false</externalId>
     <label>Agency Code</label>
     <length>40</length>
     <required>false</required>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Text</type>
+    <unique>false</unique>
 </CustomField>

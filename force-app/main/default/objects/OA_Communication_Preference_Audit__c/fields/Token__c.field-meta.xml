@@ -3,10 +3,12 @@
     <fullName>Token__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <description>Token used by this request, when a token could be resolved.</description>
+    <externalId>false</externalId>
     <label>Token</label>
     <referenceTo>OA_Communication_Preference_Token__c</referenceTo>
     <relationshipLabel>Audit Events</relationshipLabel>
     <relationshipName>Audit_Events</relationshipName>
     <required>false</required>
+    <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

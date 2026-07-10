@@ -2,6 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Enable_L1__c</fullName>
     <defaultValue>true</defaultValue>
+    <externalId>false</externalId>
     <fieldManageability>DeveloperControlled</fieldManageability>
     <label>Enable L1 (Lead Email)</label>
     <type>Checkbox</type>

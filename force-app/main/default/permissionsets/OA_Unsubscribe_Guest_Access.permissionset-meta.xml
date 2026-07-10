@@ -8,12 +8,12 @@
     <hasActivationRequired>false</hasActivationRequired>
     <label>OA Unsubscribe Guest Access</label>
     <objectPermissions>
-        <object>OA_Unsubscribe_Request__e</object>
         <allowCreate>true</allowCreate>
-        <allowRead>true</allowRead>
-        <allowEdit>false</allowEdit>
         <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
+        <object>OA_Unsubscribe_Request__e</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
 </PermissionSet>

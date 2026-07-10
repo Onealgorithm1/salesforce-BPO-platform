@@ -3,10 +3,12 @@
     <fullName>Lead__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <description>Lead affected by this preference event.</description>
+    <externalId>false</externalId>
     <label>Lead</label>
     <referenceTo>Lead</referenceTo>
     <relationshipLabel>Communication Preference Audits</relationshipLabel>
     <relationshipName>OA_Comm_Preference_Audits</relationshipName>
     <required>false</required>
+    <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

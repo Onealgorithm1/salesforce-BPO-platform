@@ -2,9 +2,12 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Source_Run_ID__c</fullName>
     <description>Correlation id of the OA_Connector_Run__c that produced this signal (lineage/reversibility).</description>
+    <externalId>false</externalId>
     <label>Source Run ID</label>
     <length>80</length>
     <required>false</required>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Text</type>
+    <unique>false</unique>
 </CustomField>

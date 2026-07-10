@@ -3,8 +3,12 @@
     <fullName>Sends_Today__c</fullName>
     <defaultValue>0</defaultValue>
     <description>Running count of emails sent today. Reset daily by OA_SendGovernor.</description>
+    <externalId>false</externalId>
     <label>Sends Today</label>
     <precision>10</precision>
+    <required>false</required>
     <scale>0</scale>
+    <trackTrending>false</trackTrending>
     <type>Number</type>
+    <unique>false</unique>
 </CustomField>

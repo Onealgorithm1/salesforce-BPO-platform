@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>OA Executive Analytics Access</label>
     <description>FLS for the Campaign Funnel Snapshot object (object + its 4 fields, read/create/edit) so the trend report and Reporting Snapshot work. Metadata-API field deploys omit FLS; this supplies it. Assign to analytics users. No prospect access.</description>
-    <hasActivationRequired>false</hasActivationRequired>
-    <objectPermissions>
-        <object>Campaign_Funnel_Snapshot__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
-    </objectPermissions>
     <fieldPermissions>
+        <editable>true</editable>
         <field>Campaign_Funnel_Snapshot__c.Campaign_Name__c</field>
         <readable>true</readable>
-        <editable>true</editable>
     </fieldPermissions>
     <fieldPermissions>
-        <field>Campaign_Funnel_Snapshot__c.Member_Status__c</field>
-        <readable>true</readable>
         <editable>true</editable>
-    </fieldPermissions>
-    <fieldPermissions>
         <field>Campaign_Funnel_Snapshot__c.Member_Count__c</field>
         <readable>true</readable>
-        <editable>true</editable>
     </fieldPermissions>
     <fieldPermissions>
+        <editable>true</editable>
+        <field>Campaign_Funnel_Snapshot__c.Member_Status__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Campaign_Funnel_Snapshot__c.Snapshot_Date__c</field>
         <readable>true</readable>
-        <editable>true</editable>
     </fieldPermissions>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Executive Analytics Access</label>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>Campaign_Funnel_Snapshot__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
 </PermissionSet>

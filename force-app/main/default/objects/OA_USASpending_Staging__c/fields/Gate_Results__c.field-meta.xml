@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Gate_Results__c</fullName>
-    <label>Gate Results</label>
     <description>Full per-gate outcome log for this row (pass/fail per verification gate). Audit + post-write verification evidence.</description>
+    <externalId>false</externalId>
+    <label>Gate Results</label>
     <length>5000</length>
-    <required>false</required>
     <trackTrending>false</trackTrending>
     <type>LongTextArea</type>
     <visibleLines>10</visibleLines>

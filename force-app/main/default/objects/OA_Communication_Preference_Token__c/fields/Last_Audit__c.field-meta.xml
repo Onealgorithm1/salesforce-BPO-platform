@@ -3,10 +3,13 @@
     <fullName>Last_Audit__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <description>Most recent audit event created from this token.</description>
+    <externalId>false</externalId>
     <label>Last Audit</label>
     <referenceTo>OA_Communication_Preference_Audit__c</referenceTo>
     <relationshipLabel>Tokens Last Referencing Audit</relationshipLabel>
     <relationshipName>Tokens_Last_Audit</relationshipName>
     <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>

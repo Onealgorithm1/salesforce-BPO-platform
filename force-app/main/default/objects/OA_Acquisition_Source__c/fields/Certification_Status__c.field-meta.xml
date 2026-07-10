@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Certification_Status__c</fullName>
+    <externalId>false</externalId>
+    <label>Certification Status</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Certified</fullName>
+                <default>false</default>
+                <label>Certified</label>
+            </value>
+            <value>
+                <fullName>Needs Review</fullName>
+                <default>true</default>
+                <label>Needs Review</label>
+            </value>
+            <value>
+                <fullName>Uncertified</fullName>
+                <default>false</default>
+                <label>Uncertified</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

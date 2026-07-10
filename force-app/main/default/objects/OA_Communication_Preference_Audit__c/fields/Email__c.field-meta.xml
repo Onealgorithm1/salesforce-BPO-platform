@@ -2,6 +2,10 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Email__c</fullName>
     <description>Email snapshot for this audit event.</description>
+    <externalId>false</externalId>
     <label>Email</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
     <type>Email</type>
+    <unique>false</unique>
 </CustomField>

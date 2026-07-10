@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>OA Meta Connector</label>
     <description>DORMANT, UNASSIGNED. Least-privilege: grants only OA_Meta External Credential principal access for Meta Graph API callouts (bearer token entered in UI). No object/data permissions.</description>
-    <hasActivationRequired>false</hasActivationRequired>
     <externalCredentialPrincipalAccesses>
         <enabled>true</enabled>
         <externalCredentialPrincipal>OA_Meta-OA_Meta_Principal</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Meta Connector</label>
 </PermissionSet>

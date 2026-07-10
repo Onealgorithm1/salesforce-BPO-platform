@@ -2,8 +2,10 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Last_Used_At__c</fullName>
     <description>Date and time when this token was most recently used.</description>
+    <externalId>false</externalId>
     <label>Last Used At</label>
     <required>false</required>
     <trackHistory>true</trackHistory>
+    <trackTrending>false</trackTrending>
     <type>DateTime</type>
 </CustomField>

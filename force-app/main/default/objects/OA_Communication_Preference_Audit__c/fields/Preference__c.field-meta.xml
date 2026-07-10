@@ -3,10 +3,12 @@
     <fullName>Preference__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <description>Preference record affected by this audit event, when available.</description>
+    <externalId>false</externalId>
     <label>Preference</label>
     <referenceTo>OA_Communication_Preference__c</referenceTo>
     <relationshipLabel>Audit Events</relationshipLabel>
     <relationshipName>Audit_Events</relationshipName>
     <required>false</required>
+    <trackTrending>false</trackTrending>
     <type>Lookup</type>
 </CustomField>
