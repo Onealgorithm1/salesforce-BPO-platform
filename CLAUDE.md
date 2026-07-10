@@ -4,6 +4,17 @@ How Claude Code should operate **autonomously but safely** in the One Algorithm 
 
 ---
 
+## 0. Standing Session Rules (apply to EVERY session — non-negotiable)
+
+1. **Approval authority is Louis.** Never set any staging/proposal row to `Approved`, and never write to a Lead, without **explicit approved numbers from Louis in the current session**. Silence or ambiguity ≠ approval.
+2. **Verify Org ID = `00Dbn00000plgUfEAI` before ANY org operation.** Mismatch = **STOP**.
+3. **Path A is the only certified Lead-enrichment write path** — `OA_USASpendingEnrichmentService` → `OA_USASpending_Staging__c` (review-gated) → `OA_LeadWritebackService`. **Path B's ungated commit (`OA_EnrichmentWriter` `commitWrites=true`) must NEVER be used for committed Lead writes** — tech debt pending disable.
+4. **All connectors return to dormant** (`OA_Connector_Registry__mdt.*.Enabled__c = false`) **before any session ends**, whatever happened.
+5. **No** schedules created/enabled · **no** Opportunity creation · **no** Lead conversion · **no** campaign sends · **no** secrets in output, commits, or docs.
+6. **At session start, read `docs/` for the latest `SESSION_STATE_*` note and resume from it** (don't re-discover state).
+
+---
+
 ## 1. Project Context
 
 - **Production Org ID:** `00Dbn00000plgUfEAI` — always verify by **ID**, never by org name/alias.
