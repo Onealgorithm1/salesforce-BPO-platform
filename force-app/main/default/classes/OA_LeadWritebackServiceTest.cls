@@ -275,6 +275,123 @@ private class OA_LeadWritebackServiceTest {
         System.assertEquals(5, s1.effectiveLimit, 'default limit applied');
     }
 
+    // Helper: add a second Approved staging row on an existing Lead (distinct award).
+    private static Id addApprovedRow(Id leadId, String awardId, Decimal amount, String runId) {
+        OA_USASpending_Staging__c st = new OA_USASpending_Staging__c(
+            Review_Status__c = 'Approved', Lead__c = leadId,
+            Recipient_UEI__c = 'ABC123DEF456', Award_ID__c = awardId, Award_Amount__c = amount,
+            Awarding_Agency__c = 'Dept of Testing', Enrichment_Run_ID__c = runId, Query_Date__c = Date.today());
+        insert st;
+        return st.Id;
+    }
+
+    // 14 — TWO Approved rows on ONE Lead: no ListException, exactly one write, the extra deduped.
+    // Regression for WARN #12 (duplicate-Id abort). Before the fix this threw
+    // System.ListException "Duplicate id in list" and rolled the whole batch back.
+    @IsTest static void testTwoApprovedRowsSameLeadNoAbortSingleWrite() {
+        Scn sc = setup('Approved', true, false); // row 1: AWD-001 / amount 12345.67 on sc.leadId
+        OA_LeadWritebackService.RunSummary sum;
+        Id highId;
+        System.runAs(sc.fullUser) {
+            highId = addApprovedRow(sc.leadId, 'AWD-002', 99999.00, 'ENR-002'); // higher amount
+            Test.startTest();
+            // List the LOWER-amount row first; the highest amount must still win.
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId, highId }, 25, true);
+            Test.stopTest();
+        }
+        // Reaching here at all proves no uncaught ListException aborted the batch.
+        System.assertEquals(1, sum.succeeded, 'exactly one Lead write');
+        System.assertEquals(0, sum.failed, 'no failures (no ListException)');
+        System.assertEquals(1, sum.dedupedSameLead, 'the extra same-Lead row was deduped');
+        System.assertEquals(1, sum.attempted, 'only the winner is attempted');
+        System.assertEquals('WRITTEN', outcomeFor(sum, highId).status, 'highest-amount row won');
+        OA_LeadWritebackService.RowOutcome dup = outcomeFor(sum, sc.stagingId);
+        System.assertEquals('SKIPPED', dup.status, 'lower-amount row skipped');
+        System.assertEquals('DEDUPE', dup.gate, 'skipped via DEDUPE gate');
+
+        Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
+        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'Lead carries the highest-amount winner');
+        OA_USASpending_Staging__c w = [SELECT Review_Status__c FROM OA_USASpending_Staging__c WHERE Id = :highId];
+        OA_USASpending_Staging__c d = [SELECT Review_Status__c FROM OA_USASpending_Staging__c WHERE Id = :sc.stagingId];
+        System.assertEquals('Written Back', w.Review_Status__c, 'winner stamped Written Back');
+        System.assertEquals('Approved', d.Review_Status__c, 'deduped row left Approved (deferred, not lost)');
+    }
+
+    // 14b — highest Award_Amount__c wins regardless of list order (here the winner is listed FIRST;
+    // test 14 lists the winner LAST — together they prove amount, not order, decides).
+    @IsTest static void testDedupeHighestAmountWinsRegardlessOfOrder() {
+        Scn sc = setup('Approved', true, false); // AWD-001 amount 12345.67
+        OA_LeadWritebackService.RunSummary sum;
+        Id highId;
+        System.runAs(sc.fullUser) {
+            highId = addApprovedRow(sc.leadId, 'AWD-002', 88888.00, 'ENR-002'); // higher amount
+            Test.startTest();
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ highId, sc.stagingId }, 25, true);
+            Test.stopTest();
+        }
+        System.assertEquals(1, sum.succeeded, 'one write');
+        System.assertEquals(1, sum.dedupedSameLead, 'one deduped');
+        System.assertEquals('WRITTEN', outcomeFor(sum, highId).status, 'highest-amount row won');
+        System.assertEquals('DEDUPE', outcomeFor(sum, sc.stagingId).gate, 'lower-amount row deduped');
+        Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
+        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'Lead carries highest-amount award');
+    }
+
+    // 14e — tie-break: EQUAL Award_Amount__c falls back to caller order (first-listed wins).
+    @IsTest static void testDedupeEqualAmountsFallBackToCallerOrder() {
+        Scn sc = setup('Approved', true, false); // AWD-001 amount 12345.67
+        OA_LeadWritebackService.RunSummary sum;
+        Id tieId;
+        System.runAs(sc.fullUser) {
+            tieId = addApprovedRow(sc.leadId, 'AWD-002', 12345.67, 'ENR-002'); // SAME amount as AWD-001
+            Test.startTest();
+            // Equal amounts => the row listed FIRST (AWD-002) wins the tie-break.
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ tieId, sc.stagingId }, 25, true);
+            Test.stopTest();
+        }
+        System.assertEquals(1, sum.succeeded, 'one write');
+        System.assertEquals(1, sum.dedupedSameLead, 'one deduped');
+        System.assertEquals('WRITTEN', outcomeFor(sum, tieId).status, 'equal amount => first-listed (AWD-002) won');
+        System.assertEquals('DEDUPE', outcomeFor(sum, sc.stagingId).gate, 'AWD-001 deduped on tie-break');
+        Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
+        System.assertEquals('AWD-002', after.USASpending_Latest_Award_ID__c, 'tie-break winner on Lead');
+    }
+
+    // 14c — two Approved rows on one Lead in PREVIEW: winner PREVIEW_OK, extra DEDUPE, no DML.
+    @IsTest static void testDedupeInPreviewNoDml() {
+        Scn sc = setup('Approved', true, false);
+        OA_LeadWritebackService.RunSummary sum;
+        Id secondId;
+        System.runAs(sc.fullUser) {
+            secondId = addApprovedRow(sc.leadId, 'AWD-002', 5.00, 'ENR-002');
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId, secondId }, 25, false);
+        }
+        System.assertEquals(0, sum.succeeded, 'preview writes nothing');
+        System.assertEquals(1, sum.dedupedSameLead, 'dedupe applies in preview too');
+        System.assertEquals('PREVIEW_OK', outcomeFor(sum, sc.stagingId).status, 'winner previewed');
+        System.assertEquals('DEDUPE', outcomeFor(sum, secondId).gate, 'extra deduped in preview');
+        Lead after = [SELECT USASpending_Latest_Award_ID__c FROM Lead WHERE Id = :sc.leadId];
+        System.assertEquals(null, after.USASpending_Latest_Award_ID__c, 'no Lead write in preview');
+    }
+
+    // 14d — distinct Leads in one batch are all written (dedupe must NOT collapse different Leads).
+    @IsTest static void testDistinctLeadsAllWritten() {
+        Scn sc = setup('Approved', true, false); // Lead A / AWD-001
+        OA_LeadWritebackService.RunSummary sum;
+        Id stB;
+        System.runAs(sc.fullUser) {
+            Lead ldB = new Lead(LastName = 'WB D', Company = 'WB Co D',
+                                Email = 'wbd' + String.valueOf(System.now().getTime()) + '@example.com');
+            insert ldB;
+            stB = addApprovedRow(ldB.Id, 'AWD-D', 7.00, 'ENR-D');
+            Test.startTest();
+            sum = OA_LeadWritebackService.writeBack(new List<Id>{ sc.stagingId, stB }, 25, true);
+            Test.stopTest();
+        }
+        System.assertEquals(2, sum.succeeded, 'both distinct Leads written');
+        System.assertEquals(0, sum.dedupedSameLead, 'no dedupe across distinct Leads');
+    }
+
     // ---------------- ROLLBACK ----------------
 
     private static OA_LeadWritebackService.RollbackOutcome rbOutcomeFor(

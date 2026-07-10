@@ -52,7 +52,7 @@ public with sharing class OA_LeadWritebackService {
         public Id stagingId;
         public Id leadId;
         public String status;   // PREVIEW_OK | WRITTEN | SKIPPED | FAILED
-        public String gate;     // ELIGIBILITY | MATCH | DATA | IDEMPOTENCY | FLS | SNAPSHOT | DML
+        public String gate;     // ELIGIBILITY | MATCH | DATA | IDEMPOTENCY | DEDUPE | FLS | SNAPSHOT | DML
         public String reason;
         public Boolean snapshotCaptured = false;
     }
@@ -71,6 +71,7 @@ public with sharing class OA_LeadWritebackService {
         public Integer skipped = 0;
         public Integer idempotencySkips = 0;
         public Integer duplicateWritePrevention = 0;
+        public Integer dedupedSameLead = 0;   // extra Approved rows for a Lead deferred so ONE update writes
         public Integer snapshotCaptured = 0;
         public Integer rollbackReady = 0;
         // Tripwires — MUST always be 0:
@@ -236,6 +237,45 @@ public with sharing class OA_LeadWritebackService {
             stillEligible.add(sid);
         }
         if (stillEligible.isEmpty()) { s.endedAt = System.now(); return s; }
+
+        // --- de-duplicate: at most ONE update per Lead --------------------------------------
+        // The engine builds one Lead update per staging row. If two eligible rows target the
+        // SAME Lead they collide into a single Database.update as duplicate Ids, which throws an
+        // uncaught System.ListException ("Duplicate id in list") and rolls the whole batch back
+        // (verified: thrown pre-DML even with allOrNone=false). Instead, elect ONE winner per
+        // Lead deterministically — the HIGHEST Award_Amount__c (the flagship award represents the
+        // Lead), tie-broken by the row the caller listed FIRST (lowest position) — and defer the
+        // rest as SKIPPED/DEDUPE, left Approved so a later batch can process them. One update per
+        // Lead => a duplicate Id can never reach the DML. (Eligible rows always have a non-null
+        // Award_Amount__c — the DATA gate above requires it.)
+        Map<Id, Integer> callerPos = new Map<Id, Integer>();
+        for (Integer i = 0; i < idsToProcess.size(); i++) {
+            if (!callerPos.containsKey(idsToProcess[i])) { callerPos.put(idsToProcess[i], i); }
+        }
+        Map<Id, Id> winnerByLead = new Map<Id, Id>();   // Lead Id -> winning staging Id (highest amount, then caller-first)
+        for (Id sid : stillEligible) {
+            Id leadId = eligible.get(sid).Lead__c;
+            Id cur = winnerByLead.get(leadId);
+            if (cur == null) { winnerByLead.put(leadId, sid); continue; }
+            Decimal candAmt = eligible.get(sid).Award_Amount__c;
+            Decimal winAmt  = eligible.get(cur).Award_Amount__c;
+            Boolean candWins = (candAmt > winAmt)
+                || (candAmt == winAmt && callerPos.get(sid) < callerPos.get(cur));
+            if (candWins) { winnerByLead.put(leadId, sid); }
+        }
+        List<Id> dedupedEligible = new List<Id>();
+        for (Id sid : stillEligible) {
+            Id leadId = eligible.get(sid).Lead__c;
+            if (winnerByLead.get(leadId) == sid) {
+                dedupedEligible.add(sid);
+            } else {
+                mark(outcome.get(sid), 'SKIPPED', 'DEDUPE',
+                    'Another Approved row for this Lead is being written this batch (staging '
+                    + winnerByLead.get(leadId) + '); deferred to prevent a duplicate Lead write');
+                s.skipped++; s.dedupedSameLead++; s.attempted--;
+            }
+        }
+        stillEligible = dedupedEligible;   // exactly one winner per Lead; never empty here
 
         // --- PREVIEW: no DML ---
         if (!s.commitWrites) {

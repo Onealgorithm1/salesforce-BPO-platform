@@ -54,4 +54,5 @@ Zolon's 5 rows were **refreshed in place** (same dedupe key) — now carry UEI +
 Field-history tracking on the 16 write-back fields stays **off** → 0 `LeadHistory` rows. Audit relies on staging `Before_Snapshot__c` + Lead `USASpending_Source_Run_ID__c`/`UEI_Verified_By/Date`. No tracking config changed.
 
 ## Next session (RED — deferred by Louis)
-1. **Duplicate-Id abort fix (WARN #12)** — dedupe `leadUpdates` per Lead (or process per-Lead) + regression test, **before any multi-lead or scheduled write-back**. Approved as next session's task.
+1. **Duplicate-Id abort fix (WARN #12)** — dedupe `leadUpdates` per Lead (or process per-Lead) + regression test, **before any multi-lead or scheduled write-back**. Approved as next session's task. *(In progress on branch `feature/writeback-dedupe-leadupdates`: winner = highest `Award_Amount__c` per Lead, tie-broken caller-first; extras → `SKIPPED/DEDUPE`, left Approved.)*
+   - **Note:** deferred same-Lead rows are left `Approved` but are **not guaranteed to write later** — because a Lead's rows usually share one `Enrichment_Run_ID__c`, once the winner writes, the others hit the existing **idempotency skip** (source run already applied to the Lead) on any later run. To actually write a different award for that Lead, it must carry a different `Enrichment_Run_ID__c`.
