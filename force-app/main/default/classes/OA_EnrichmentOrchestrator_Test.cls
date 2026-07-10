@@ -106,6 +106,24 @@ private class OA_EnrichmentOrchestrator_Test {
             OA_EnrichmentOrchestrator.processScope(new List<Lead>(), 'SAM', null, false, 1, null).leadsProcessed);
     }
 
+    @isTest static void derive_input_uei_fallback_order() {
+        // Primary UEI__c wins when present.
+        System.assertEquals('PRIMARY',
+            OA_EnrichmentOrchestrator.deriveInput(new Lead(Company='Acme', UEI__c='PRIMARY',
+                UEI_Unique_entity_Identifier__c='IMPORTED')), 'UEI__c is primary');
+        // Falls back to the imported UEI field (where bulk data actually lives).
+        System.assertEquals('IMPORTED',
+            OA_EnrichmentOrchestrator.deriveInput(new Lead(Company='Acme',
+                UEI_Unique_entity_Identifier__c='IMPORTED')), 'falls back to imported UEI');
+        // Falls back to USASpending UEI, then to company name.
+        System.assertEquals('USASP',
+            OA_EnrichmentOrchestrator.deriveInput(new Lead(Company='Acme', USASpending_UEI__c='USASP')), 'falls back to USASpending UEI');
+        System.assertEquals('Acme',
+            OA_EnrichmentOrchestrator.deriveInput(new Lead(Company='Acme')), 'falls back to company name');
+        System.assertEquals(null,
+            OA_EnrichmentOrchestrator.deriveInput(new Lead(LastName='NoCo')), 'no identifier or company -> null');
+    }
+
     @isTest static void queueable_processes_explicit_ids() {
         OA_ConnectorRunner.registryOverride = disabledSam();
         Lead ld = newLead('Delta LLC');

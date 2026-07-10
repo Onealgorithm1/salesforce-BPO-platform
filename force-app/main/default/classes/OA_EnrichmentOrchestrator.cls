@@ -215,9 +215,20 @@ public with sharing class OA_EnrichmentOrchestrator
     }
 
     /** Pick the connector input for a Lead: strongest identifier (UEI) else company name. */
+    // Federal identifier fields in fallback order (most authoritative first). safeGet tolerates a
+    // field not being in the query. UEI__c is populated BY enrichment, so bulk data lives in the
+    // imported UEI_Unique_entity_Identifier__c — fall back to it (and other identifiers) then name.
+    @TestVisible
+    private static final List<String> UEI_FIELDS = new List<String>{
+        'UEI__c', 'UEI_Unique_entity_Identifier__c', 'USASpending_UEI__c'
+    };
+
+    @TestVisible
     private static String deriveInput(Lead ld) {
-        Object uei = safeGet(ld, 'UEI__c');
-        if (uei != null && String.isNotBlank(String.valueOf(uei))) { return String.valueOf(uei); }
+        for (String f : UEI_FIELDS) {
+            Object v = safeGet(ld, f);
+            if (v != null && String.isNotBlank(String.valueOf(v))) { return String.valueOf(v); }
+        }
         String company = (String) safeGet(ld, 'Company');
         return String.isNotBlank(company) ? company : null;
     }
@@ -229,7 +240,8 @@ public with sharing class OA_EnrichmentOrchestrator
     private static Integer nz(Integer i) { return i == null ? 0 : i; }
 
     private static String defaultScope() {
-        return 'SELECT Id, Company, UEI__c, Website, Phone, State FROM Lead '
+        return 'SELECT Id, Company, UEI__c, UEI_Unique_entity_Identifier__c, USASpending_UEI__c, '
+             + 'Website, Phone, State FROM Lead '
              + 'WHERE UEI__c = null AND Company != null ORDER BY CreatedDate DESC LIMIT 200';
     }
 }
