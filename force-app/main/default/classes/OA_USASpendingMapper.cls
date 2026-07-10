@@ -31,6 +31,14 @@ public class OA_USASpendingMapper implements OA_IConnectorMapper {
             s.Search_Term__c = String.valueOf(term).abbreviate(255);
         }
 
+        // Deterministic Lead link (when the caller ran the enrichment for a known Lead).
+        // OA_LeadWritebackService requires a non-null Lead__c on the staging row — without
+        // this the row fails the MATCH gate and can never be written back. Staging-only; no Lead DML.
+        Object leadId = ctx.config.get('leadId');
+        if (leadId != null) {
+            s.Lead__c = (Id) String.valueOf(leadId);
+        }
+
         // --- framework-managed fields ---
         if (String.isNotBlank(ctx.runId)) {
             s.Enrichment_Run_ID__c = ctx.runId.abbreviate(36);

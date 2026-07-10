@@ -62,6 +62,70 @@ private class OA_USASpendingEnrichmentService_Test {
         }
     }
 
+    // A single award row carrying the real spending_by_award UEI key ('Recipient UEI').
+    private static String awardJsonWithUei(String uei) {
+        return JSON.serialize(new Map<String, Object>{
+            'results' => new List<Object>{
+                new Map<String, Object>{
+                    'Award ID'         => 'CONT_AWD_UEI',
+                    'Recipient Name'   => 'ZOLON TECH',
+                    'Recipient UEI'    => uei,
+                    'Award Amount'     => 97400000,
+                    'Awarding Agency'  => 'Department of Defense'
+                }
+            }
+        });
+    }
+
+    // Certification blockers fixed: with a Lead supplied, staging rows are linked to the
+    // Lead (MATCH gate) AND carry the UEI (DATA gate) — the exact combination that made the
+    // prior cohort rows ineligible for OA_LeadWritebackService. Still staging-only (no Lead DML).
+    @isTest
+    static void testLeadLinkedAndUeiPopulatedForWriteback() {
+        User u = connectorUser();
+        Lead ld = new Lead(LastName = 'Cohort', Company = 'ZOLON TECH',
+                           Email = 'cohort@example.com.invalid');
+        insert ld;
+        Test.setMock(HttpCalloutMock.class, new OA_ConnectorMock(200, awardJsonWithUei('XVE2FA8DRTL7')));
+        System.runAs(u) {
+            Integer leadModsBefore = [SELECT COUNT() FROM Lead];
+
+            Test.startTest();
+            OA_USASpendingEnrichmentService.Result r =
+                OA_USASpendingEnrichmentService.enrich('ZOLON TECH', 5, true, ld.Id);
+            Test.stopTest();
+
+            System.assertEquals(1, r.persisted, 'One staging row upserted');
+            OA_USASpending_Staging__c row = [
+                SELECT Lead__c, Recipient_UEI__c, Award_ID__c, Award_Amount__c,
+                       Awarding_Agency__c, Enrichment_Run_ID__c, Review_Status__c
+                FROM OA_USASpending_Staging__c LIMIT 1];
+            System.assertEquals(ld.Id, row.Lead__c, 'MATCH gate: staging row linked to the supplied Lead');
+            System.assertEquals('XVE2FA8DRTL7', row.Recipient_UEI__c, 'DATA gate: UEI populated from Recipient UEI');
+            System.assertEquals('Pending', row.Review_Status__c, 'Still gated Pending (no auto-approval)');
+            // Prove writeback DATA + MATCH prerequisites are all present.
+            System.assert(String.isNotBlank(row.Award_ID__c), 'Award ID present');
+            System.assert(row.Award_Amount__c != null, 'Award Amount present');
+            System.assert(String.isNotBlank(row.Awarding_Agency__c), 'Awarding Agency present');
+            System.assert(String.isNotBlank(row.Enrichment_Run_ID__c), 'Enrichment Run ID present');
+            System.assertEquals(leadModsBefore, [SELECT COUNT() FROM Lead], 'No Lead records created/changed');
+        }
+    }
+
+    // Backward-compat: the 3-arg overload leaves Lead__c null (no Lead context).
+    @isTest
+    static void testNoLeadContextLeavesLeadNull() {
+        User u = connectorUser();
+        Test.setMock(HttpCalloutMock.class, new OA_ConnectorMock(200, awardsJson(1)));
+        System.runAs(u) {
+            Test.startTest();
+            OA_USASpendingEnrichmentService.enrich('ACME', 5, true);
+            Test.stopTest();
+            OA_USASpending_Staging__c row = [SELECT Lead__c FROM OA_USASpending_Staging__c LIMIT 1];
+            System.assertEquals(null, row.Lead__c, 'No Lead link when none supplied');
+        }
+    }
+
     @isTest
     static void testPersistFalseWritesNothing() {
         User u = connectorUser();

@@ -37,12 +37,25 @@ public with sharing class OA_USASpendingEnrichmentService {
     }
 
     /**
-     * Run a controlled enrichment for one recipient.
+     * Run a controlled enrichment for one recipient (no Lead link).
      * @param recipientName required search text (non-blank)
      * @param limitResults  optional cap; null -> DEFAULT_LIMIT; clamped to [1, MAX_LIMIT]
      * @param persist       true -> idempotent upsert into staging; false -> in-memory preview only
      */
     public static Result enrich(String recipientName, Integer limitResults, Boolean persist) {
+        return enrich(recipientName, limitResults, persist, null);
+    }
+
+    /**
+     * Run a controlled enrichment for one recipient, optionally linking the staging
+     * rows to a specific Lead so the governed write-back path (OA_LeadWritebackService)
+     * has the deterministic Lead__c it requires. Still staging-only: NO Lead DML here.
+     * @param recipientName required search text (non-blank)
+     * @param limitResults  optional cap; null -> DEFAULT_LIMIT; clamped to [1, MAX_LIMIT]
+     * @param persist       true -> idempotent upsert into staging; false -> in-memory preview only
+     * @param leadId        optional Lead to stamp on Lead__c of every staging row (deterministic match)
+     */
+    public static Result enrich(String recipientName, Integer limitResults, Boolean persist, Id leadId) {
         if (String.isBlank(recipientName)) {
             throw new OA_ConnectorException(
                 'OA_USASpendingEnrichmentService.enrich requires a non-blank recipientName.');
@@ -54,7 +67,9 @@ public with sharing class OA_USASpendingEnrichmentService {
 
         // Deterministic per-recipient run id (bounded to 36) => re-running refreshes, not duplicates.
         String runId = ('USASP-' + recipientName).abbreviate(36);
-        OA_ConnectorContext ctx = new OA_ConnectorContext(runId, new Map<String, Object>{ 'limit' => lim });
+        Map<String, Object> cfg = new Map<String, Object>{ 'limit' => lim };
+        if (leadId != null) { cfg.put('leadId', leadId); }
+        OA_ConnectorContext ctx = new OA_ConnectorContext(runId, cfg);
 
         OA_ConnectorRunResult run = new OA_ConnectorEngine().run(
             new OA_USASpendingConnector(), ctx, new List<Object>{ recipientName });

@@ -32,7 +32,12 @@ public class OA_USASpendingParser implements OA_IConnectorParser {
             OA_ConnectorRow r = new OA_ConnectorRow();
             r.put('awardId',          row.get('Award ID'));
             r.put('recipientName',    row.get('Recipient Name'));
-            r.put('recipientUei',     row.get('recipient_uei'));
+            // USASpending spending_by_award echoes the exact requested display-field
+            // names as response keys — the UEI column is 'Recipient UEI' (title case),
+            // NOT the raw 'recipient_uei'. Requesting the snake_case name returns no
+            // column, which is why Path A staging rows had a blank UEI. (Path B uses
+            // 'Recipient UEI' and matched correctly.)
+            r.put('recipientUei',     row.get('Recipient UEI'));
             r.put('awardAmount',      row.get('Award Amount'));
             r.put('awardingAgency',   row.get('Awarding Agency'));
             r.put('awardingSubAgency',row.get('Awarding Sub Agency'));

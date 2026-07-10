@@ -47,7 +47,7 @@ public class OA_USASpendingRequest implements OA_IConnectorRequest {
         Map<String, Object> body = new Map<String, Object>{
             'filters' => filters,
             'fields'  => new List<String>{
-                'Award ID', 'Recipient Name', 'recipient_uei',
+                'Award ID', 'Recipient Name', 'Recipient UEI',
                 'Award Amount', 'Awarding Agency', 'Awarding Sub Agency',
                 'Contract Award Type', 'Place of Performance State Code', 'Description'
             },
