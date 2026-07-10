@@ -34,8 +34,9 @@ Zolon's 5 rows were **refreshed in place** (same dedupe key) — now carry UEI +
 0 connectors enabled (all 6 `Enabled__c=false`) · 0 enrichment/procurement scheduled jobs · **0 Lead writes** (all 4 cohort SystemModstamps unchanged at 2026-06-26/2026-07-07) · only Approved staging row is the pre-existing `2026-07-04 PREVIEW_TEST` · working tree clean after commit.
 
 ## Tech debt / follow-ups (not started)
-- **Legacy `OA_USASpendingClient`** carries the same snake_case `recipient_uei` latent bug but is **dead code** (referenced only by its own test, superseded by the SDK parser/request). Left untouched to avoid mixing workstreams — clean up or delete separately.
-- Path B ungated commit (`OA_EnrichmentWriter commitWrites=true`) still tech debt (025G-A decision: Path A only).
+- **`OA_LeadWritebackService` aborts on >1 Approved row for the same Lead (NEW — found 025G-B).** Commit builds one `buildLeadUpdate` per staging row; `leadsToWrite` (line 306-313) ends up with N Lead sObjects sharing one Id, and `Database.update(leadsToWrite, false)` throws an **uncaught** `System.ListException: Duplicate id in list` (verified: thrown pre-DML even with allOrNone=false), rolling back the whole run — no fields change, not last-write-wins, not aggregation. **Operational guardrail until fixed: approve at most ONE staging row per Lead per writeBack batch.** Upgrade path: dedupe `leadUpdates` to one row per Lead (pick highest award / most recent) before DML, or process per-Lead.
+- **Legacy `OA_USASpendingClient`** — same snake_case `recipient_uei` latent bug, but **dead code** (referenced only by its own test, superseded by the SDK parser/request). Per Louis (025G-B): **leave untouched**; tracked here beside Path B's ungated commit.
+- **Path B ungated commit** (`OA_EnrichmentWriter commitWrites=true`) — still tech debt (025G-A decision: Path A only).
 
 ## Next approval gate (RED — needs Louis's explicit numbers)
 To certify the write-back, Louis must supply explicit approved numbers per Lead. Only then: set the chosen staging rows `Review_Status__c='Approved'` → run `OA_LeadWritebackService.writeBack(stagingIds, limit, commitWrites=true)` (requires the `OA_Lead_Writeback_Automation` permset FLS). **Nothing is Approved or written until then.**
