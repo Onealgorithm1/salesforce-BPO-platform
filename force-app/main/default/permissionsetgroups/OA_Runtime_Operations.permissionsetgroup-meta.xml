@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Program 025C: least-privilege runtime bundle of EXISTING permission sets for a dedicated non-admin OA Runtime user. No Modify All Data / Customize Application / Author Apex. Unassigned by default.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Runtime Operations</label>
+    <permissionSets>OA_Lead_Enrichment_Runtime</permissionSets>
+    <permissionSets>OA_Lead_Writeback_Automation</permissionSets>
+    <permissionSets>OA_Connector_Staging</permissionSets>
+    <permissionSets>OA_Opportunity_Acquisition_Platform</permissionSets>
+    <permissionSets>OA_Opportunity_Qualification_Access</permissionSets>
+    <permissionSets>OA_Pursuit_Investment_Access</permissionSets>
+    <permissionSets>OA_Document_Intelligence_Access</permissionSets>
+    <permissionSets>OA_Evidence_Decisioning_Access</permissionSets>
+    <permissionSets>OA_AI_Provider_Access</permissionSets>
+    <permissionSets>OA_Knowledge_Foundation_Platform</permissionSets>
+    <permissionSets>OA_Opportunity_Intelligence_Platform</permissionSets>
+</PermissionSetGroup>
