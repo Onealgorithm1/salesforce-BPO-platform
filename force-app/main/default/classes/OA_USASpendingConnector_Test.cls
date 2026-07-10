@@ -18,7 +18,8 @@ private class OA_USASpendingConnector_Test {
             Map<String, Object> row = new Map<String, Object>{
                 'Award ID'                        => 'CONT_AWD_' + i,
                 'Recipient Name'                  => 'ACME DEFENSE LLC ' + i,
-                'recipient_uei'                   => 'UEI' + i + 'ABCDE',
+                // Real spending_by_award key is the title-case display name (not 'recipient_uei').
+                'Recipient UEI'                   => 'UEI' + i + 'ABCDE',
                 'Award Amount'                    => 100000 + i,
                 'Awarding Agency'                 => 'Department of Defense',
                 'Awarding Sub Agency'             => 'Department of the Navy',
@@ -111,6 +112,12 @@ private class OA_USASpendingConnector_Test {
         System.assertEquals('POST', mock.lastRequest.getMethod(), 'POST method');
         System.assert(mock.lastRequest.getBody().contains('BOEING'),
             'Request body carries the recipient search text');
+        // Regression guard: the UEI field must be requested as the title-case display
+        // name the live API echoes, never the snake_case 'recipient_uei' (blank-UEI bug).
+        System.assert(mock.lastRequest.getBody().contains('Recipient UEI'),
+            'UEI field requested by its live display name');
+        System.assert(!mock.lastRequest.getBody().contains('recipient_uei'),
+            'Legacy snake_case UEI field name must not be requested');
     }
 
     @isTest
