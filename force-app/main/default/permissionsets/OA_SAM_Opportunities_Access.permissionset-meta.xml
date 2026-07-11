@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Least-privilege access to use the OA_SAM_Opportunities named/external credential (SAM.gov Get Opportunities API). Grants External Credential Principal Access to the OA_SAM_Opportunities_Principal only — no object, field, or Apex permissions.</description>
+    <externalCredentialPrincipalAccesses>
+        <enabled>true</enabled>
+        <externalCredentialPrincipal>OA_SAM_Opportunities-OA_SAM_Opportunities_Principal</externalCredentialPrincipal>
+    </externalCredentialPrincipalAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA SAM Opportunities Access</label>
+</PermissionSet>
