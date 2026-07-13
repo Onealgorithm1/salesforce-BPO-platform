@@ -1,0 +1,18 @@
+{
+  // SAM.gov remote MCP server. `wrangler deploy` publishes to
+  // https://sam-gov-mcp.<your-subdomain>.workers.dev/mcp
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sam-gov-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // McpAgent keeps per-session state in a Durable Object.
+  "durable_objects": {
+    "bindings": [{ "name": "MCP_OBJECT", "class_name": "SamMcp" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SamMcp"] }],
+  // Secrets are NOT set here. Use:
+  //   wrangler secret put SAM_ENTITY_API_KEY
+  //   wrangler secret put SAM_OPPORTUNITIES_API_KEY
+  "observability": { "enabled": true }
+}

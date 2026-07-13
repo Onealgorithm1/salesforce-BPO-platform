@@ -1,0 +1,4 @@
+# Copy to `.dev.vars` for local `wrangler dev` ONLY. Never commit real keys.
+# In production these are set with `wrangler secret put`, not from this file.
+SAM_ENTITY_API_KEY=your-sam-entity-management-api-key
+SAM_OPPORTUNITIES_API_KEY=your-sam-opportunities-api-key

@@ -1,0 +1,20 @@
+{
+  "name": "sam-gov-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Remote MCP server exposing SAM.gov Entity + Opportunities APIs to Claude, hosted on Cloudflare Workers.",
+  "scripts": {
+    "test": "node test/smoke.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "agents": "^0.0.80",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
