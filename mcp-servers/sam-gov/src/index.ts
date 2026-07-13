@@ -12,6 +12,9 @@ import { buildEntityUrl, buildOpportunitiesUrl, redact } from './sam.js';
 interface Env {
   SAM_ENTITY_API_KEY: string;
   SAM_OPPORTUNITIES_API_KEY: string;
+  // Optional shared-secret gate. Unset = open (current behaviour). Set it
+  // (wrangler secret put CONNECTOR_TOKEN) to require ?k=<token> on every call.
+  CONNECTOR_TOKEN?: string;
 }
 
 async function samGet(url: string) {
@@ -71,7 +74,24 @@ export class SamMcp extends McpAgent<Env> {
   }
 }
 
-// Streamable HTTP transport. For production, replace this default export with
-// the Cloudflare Access / OAuth wrapper from the remote-mcp-cf-access template
-// (README.md, step 5) so the SAM-key-backed server is not publicly callable.
-export default SamMcp.serve('/mcp');
+// Streamable HTTP transport at /mcp (SSE is deprecated).
+const mcp = SamMcp.serve('/mcp');
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    // This server is authless, so tell OAuth-discovery probes "no such
+    // metadata" with a 404 (not a 405) — a clean handshake for MCP clients.
+    if (url.pathname.startsWith('/.well-known/')) {
+      return new Response('Not Found', { status: 404 });
+    }
+    // ponytail: shared-secret gate, ENFORCED ONLY when CONNECTOR_TOKEN is set —
+    // so deploying this changes nothing until you opt in. Ceiling: the token
+    // rides in the URL (?k=), i.e. a capability URL, not real per-user auth.
+    // Upgrade path: Cloudflare Access OAuth (README step 5) for multi-user.
+    if (env.CONNECTOR_TOKEN && url.searchParams.get('k') !== env.CONNECTOR_TOKEN) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    return mcp.fetch(request, env, ctx);
+  },
+};
