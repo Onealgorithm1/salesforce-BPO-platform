@@ -4,7 +4,7 @@
     <encodingKey>UTF-8</encodingKey>
     <name>day 3 follow up email no rply</name>
     <style>none</style>
-    <subject>Capability Statement - One Algorithm LLC (EDWOSB)</subject>
+    <subject>Following up — EDWOSB teaming with {!Lead.Company}</subject>
     <type>custom</type>
     <uiType>Aloha</uiType>
 </EmailTemplate>
