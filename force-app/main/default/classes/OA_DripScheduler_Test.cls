@@ -259,7 +259,7 @@ private class OA_DripScheduler_Test {
     }
 
     @isTest
-    static void testOtherIndustry_isExcluded() {
+    static void testOtherIndustry_isEnrolled() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
@@ -269,12 +269,12 @@ private class OA_DripScheduler_Test {
         OA_DripScheduler.addLeadsToCampaign();
         Test.stopTest();
 
-        System.assertEquals(0, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            'Industry = Other (unclassified) must be excluded until NAICS work is done');
+        System.assertEquals(1, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            'Industry = Other (unclassified) must enroll under the exclusion-list filter');
     }
 
     @isTest
-    static void testNullIndustry_isExcluded() {
+    static void testNullIndustry_isEnrolled() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
@@ -284,16 +284,16 @@ private class OA_DripScheduler_Test {
         OA_DripScheduler.addLeadsToCampaign();
         Test.stopTest();
 
-        System.assertEquals(0, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            'Null Industry must not enroll (IN clause excludes null)');
+        System.assertEquals(1, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            'Null Industry (unclassified) must enroll under the exclusion-list filter');
     }
 
     @isTest
-    static void testIcpIndustries_enrollOnlyIcp() {
+    static void testExclusionList_blocksOnlyOffTarget() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
 
-        // 4 ICP + 2 non-ICP; only the 4 ICP should enroll.
+        // 4 ICP + unclassified 'Other' enroll; only Construction is blocked.
         makeWaveLeadInIndustry('tech@example.com',    'Technology');
         makeWaveLeadInIndustry('consult@example.com', 'Consulting');
         makeWaveLeadInIndustry('eng@example.com',     'Engineering');
@@ -305,8 +305,8 @@ private class OA_DripScheduler_Test {
         OA_DripScheduler.addLeadsToCampaign();
         Test.stopTest();
 
-        System.assertEquals(4, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            'Exactly the 4 ICP-industry Wave 1 leads must enroll');
+        System.assertEquals(5, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            '5 of 6 must enroll: only the Construction lead is excluded');
     }
 
     @isTest

@@ -3,10 +3,10 @@ public class OA_DripScheduler implements Schedulable {
     private static final String  CAMPAIGN_ID    = '701Pn00001ZOyj8IAD';
     private static final Integer MAX_SYNC_BATCH = 50;
 
-    // ICP targeting: only enroll IT-relevant industries. 'Other' is intentionally
-    // excluded — those leads are unclassified and await NAICS-based classification.
-    private static final List<String> ICP_INDUSTRIES = new List<String>{
-        'Technology', 'Consulting', 'Engineering', 'Telecommunications'
+    // ICP targeting: exclusion list. Unclassified leads (Industry = null or 'Other')
+    // ARE enrolled — only clearly off-target industries are blocked.
+    private static final List<String> EXCLUDED_INDUSTRIES = new List<String>{
+        'Construction', 'Hospitality', 'Transportation', 'Healthcare'
     };
 
     @TestVisible private static String testCampaignIdOverride;
@@ -38,7 +38,7 @@ public class OA_DripScheduler implements Schedulable {
               AND EmailBouncedDate   =  null
               AND IsConverted        =  false
               AND Email              != null
-              AND Industry           IN :ICP_INDUSTRIES
+              AND (Industry = null OR Industry NOT IN :EXCLUDED_INDUSTRIES)
               AND Id NOT IN (
                   SELECT LeadId FROM CampaignMember
                   WHERE CampaignId = :activeCampaignId
