@@ -68,6 +68,12 @@ public with sharing class OA_EnrichmentWriter {
         return enrichAll(new List<WorkItem>{ new WorkItem(target, proposals) }, runId, commitWrites);
     }
 
+    /** Org-level kill switch for committed writes. Default (no setting record) = disabled. */
+    private static Boolean isCommitEnabled() {
+        OA_Enrichment_Settings__c cfg = OA_Enrichment_Settings__c.getOrgDefaults();
+        return cfg != null && cfg.Writer_Commit_Enabled__c == true;
+    }
+
     /**
      * Evaluate (and optionally commit) enrichment for MANY (target, proposals) work items,
      * committing with BULK DML: exactly one Lead update + one change-log insert + one exception
@@ -82,6 +88,15 @@ public with sharing class OA_EnrichmentWriter {
     public static Result enrichAll(List<WorkItem> items, Id runId, Boolean commitWrites) {
         Result r = new Result();
         if (items == null || items.isEmpty()) { return r; }
+
+        // Kill switch (2026-07-16): commitWrites=true is inert unless the org-level
+        // OA_Enrichment_Settings__c.Writer_Commit_Enabled__c flag is explicitly set.
+        // Closes the "ungated Path B write" tech debt: an anonymous-Apex commit call
+        // can no longer write Leads without a deliberate, auditable config change.
+        if (commitWrites == true && !isCommitEnabled()) {
+            commitWrites = false;
+            r.messages.add('COMMIT SUPPRESSED: OA_Enrichment_Settings__c.Writer_Commit_Enabled__c is not enabled; ran as preview.');
+        }
 
         // ---- Evaluate every item in memory (NO DML). Track the distinct targets that got a write. ----
         Map<Id, SObject> targetsToUpdate = new Map<Id, SObject>();

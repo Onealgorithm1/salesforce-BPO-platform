@@ -151,6 +151,8 @@ private class OA_EnrichmentOrchestrator_Test {
     }
 
     @isTest static void multi_lead_commit_no_callout_after_dml() {
+        insert new OA_Enrichment_Settings__c(
+            SetupOwnerId = UserInfo.getOrganizationId(), Writer_Commit_Enabled__c = true);
         // Regression for the orchestrator callout-after-DML defect: with REAL (mocked) callouts and
         // commit=true over multiple Leads, EVERY Lead must be written. The old interleaved
         // fetch->enrich(DML)->fetch code wrote only the first Lead (the 2nd callout threw
