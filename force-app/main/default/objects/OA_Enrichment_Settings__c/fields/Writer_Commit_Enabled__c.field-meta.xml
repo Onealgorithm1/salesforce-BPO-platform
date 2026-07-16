@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Writer_Commit_Enabled__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Kill switch: OA_EnrichmentWriter.enrichAll only performs DML when commitWrites=true AND this org default is checked. Unchecked = every commit call silently runs as preview.</description>
+    <externalId>false</externalId>
+    <label>Writer Commit Enabled</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

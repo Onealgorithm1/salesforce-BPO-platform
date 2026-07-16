@@ -23,6 +23,13 @@ private class OA_EnrichmentWriter_Test {
         return l;
     }
 
+    /** Commit tests must arm the kill switch the way production would: via org default. */
+    private static void enableCommit() {
+        insert new OA_Enrichment_Settings__c(
+            SetupOwnerId = UserInfo.getOrganizationId(),
+            Writer_Commit_Enabled__c = true);
+    }
+
     private static List<OA_EnrichmentWriter.FieldProposal> proposals(String band) {
         return new List<OA_EnrichmentWriter.FieldProposal>{
             new OA_EnrichmentWriter.FieldProposal('Website', 'https://new.example.com', 'SAM', band),
@@ -51,6 +58,7 @@ private class OA_EnrichmentWriter_Test {
 
     @isTest
     static void testCommitWritesAndLogs() {
+        enableCommit();
         seedPolicies();
         Lead l = newLead('ACME2', null, 'Hot');
         Test.startTest();
@@ -69,6 +77,7 @@ private class OA_EnrichmentWriter_Test {
 
     @isTest
     static void testConflictRoutesException() {
+        enableCommit();
         seedPolicies();
         Lead l = newLead('ACME3', 'https://old.example.com', 'Hot');
         Test.startTest();
@@ -99,6 +108,7 @@ private class OA_EnrichmentWriter_Test {
 
     @isTest
     static void testSaveFailureRoutesExceptionAndDiscardsLogs() {
+        enableCommit();
         // Sprint 25 Defect #2: when the CRM update fails (here STRING_TOO_LONG on FirstName(40)),
         // the writer must NOT commit misleading change logs, must route an exception, and must
         // reflect that nothing persisted — while continuing safely.
@@ -127,6 +137,7 @@ private class OA_EnrichmentWriter_Test {
 
     @isTest
     static void testBatchCommitUsesBoundedDml() {
+        enableCommit();
         // Scalability regression: many connector matches across several Leads must commit with a
         // CONSTANT number of DML statements (one Lead update + one change-log insert + one exception
         // insert), NOT one-per-match. Reproduces the OAT defect shape: 3 Leads x 10 "award matches".
@@ -170,6 +181,7 @@ private class OA_EnrichmentWriter_Test {
 
     @isTest
     static void testBatchPartialFailureDiscardsOnlyFailedTarget() {
+        enableCommit();
         // Bulk SaveResult handling: one Lead's write fails (STRING_TOO_LONG) while others succeed.
         // Only the failed target's audit is discarded; the healthy targets still persist.
         OA_FieldWritePolicyEngine.policyOverride = new List<OA_Field_Write_Policy__mdt>{
@@ -202,6 +214,25 @@ private class OA_EnrichmentWriter_Test {
             'healthy target A persisted');
         System.assertEquals('Bella', [SELECT FirstName FROM Lead WHERE Id = :ok2.Id].FirstName,
             'healthy target B persisted');
+    }
+
+    @isTest
+    static void testCommitSuppressedWithoutKillSwitch() {
+        // The kill switch: commitWrites=true with no org-default flag must run as preview.
+        seedPolicies();
+        Lead l = newLead('ACME7', null, 'Hot');
+        Test.startTest();
+        OA_EnrichmentWriter.Result r = OA_EnrichmentWriter.enrich(l, proposals('HIGH'), null, true);
+        Test.stopTest();
+
+        System.assert(!r.committed, 'Commit must be suppressed when Writer_Commit_Enabled__c is off');
+        System.assert(String.join(r.messages, ' ').contains('COMMIT SUPPRESSED'),
+            'Suppression must be visible in Result.messages');
+        Lead db = [SELECT Website, Rating FROM Lead WHERE Id = :l.Id];
+        System.assertEquals(null, db.Website, 'No DML without the kill switch');
+        System.assertEquals('Hot', db.Rating, 'No DML without the kill switch');
+        System.assertEquals(0, [SELECT COUNT() FROM OA_Enrichment_Change_Log__c],
+            'No audit rows persisted when suppressed');
     }
 
     @isTest
