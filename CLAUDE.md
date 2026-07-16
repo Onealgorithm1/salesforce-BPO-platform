@@ -99,6 +99,9 @@ Report:
 ## 5. Deployment Policy
 - **Never deploy without explicit approval.**
 - **Never merge to `main` without explicit approval.**
+- **A deploy is not done until it is merged.** Every production deploy must be followed the same day by a PR to `main` whose body carries the deploy ID. `main` mirrors production; a deployed-but-unmerged branch is active drift (root cause of the 2026-07-16 near-rollback).
+- **No UI/Setup edits to governed metadata** (Apex, triggers, flows, email templates, custom metadata types/records). If a UI edit is unavoidable, retrieve and commit it the same day.
+- **Drift check:** run `scripts/drift-check.ps1` (retrieve governed components + normalized diff vs `main`) after any suspected out-of-band change and periodically; treat any content diff as an incident to reconcile before the next deploy.
 - **Never mix workstreams** in one deploy/PR.
 - **Never deploy unrelated work together.**
 - **Stop immediately on any deployment/validation error** — do not auto-retry.
