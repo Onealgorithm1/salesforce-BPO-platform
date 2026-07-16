@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Customer_UID__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>Opaque UUID keying one customer row in the external vault (Cloudflare D1 test_customers.customer_uid). The ONLY customer datum stored in Salesforce — meaningless without the vault. External Id + Unique.</description>
+    <externalId>true</externalId>
+    <label>Customer UID</label>
+    <length>36</length>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

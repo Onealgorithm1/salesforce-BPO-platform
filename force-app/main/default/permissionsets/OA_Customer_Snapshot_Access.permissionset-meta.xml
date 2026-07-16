@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Customer Snapshot PoC: R/C/E on OA_Customer_Reference__c + snapshot controller. No Delete/ViewAll. Unassigned by default. Customer_UID__c is required so visible without FLS. EC principal access added at the key gate.</description>
+    <classAccesses>
+        <apexClass>OA_CustomerSnapshotController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>OA Customer Snapshot Access</label>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>OA_Customer_Reference__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    <tabSettings>
+        <tab>OA_Customer_Reference__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>
