@@ -1,0 +1,35 @@
+<template>
+    <lightning-card title="Customer Snapshot" icon-name="standard:customer_360">
+        <div class="slds-p-horizontal_medium slds-p-bottom_small">
+            <template lwc:if={loading}>
+                <lightning-spinner alternative-text="Fetching live snapshot" size="small"></lightning-spinner>
+            </template>
+
+            <template lwc:if={error}>
+                <p class="slds-text-color_error">{error}</p>
+            </template>
+
+            <template lwc:if={snapshot}>
+                <template lwc:if={snapshot.isTest}>
+                    <lightning-badge label="TEST DATA" class="slds-m-bottom_x-small"></lightning-badge>
+                </template>
+                <dl class="slds-list_horizontal slds-wrap">
+                    <dt class="slds-item_label slds-text-color_weak slds-truncate">Name</dt>
+                    <dd class="slds-item_detail">{snapshot.name}</dd>
+                    <dt class="slds-item_label slds-text-color_weak slds-truncate">Company</dt>
+                    <dd class="slds-item_detail">{snapshot.company}</dd>
+                    <dt class="slds-item_label slds-text-color_weak slds-truncate">Email</dt>
+                    <dd class="slds-item_detail">{snapshot.email}</dd>
+                    <dt class="slds-item_label slds-text-color_weak slds-truncate">Phone</dt>
+                    <dd class="slds-item_detail">{snapshot.phone}</dd>
+                    <dt class="slds-item_label slds-text-color_weak slds-truncate">Location</dt>
+                    <dd class="slds-item_detail">{snapshot.location}</dd>
+                </dl>
+            </template>
+
+            <p class="slds-text-body_small slds-text-color_weak slds-m-top_small">
+                Live view from the external vault — nothing is stored in Salesforce.
+            </p>
+        </div>
+    </lightning-card>
+</template>
