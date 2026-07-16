@@ -5,6 +5,10 @@
         <apexClass>OA_CustomerSnapshotController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <externalCredentialPrincipalAccesses>
+        <enabled>true</enabled>
+        <externalCredentialPrincipal>OA_Customer_Snapshot-OA_Customer_Snapshot_Principal</externalCredentialPrincipal>
+    </externalCredentialPrincipalAccesses>
     <hasActivationRequired>false</hasActivationRequired>
     <label>OA Customer Snapshot Access</label>
     <objectPermissions>
