@@ -299,6 +299,7 @@ private class OA_DripScheduler_Test {
         makeWaveLeadInIndustry('eng@example.com',     'Engineering');
         makeWaveLeadInIndustry('telecom@example.com', 'Telecommunications');
         makeWaveLeadInIndustry('constr@example.com',  'Construction');
+        makeWaveLeadInIndustry('edu@example.com',     'Education');
         makeWaveLeadInIndustry('other2@example.com',  'Other');
 
         Test.startTest();
@@ -306,7 +307,7 @@ private class OA_DripScheduler_Test {
         Test.stopTest();
 
         System.assertEquals(5, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
-            '5 of 6 must enroll: only the Construction lead is excluded');
+            '5 of 7 must enroll: Construction and Education leads are excluded');
     }
 
     @isTest

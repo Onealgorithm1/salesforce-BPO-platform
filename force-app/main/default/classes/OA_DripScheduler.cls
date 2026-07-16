@@ -4,9 +4,11 @@ public class OA_DripScheduler implements Schedulable {
     private static final Integer MAX_SYNC_BATCH = 50;
 
     // ICP targeting: exclusion list. Unclassified leads (Industry = null or 'Other')
-    // ARE enrolled — only clearly off-target industries are blocked.
+    // ARE enrolled — off-target industries are blocked (per Louis, 2026-07-16:
+    // unclassified in; Education/Energy/Finance stay out).
     private static final List<String> EXCLUDED_INDUSTRIES = new List<String>{
-        'Construction', 'Hospitality', 'Transportation', 'Healthcare'
+        'Construction', 'Hospitality', 'Transportation', 'Healthcare',
+        'Education', 'Energy', 'Finance'
     };
 
     @TestVisible private static String testCampaignIdOverride;
