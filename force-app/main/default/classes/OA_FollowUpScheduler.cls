@@ -35,6 +35,7 @@ public class OA_FollowUpScheduler implements Schedulable {
             FROM CampaignMember
             WHERE CampaignId = :activeCampaignId
               AND LeadId != null
+              AND Lead.EmailBouncedDate = null
               AND Status NOT IN :STOP_STATUSES
               AND (
                   (Status = 'Day 1 Sent'  AND CreatedDate      <= :day3Cutoff)  OR
