@@ -83,4 +83,43 @@ private class OA_ReplyStatusService_Test {
             [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
             'Non-matching inbound and outgoing messages must not change member status');
     }
+
+    @isTest
+    static void testDomainFallbackFlagsUnverifiedNotReplied() {
+        Campaign c = makeTestCampaign();
+        insert new CampaignMemberStatus(CampaignId = c.Id, Label = 'Reply - Unverified',
+            HasResponded = false, SortOrder = 6);
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+
+        Lead l = makeLead('named.person@acmecorp.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+
+        Test.startTest();
+        sendInbound('info@acmecorp.com');   // colleague at same company, different mailbox
+        Test.stopTest();
+
+        System.assertEquals('Reply - Unverified',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'A domain-only inbound match must be flagged Reply - Unverified, never auto-confirmed Replied');
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject LIKE 'Reply — unverified domain match%'],
+            'A visible alert must accompany the unverified flag');
+    }
+
+    @isTest
+    static void testFreemailInboundStaysSilent() {
+        Campaign c = makeTestCampaign();
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+        Lead l = makeLead('prospect@gmail.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+
+        Test.startTest();
+        sendInbound('someone.else@gmail.com');   // shared consumer domain — must not match
+        Test.stopTest();
+
+        System.assertEquals('Day 1 Sent',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'A freemail domain must never trigger an unverified flag');
+    }
 }

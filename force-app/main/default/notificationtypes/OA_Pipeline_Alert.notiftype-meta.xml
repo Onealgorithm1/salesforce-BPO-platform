@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomNotificationType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customNotifTypeName>OA_Pipeline_Alert</customNotifTypeName>
+    <desktop>true</desktop>
+    <masterLabel>OA Pipeline Alert</masterLabel>
+    <mobile>true</mobile>
+</CustomNotificationType>

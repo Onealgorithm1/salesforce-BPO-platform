@@ -804,4 +804,53 @@ private class OA_BookingPoller_Test {
         System.assertEquals(0, outerCatchTasks.size(),
             'No outer-catch error task — Step 1.5 PATCH failure is internally swallowed and must not propagate');
     }
+
+    // ── Mock: attendee books from a shared company mailbox (different address, same domain) ──
+    private class DomainMatchMock implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            HTTPResponse res = new HTTPResponse();
+            res.setHeader('Content-Type', 'application/json');
+            if (req.getEndpoint().contains('oauth2/v2.0/token')) {
+                res.setBody('{"access_token":"mock-bearer-token","expires_in":3600}');
+                res.setStatusCode(200);
+            } else {
+                res.setBody('{"value":[{'
+                    + '"id":"graph-event-id-dom",'
+                    + '"subject":"Jane Smith - 30 Min. Subcontracting Introduction",'
+                    + '"start":{"dateTime":"' + Datetime.now().addHours(48).formatGmt('yyyy-MM-dd\'T\'HH:mm:ss') + '","timeZone":"UTC"},'
+                    + '"organizer":{"emailAddress":{"address":"lrubino@onealgorithm.com","name":"Louis Rubino"}},'
+                    + '"attendees":[{"type":"required","emailAddress":{"address":"info@primecontractor.com","name":"Front Desk"}}]'
+                    + '}]}');
+                res.setStatusCode(200);
+            }
+            return res;
+        }
+    }
+
+    @isTest
+    static void testDomainFallbackFlagsUnverified() {
+        Campaign c = [SELECT Id FROM Campaign WHERE Name = 'OA Test Campaign' LIMIT 1];
+        OA_BookingPoller.testCampaignIdOverride = c.Id;
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+        insert new CampaignMemberStatus(CampaignId = c.Id, Label = 'Reply - Unverified',
+            HasResponded = false, SortOrder = 11);
+
+        Test.setMock(HttpCalloutMock.class, new DomainMatchMock());
+        Test.startTest();
+        OA_BookingPoller.processNewBookings();
+        Test.stopTest();
+
+        Lead l = [SELECT Id FROM Lead WHERE Email = 'jane.smith@primecontractor.com' LIMIT 1];
+        CampaignMember cm = [SELECT Status FROM CampaignMember WHERE LeadId = :l.Id AND CampaignId = :c.Id];
+        System.assertEquals('Reply - Unverified', cm.Status,
+            'A domain-only booking match must be flagged Reply - Unverified, never auto-confirmed Meeting Booked');
+
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject LIKE 'Booking — unverified domain match%'],
+            'A visible alert must be raised for the unverified domain match');
+
+        Event ev = [SELECT WhoId FROM Event WHERE Subject LIKE 'Jane Smith%' LIMIT 1];
+        System.assertEquals(null, ev.WhoId,
+            'Event must NOT be auto-linked on an unverified domain match — that awaits human confirmation');
+    }
 }
