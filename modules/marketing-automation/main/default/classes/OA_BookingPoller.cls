@@ -167,8 +167,11 @@ public class OA_BookingPoller implements Schedulable {
                     OA_MatchFallback.candidatesByDomain(attendeeEmail, campaignId, STOP_STATUSES);
 
                 if (domainCands.size() == 1) {
-                    domainCands[0].Status = OA_MatchFallback.UNVERIFIED_STATUS;
-                    update domainCands[0];
+                    // Update a minimal sObject (Id + Status only). Updating the record returned by
+                    // candidatesByDomain directly throws "fields inaccessible on CampaignMember" in
+                    // the @future context, because that query selects LeadId / Lead.Email
+                    // (create-only + parent fields). Same shape the poller's Step 2 uses.
+                    update new CampaignMember(Id = domainCands[0].Id, Status = OA_MatchFallback.UNVERIFIED_STATUS);
                     OA_AlertService.raise(
                         'Booking — unverified domain match (review required)',
                         'Meeting: ' + ev.Subject +
