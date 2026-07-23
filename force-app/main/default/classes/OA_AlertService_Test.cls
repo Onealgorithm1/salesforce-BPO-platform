@@ -26,4 +26,27 @@ private class OA_AlertService_Test {
         System.assertEquals(1, [SELECT COUNT() FROM Task WHERE Subject = 'OA null-target alert'],
             'A null target must still record the audit Task');
     }
+
+    @isTest
+    static void testRaiseWithCampaignMemberTargetResolvesProspectAndEmails() {
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+
+        Campaign c = new Campaign(Name = 'Alert Test Campaign', IsActive = true, Status = 'Planning');
+        insert c;
+        insert new CampaignMemberStatus(CampaignId = c.Id, Label = 'Day 1 Sent', HasResponded = false, SortOrder = 3);
+        Lead l = new Lead(FirstName = 'Pat', LastName = 'Prospect', Company = 'Acme Federal LLC',
+            Email = 'pat@acmefederal.com', LeadSource = 'SAM.gov');
+        insert l;
+        CampaignMember cm = new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+        insert cm;
+
+        Test.startTest();
+        // targetId is a CampaignMember (00v) — exercises prospectLabel + record URL + email channel.
+        OA_AlertService.raise('Booking — unverified domain match (review required)', 'body detail', cm.Id);
+        Test.stopTest();
+
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject = 'Booking — unverified domain match (review required)'],
+            'raise() with a CampaignMember target must still record the audit Task (email/notification are fire-and-forget)');
+    }
 }
