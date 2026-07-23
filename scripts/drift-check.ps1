@@ -8,7 +8,11 @@
 # Exit code 1 = content drift found (reconcile before the next deploy).
 # Method proven in the 2026-07-16 integrity audit.
 
-$ErrorActionPreference = 'Stop'
+# 'Continue', not 'Stop': on Windows/PS 5.1 both git and sf write benign notices to stderr
+# (git's LF->CRLF warning, sf's "update available"), and under 'Stop' PowerShell turns the
+# first such NativeCommandError into a terminating error and aborts mid-run — before the tree
+# is restored. We guard the one call that must succeed (the retrieve) with $LASTEXITCODE.
+$ErrorActionPreference = 'Continue'
 $org = 'oauser@pboedition.com'
 
 if (git status --porcelain) { Write-Error 'Working tree not clean — commit or stash first.'; exit 2 }
@@ -33,9 +37,26 @@ $mdArgs = @(
     '--metadata','CustomMetadata:OA_Connector_Registry.*',
     '--metadata','CustomMetadata:OA_Graph_Config.*',
     '--metadata','CustomMetadata:OA_Enrichment_Pipeline.*',
-    '--metadata','CustomMetadata:OA_Field_Write_Policy.*'
+    '--metadata','CustomMetadata:OA_Field_Write_Policy.*',
+    # Added 2026-07-23: booking automation, protected flows, 5th template, P1 reply/booking
+    # fallback + alert channel, outbound path, and send-cap governor. The booking poller was
+    # missed before, which let a package-dir duplicate diverge unseen.
+    '--metadata','ApexClass:OA_BookingPoller',
+    '--metadata','ApexClass:OA_BookingPoller_Test',
+    '--metadata','ApexClass:OA_MatchFallback',
+    '--metadata','ApexClass:OA_MatchFallback_Test',
+    '--metadata','ApexClass:OA_AlertService',
+    '--metadata','ApexClass:OA_AlertService_Test',
+    '--metadata','ApexClass:OA_EmailSender',
+    '--metadata','ApexClass:OA_SendGovernor',
+    '--metadata','Flow:OA_EDWOSB_Outreach_Sequence',
+    '--metadata','Flow:OA_PostMeeting_Nurture',
+    '--metadata','Flow:OA_Reply_Detection',
+    '--metadata','EmailTemplate:my_templates/Teaming_Partner_Email_1',
+    '--metadata','CustomNotificationType:OA_Pipeline_Alert'
 )
 sf project retrieve start @mdArgs --target-org $org --json | Out-Null
+if ($LASTEXITCODE -ne 0) { Write-Error 'sf retrieve failed — aborting drift check.'; exit 2 }
 
 $drift = @()
 foreach ($line in (git status --porcelain)) {
