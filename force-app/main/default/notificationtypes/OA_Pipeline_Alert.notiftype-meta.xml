@@ -4,4 +4,5 @@
     <desktop>true</desktop>
     <masterLabel>OA Pipeline Alert</masterLabel>
     <mobile>true</mobile>
+    <slack>false</slack>
 </CustomNotificationType>
