@@ -8,7 +8,8 @@ public class OA_FollowUpScheduler implements Schedulable {
     @TestVisible private static DateTime nowOverride;
 
     private static final Set<String> STOP_STATUSES = new Set<String>{
-        'Replied', 'Meeting Booked', 'Interested', 'Not Interested', 'Unsubscribed', 'Call Completed'
+        'Replied', 'Meeting Booked', 'Interested', 'Not Interested', 'Unsubscribed', 'Call Completed',
+        'Reply - Unverified'
     };
 
     public void execute(SchedulableContext sc) {
