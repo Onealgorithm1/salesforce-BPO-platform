@@ -5,6 +5,12 @@ public class OA_BookingPoller implements Schedulable {
     // Allows tests to override the alert owner ID without Custom Metadata dependency
     @TestVisible private static Id testAlertOwnerIdOverride;
 
+    // Sendable filter for domain-fallback matching (mirrors the schedulers' stop set).
+    private static final Set<String> STOP_STATUSES = new Set<String>{
+        'Replied', 'Meeting Booked', 'Interested', 'Not Interested', 'Unsubscribed', 'Call Completed',
+        'Reply - Unverified'
+    };
+
     // ── Schedulable entry point ──────────────────────────────────────────────────
     public void execute(SchedulableContext sc) {
         processNewBookings();
@@ -154,19 +160,49 @@ public class OA_BookingPoller implements Schedulable {
             ];
 
             if (leads.isEmpty()) {
-                createAlertTask(
+                // Exact match missed — try a DOMAIN match before giving up (the real case:
+                // info@sulphoor.com booking against a named lead at the same company). Never
+                // auto-confirms Meeting Booked — a single candidate is flagged for human review.
+                List<CampaignMember> domainCands =
+                    OA_MatchFallback.candidatesByDomain(attendeeEmail, campaignId, STOP_STATUSES);
+
+                if (domainCands.size() == 1) {
+                    domainCands[0].Status = OA_MatchFallback.UNVERIFIED_STATUS;
+                    update domainCands[0];
+                    OA_AlertService.raise(
+                        'Booking — unverified domain match (review required)',
+                        'Meeting: ' + ev.Subject +
+                        '\nStart: ' + (ev.StartDateTime != null ? ev.StartDateTime.format() : 'unknown') +
+                        '\nAttendee: ' + attendeeEmail +
+                        '\nMatched by DOMAIN to CampaignMember ' + domainCands[0].Id +
+                        ' (Lead ' + domainCands[0].LeadId + ', ' + domainCands[0].Lead.Email + ').' +
+                        '\n\nStatus set to "Reply - Unverified" — the sequence is halted. Confirm this is ' +
+                        'the same person before treating it as Meeting Booked, then run the normal booking steps.',
+                        domainCands[0].Id
+                    );
+                    return;
+                }
+
+                // Freemail (e.g. gmail), ambiguous, or no domain candidate. A booking is high-signal,
+                // so ALWAYS raise a VISIBLE alert (bell + mobile) — not just a Task nobody reads.
+                // Subject preserved so existing monitoring keeps working.
+                String reason = domainCands.size() > 1
+                    ? '\n\nMultiple domain candidates — not auto-linked (ambiguous).'
+                    : (OA_MatchFallback.isFreemail(attendeeEmail)
+                        ? '\n\nFreemail/consumer domain — the organization cannot be inferred from it.'
+                        : '\n\nNo campaign member shares this domain.');
+                OA_AlertService.raise(
                     'ALERT: Booking received — no matching Lead found. Manual action required.',
                     'Meeting: ' + ev.Subject +
                     '\nStart: ' + (ev.StartDateTime != null ? ev.StartDateTime.format() : 'unknown') +
-                    '\nAttendee email (unmatched): ' + attendeeEmail +
-                    '\n\nNo active Lead found with this email address.\n' +
-                    'Manual Action:\n' +
+                    '\nAttendee email (unmatched): ' + attendeeEmail + reason +
+                    '\n\nManual Action:\n' +
                     '1. Find or create a Lead with email: ' + attendeeEmail + '\n' +
                     '2. Set Relationship_Status__c = Meeting Booked\n' +
                     '3. Set Meeting_Booked_Date__c = ' + (ev.StartDateTime != null ? String.valueOf(ev.StartDateTime.date()) : 'see calendar') + '\n' +
                     '4. Update CampaignMember Status to Meeting Booked\n' +
                     '5. Link this Event to the Lead (WhoId)',
-                    alertOwnerId
+                    domainCands.size() == 1 ? domainCands[0].Id : null
                 );
                 return;
             }
