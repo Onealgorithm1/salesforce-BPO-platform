@@ -229,4 +229,57 @@ private class OA_EmailSender_Test {
             SELECT COUNT() FROM OA_Communication_Preference_Token__c WHERE Lead__c = :ld.Id
         ], 'No token should be minted without campaign context');
     }
+
+    /**
+     * The compliance guard: an opted-out Lead must never be emailed by ANY send path, and
+     * must not burn daily send capacity. It is dropped from the result map rather than
+     * marked true/false, so the follow-up scheduler neither advances its CampaignMember to
+     * a "Sent" status it never earned nor retries it forever.
+     */
+    @isTest
+    static void testOptedOutLeadIsSuppressedAtTheChokePoint() {
+        OA_EmailSender.bypassActualSendForTest = true;
+        setSendCap(100, 0);
+
+        List<Lead> leads = makeLeads(2);
+        leads[0].HasOptedOutOfEmail = true;
+        update leads[0];
+
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, 'EDWOSB_Sub_Prospect_Email_1', getOrgWideEmailAddressId());
+
+        Test.startTest();
+        Map<String, Boolean> results = OA_EmailSender.sendEmailToLeadWithResults(requests);
+        Test.stopTest();
+
+        System.assert(!results.containsKey(leads[0].Id),
+            'Opted-out Lead must be dropped from the result map, not reported sent or failed');
+        System.assertEquals(true, results.get(leads[1].Id),
+            'A sendable Lead in the same batch must still be sent');
+        System.assertEquals(1, results.size(), 'Only the sendable Lead should have a result');
+        System.assertEquals(1, (Integer) OA_Campaign_Settings__c.getOrgDefaults().Sends_Today__c,
+            'Suppressed Lead must not consume daily send capacity');
+    }
+
+    /** A batch that is entirely opted out must send nothing and reserve nothing. */
+    @isTest
+    static void testAllOptedOutBatchSendsNothingAndThrowsNothing() {
+        OA_EmailSender.bypassActualSendForTest = true;
+        setSendCap(100, 0);
+
+        List<Lead> leads = makeLeads(2);
+        for (Lead l : leads) l.HasOptedOutOfEmail = true;
+        update leads;
+
+        List<OA_EmailSender.EmailRequest> requests =
+            makeRequests(leads, 'EDWOSB_Sub_Prospect_Email_1', getOrgWideEmailAddressId());
+
+        Test.startTest();
+        // Invocable path: suppression is a deliberate skip, so it must NOT raise.
+        OA_EmailSender.sendEmailToLead(requests);
+        Test.stopTest();
+
+        System.assertEquals(0, (Integer) OA_Campaign_Settings__c.getOrgDefaults().Sends_Today__c,
+            'A fully opted-out batch must reserve no send capacity');
+    }
 }

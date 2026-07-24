@@ -11,6 +11,9 @@ public class OA_EmailSender {
     private static final Integer TOKEN_TTL_DAYS = 90;
 
     @TestVisible private static Boolean bypassActualSendForTest = false;
+    // Count of requests dropped by the opt-out guard on the last call, so the invocable
+    // can tell "deliberately suppressed" apart from "failed to send".
+    @TestVisible private static Integer lastSuppressedCount = 0;
     // Test seams so the render/inject/token path is covered without a stored template.
     @TestVisible private static String testSubjectOverride;
     @TestVisible private static String testHtmlOverride;
@@ -47,7 +50,10 @@ public class OA_EmailSender {
         Map<String, Boolean> results = sendEmailToLeadWithResults(requests);
         if (requests == null || requests.isEmpty()) return;
 
-        Boolean allSent = results.size() == requests.size();
+        // Opt-out suppression is a deliberate skip, not a failure — excluding it here keeps a
+        // single opted-out Lead from throwing and blocking the rest of a legitimate batch.
+        Integer expected = requests.size() - lastSuppressedCount;
+        Boolean allSent  = results.size() == expected;
         for (Boolean sent : results.values()) {
             if (sent != true) { allSent = false; break; }
         }
@@ -65,15 +71,54 @@ public class OA_EmailSender {
      */
     public static Map<String, Boolean> sendEmailToLeadWithResults(List<EmailRequest> requests) {
         Map<String, Boolean> results = new Map<String, Boolean>();
+        lastSuppressedCount = 0;
         if (requests == null || requests.isEmpty()) return results;
 
         for (EmailRequest req : requests) {
             if (req != null && String.isNotBlank(req.leadId)) results.put(req.leadId, false);
         }
 
+        // One SOQL for recipient emails (needed to mint campaign-scoped tokens) AND the
+        // opt-out flag. The guard lives here because this is the shared choke point every
+        // send path funnels through: OA_DripScheduler's own HasOptedOutOfEmail filter only
+        // ever covered enrollment into its single campaign, and OA_FollowUpScheduler never
+        // checked the flag at all. Checking here means no caller — including a future
+        // campaign — can bypass it.
+        Set<Id> leadIdSet = new Set<Id>();
+        for (EmailRequest req : requests) {
+            if (req != null && String.isNotBlank(req.leadId)) leadIdSet.add((Id) req.leadId);
+        }
+        Map<Id, String> emailByLead = new Map<Id, String>();
+        Set<Id>         optedOut    = new Set<Id>();
+        for (Lead l : [SELECT Id, Email, HasOptedOutOfEmail FROM Lead WHERE Id IN :leadIdSet]) {
+            emailByLead.put(l.Id, l.Email);
+            if (l.HasOptedOutOfEmail == true) optedOut.add(l.Id);
+        }
+
+        // Suppressed leads are dropped from the result map entirely. Reporting false would
+        // strand the CampaignMember at its current status and re-send-attempt it every
+        // business day forever; reporting true would fabricate a "Day N Sent" status for an
+        // email that was never sent — misleading in a compliance record.
+        // ponytail: suppressed members are simply left untouched, so the follow-up scheduler
+        // re-reads them each run (a few SOQL rows, no send, no daily cap consumed). Upgrade
+        // path — move their CampaignMember to 'Unsubscribed' so they drop out of the funnel
+        // query; that is a data write and needs its own approval, not a guard.
+        List<EmailRequest> sendable = new List<EmailRequest>();
+        for (EmailRequest req : requests) {
+            if (req == null || String.isBlank(req.leadId)) continue;
+            if (optedOut.contains((Id) req.leadId)) {
+                results.remove(req.leadId);
+                lastSuppressedCount++;
+                System.debug('[OA_EmailSender] SUPPRESSED — Lead has opted out of email: ' + req.leadId);
+                continue;
+            }
+            sendable.add(req);
+        }
+        if (sendable.isEmpty()) return results;
+
         Integer allowed;
         try {
-            allowed = OA_SendGovernor.checkAndReserve(requests.size());
+            allowed = OA_SendGovernor.checkAndReserve(sendable.size());
         } catch (OA_SendGovernor.CapExceededException e) {
             System.debug('[OA_EmailSender] ' + e.getMessage());
             return results;
@@ -83,7 +128,7 @@ public class OA_EmailSender {
         // that run SeeAllData=false and have no visible stored templates).
         if (Test.isRunningTest() && bypassActualSendForTest) {
             Integer marked = 0;
-            for (EmailRequest req : requests) {
+            for (EmailRequest req : sendable) {
                 if (req == null || String.isBlank(req.leadId)) continue;
                 if (marked >= allowed) break;
                 results.put(req.leadId, true);
@@ -96,7 +141,7 @@ public class OA_EmailSender {
         Map<String, Id> tplMap = new Map<String, Id>();
         if (testHtmlOverride == null) {
             Set<String> names = new Set<String>();
-            for (EmailRequest req : requests) {
+            for (EmailRequest req : sendable) {
                 if (req != null && String.isNotBlank(req.templateApiName)) names.add(req.templateApiName);
             }
             for (EmailTemplate t : [SELECT Id, DeveloperName FROM EmailTemplate WHERE DeveloperName IN :names]) {
@@ -104,21 +149,11 @@ public class OA_EmailSender {
             }
         }
 
-        // One SOQL for recipient emails (needed to mint campaign-scoped tokens).
-        Set<Id> leadIdSet = new Set<Id>();
-        for (EmailRequest req : requests) {
-            if (req != null && String.isNotBlank(req.leadId)) leadIdSet.add((Id) req.leadId);
-        }
-        Map<Id, String> emailByLead = new Map<Id, String>();
-        for (Lead l : [SELECT Id, Email FROM Lead WHERE Id IN :leadIdSet]) {
-            emailByLead.put(l.Id, l.Email);
-        }
-
         List<Messaging.SingleEmailMessage> emails  = new List<Messaging.SingleEmailMessage>();
         List<String>                        leadIds = new List<String>();
 
         Integer count = 0;
-        for (EmailRequest req : requests) {
+        for (EmailRequest req : sendable) {
             if (req == null || String.isBlank(req.leadId)) continue;
             if (count >= allowed) break;
             if (testHtmlOverride == null && !tplMap.containsKey(req.templateApiName)) {
