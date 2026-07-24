@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Send_Internal_Notification</name>
+        <label>Send Internal Notification</label>
+        <locationX>176</locationX>
+        <locationY>278</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <faultConnector>
+            <targetReference>Handle_Email_Fault</targetReference>
+        </faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>emailAddresses</name>
+            <value>
+                <stringValue>service@onealgorithm.com</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <elementReference>Email_Subject</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <elementReference>Email_Body</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>sendRichBody</name>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </inputParameters>
+        <nameSegment>emailSimple</nameSegment>
+    </actionCalls>
+    <apiVersion>62.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <assignments>
+        <name>Handle_Email_Fault</name>
+        <label>Handle Email Fault</label>
+        <locationX>400</locationX>
+        <locationY>278</locationY>
+        <assignmentItems>
+            <assignToReference>varIgnore</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>notification email failed - lead unaffected</stringValue>
+            </value>
+        </assignmentItems>
+    </assignments>
+    <decisions>
+        <name>Exclude_Test_Emails</name>
+        <label>Exclude Test Emails</label>
+        <locationX>176</locationX>
+        <locationY>134</locationY>
+        <defaultConnectorLabel>Test email - skip</defaultConnectorLabel>
+        <rules>
+            <name>Not_Test_Email</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Is_Not_Test_Email</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Send_Internal_Notification</targetReference>
+            </connector>
+            <label>Not Test Email</label>
+        </rules>
+    </decisions>
+    <description>Sends an internal notification to service@onealgorithm.com when a new website Lead (LeadSource=Web) is created. Excludes test leads (Company ZZ_TEST_DELETE and emails containing +watest). Email failures are handled and never block Lead creation.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>Email_Subject</name>
+        <dataType>String</dataType>
+        <expression>&quot;New Website Lead: &quot; &amp; {!$Record.LastName} &amp; &quot; (&quot; &amp; {!$Record.Company} &amp; &quot;)&quot;</expression>
+    </formulas>
+    <formulas>
+        <name>Is_Not_Test_Email</name>
+        <dataType>Boolean</dataType>
+        <expression>NOT(CONTAINS({!$Record.Email}, &quot;+watest&quot;))</expression>
+    </formulas>
+    <interviewLabel>OA New Website Lead Notification {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>OA New Website Lead Notification</label>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>176</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Exclude_Test_Emails</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>LeadSource</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Web</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Company</field>
+            <operator>NotEqualTo</operator>
+            <value>
+                <stringValue>ZZ_TEST_DELETE</stringValue>
+            </value>
+        </filters>
+        <object>Lead</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+    <textTemplates>
+        <name>Email_Body</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>A new website Lead has been created in Salesforce.
+
+Name: {!$Record.Name}
+Email: {!$Record.Email}
+Company: {!$Record.Company}
+Lead Source: {!$Record.LeadSource}
+
+Service Need / Description:
+{!$Record.Description}
+
+Open this Lead in Salesforce:
+https://onealgorithmllc.my.salesforce.com/{!$Record.Id}</text>
+    </textTemplates>
+    <variables>
+        <name>varIgnore</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>
