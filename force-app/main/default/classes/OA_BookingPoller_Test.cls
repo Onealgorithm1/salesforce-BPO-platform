@@ -461,6 +461,41 @@ private class OA_BookingPoller_Test {
         System.assertEquals(0, alerts.size(), 'No alert tasks should be created via EAC pre-linked path');
     }
 
+    // Test B2 — EAC MIS-linked: Event.WhoId points at an internal Contact (a colleague invited
+    // to the same meeting) rather than the prospect. The fast-path Lead query returns empty,
+    // so the poller falls through to Graph, resolves the real prospect Lead, and must CORRECT
+    // WhoId instead of leaving the Event on the wrong record.
+    // Regression guard for the manual repatches on 2026-07-21 (CoBuilders) and 2026-07-24 (RDX).
+    @isTest
+    static void testEACMisLinkedToContactIsCorrectedToLead() {
+        Campaign c = [SELECT Id FROM Campaign WHERE Name = 'OA Test Campaign' LIMIT 1];
+        OA_BookingPoller.testCampaignIdOverride = c.Id;
+
+        Contact internalStaff = new Contact(
+            FirstName = 'Internal', LastName = 'Colleague', Email = 'colleague@onealgorithm.com'
+        );
+        insert internalStaff;
+
+        Event ev = [SELECT Id FROM Event WHERE Subject LIKE 'Jane Smith%' LIMIT 1];
+        ev.WhoId = internalStaff.Id;   // EAC matched the internal attendee, not the prospect
+        update ev;
+
+        Test.setMock(HttpCalloutMock.class, new MatchedLeadMock());
+        Test.startTest();
+        OA_BookingPoller.processNewBookings();
+        Test.stopTest();
+
+        Lead l = [SELECT Id FROM Lead WHERE Email = 'jane.smith@primecontractor.com' LIMIT 1];
+
+        Event refreshed = [SELECT WhoId FROM Event WHERE Id = :ev.Id];
+        System.assertEquals(l.Id, refreshed.WhoId,
+            'Event WhoId must be corrected from the internal Contact to the resolved prospect Lead');
+
+        CampaignMember cm = [SELECT Status FROM CampaignMember WHERE LeadId = :l.Id AND CampaignId = :c.Id];
+        System.assertEquals('Meeting Booked', cm.Status,
+            'Pipeline must still complete after the WhoId correction');
+    }
+
     // Test C — Already processed: Event.WhoId set + Lead.Meeting_Booked_Date__c set.
     // Verifies idempotency: a booking that was fully processed in a prior poller run
     // is skipped without creating duplicate tasks, duplicate CampaignMember updates,

@@ -238,11 +238,21 @@ public class OA_BookingPoller implements Schedulable {
             createAlertTask(dupAlertSubject, dupAlertBody, alertOwnerId);
         }
 
-        // Step 1: Link Event to Lead — skip if EAC already populated WhoId
-        if (ev.WhoId == null) {
+        // Step 1: Link Event to the Lead this poller resolved.
+        // That resolution is authoritative — it is either an EAC pre-link that matched a real
+        // unconverted Lead (fast path above), or the Graph attendee email. Einstein Activity
+        // Capture routinely pre-populates WhoId with an INTERNAL attendee (a colleague invited
+        // to the same meeting), which is a Contact: the fast-path query then returns empty, we
+        // fall through to Graph, resolve the correct prospect Lead — and must correct WhoId.
+        // Writing only when null left the Event pointing at the internal Contact and needed a
+        // manual repatch (twice: 2026-07-21 CoBuilders, 2026-07-24 RDX Enterprise).
+        // Comparing against lead.Id keeps the correct-pre-link case a no-op with no DML.
+        if (ev.WhoId != lead.Id) {
+            Id priorWhoId = ev.WhoId;
             ev.WhoId = lead.Id;
             update ev;
-            System.debug('[OA_BookingPoller] Event ' + ev.Id + ' linked to Lead ' + lead.Id);
+            System.debug('[OA_BookingPoller] Event ' + ev.Id + ' linked to Lead ' + lead.Id
+                + (priorWhoId == null ? '' : ' (corrected from ' + priorWhoId + ')'));
         }
 
         // Step 2: Update CampaignMember Status
