@@ -28,13 +28,9 @@ public class OA_FollowUpScheduler implements Schedulable {
 
         String activeCampaignId = testCampaignIdOverride != null ? testCampaignIdOverride : CAMPAIGN_ID;
 
-        // Campaign.EndDate was previously a label only — nothing in code honored it, so a
-        // finished campaign kept sending indefinitely. Stop on inactive or past-end.
-        for (Campaign c : [SELECT IsActive, EndDate FROM Campaign WHERE Id = :activeCampaignId LIMIT 1]) {
-            if (c.IsActive != true || (c.EndDate != null && c.EndDate < Date.today())) {
-                System.debug('[OA_FollowUpScheduler] Campaign inactive or past EndDate; no follow-ups sent.');
-                return;
-            }
+        if (!OA_SendGovernor.isCampaignSendable((Id) activeCampaignId)) {
+            System.debug('[OA_FollowUpScheduler] Campaign inactive or past EndDate; no follow-ups sent.');
+            return;
         }
 
         Integer queryLimit = Math.min(MAX_SYNC_BATCH, OA_SendGovernor.remainingToday());

@@ -24,6 +24,14 @@ public class OA_DripScheduler implements Schedulable {
     public static void addLeadsToCampaign() {
         String activeCampaignId = testCampaignIdOverride != null ? testCampaignIdOverride : CAMPAIGN_ID;
 
+        // Enrollment inserts a CampaignMember, which fires OA_EDWOSB_Outreach_Sequence and sends
+        // Day 1 in the same transaction — so an ended campaign must be blocked HERE, not just in
+        // the follow-up path, or the next drip run keeps starting brand-new sequences.
+        if (!OA_SendGovernor.isCampaignSendable((Id) activeCampaignId)) {
+            System.debug('[OA_DripScheduler] Campaign inactive or past EndDate; no leads enrolled.');
+            return;
+        }
+
         Integer batchSize = Math.min(MAX_SYNC_BATCH, OA_SendGovernor.remainingToday());
         if (batchSize <= 0) {
             System.debug('[OA_DripScheduler] Daily send cap consumed; no Wave 1 leads enrolled.');

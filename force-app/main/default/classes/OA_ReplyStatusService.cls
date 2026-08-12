@@ -56,46 +56,79 @@ public with sharing class OA_ReplyStatusService {
 
         // Exact-address match — the primary, auto-confirmed path.
         List<CampaignMember>        toUpdate         = new List<CampaignMember>();
-        List<Lead>                  optOuts          = new List<Lead>();
+        Map<Id, Lead>               optOuts          = new Map<Id, Lead>();
         List<OA_AlertService.Alert> alerts           = new List<OA_AlertService.Alert>();
         Set<String>                 matchedAddresses = new Set<String>();
 
+        // NOTE the absence of a STOP_STATUSES filter here. Matching and status advancement are
+        // deliberately separate concerns: this query finds everyone who wrote to us, and the
+        // branches below decide what (if anything) to change. Filtering terminal members out of
+        // the QUERY — as this class used to — silently dropped two cases that matter:
+        //   * someone who replied normally and LATER asked to unsubscribe was already 'Replied',
+        //     so the opt-out never happened. That is the common real sequence, and it is the
+        //     compliance hole this class is supposed to close.
+        //   * a prospect chasing a second time was already 'Replied', so no alert was raised —
+        //     silence for exactly the person most deserving of a response.
         for (CampaignMember cm : [
-            SELECT Id, LeadId, Lead.Email
+            SELECT Id, LeadId, Status, Lead.Email
             FROM CampaignMember
             WHERE CampaignId = :activeCampaignId
               AND LeadId != null
-              AND Status NOT IN :STOP_STATUSES
               AND Lead.Email IN :fromAddresses
         ]) {
-            String addr = cm.Lead.Email != null ? cm.Lead.Email.toLowerCase() : null;
+            String  addr        = cm.Lead.Email != null ? cm.Lead.Email.toLowerCase() : null;
+            String  wasStatus   = cm.Status;                        // captured before any mutation
+            Boolean inSequence  = !STOP_STATUSES.contains(wasStatus);
+            Boolean alreadyOut  = (wasStatus == 'Unsubscribed');
+            Boolean isUnsub     = addr != null && unsubByAddress.get(addr) == true;
             if (addr != null) matchedAddresses.add(addr);
 
-            if (addr != null && unsubByAddress.get(addr) == true) {
-                cm.Status = 'Unsubscribed';
-                optOuts.add(new Lead(Id = cm.LeadId, HasOptedOutOfEmail = true));
-                alerts.add(new OA_AlertService.Alert(
-                    'Unsubscribe request — ' + addr,
-                    'Inbound email from ' + addr + ' asked to unsubscribe (subject contains "' +
-                    UNSUBSCRIBE_TOKEN + '").\nCampaignMember ' + cm.Id + ' set to "Unsubscribed" and ' +
-                    'Lead ' + cm.LeadId + ' opted out of email org-wide.',
-                    cm.Id
-                ));
+            if (isUnsub) {
+                // Opting the Lead out is UNCONDITIONAL — an explicit request outranks whatever
+                // state the campaign happens to be in, and this flag is what actually stops
+                // future sends (OA_EmailSender suppresses on it) across every campaign.
+                optOuts.put(cm.LeadId, new Lead(Id = cm.LeadId, HasOptedOutOfEmail = true));
+
+                // The campaign status is a reporting field, so a terminal one is left alone —
+                // overwriting 'Meeting Booked' with 'Unsubscribed' would erase a real outcome.
+                if (inSequence) {
+                    cm.Status = 'Unsubscribed';
+                    toUpdate.add(cm);
+                }
+                // No second alert for someone already marked Unsubscribed — there is nothing
+                // left for a human to do. Every other case still alerts.
+                if (!alreadyOut) {
+                    alerts.add(new OA_AlertService.Alert(
+                        'Unsubscribe request — ' + addr,
+                        'Inbound email from ' + addr + ' asked to unsubscribe (subject contains "' +
+                        UNSUBSCRIBE_TOKEN + '").\nLead ' + cm.LeadId + ' opted out of email org-wide.\n' +
+                        (inSequence
+                            ? 'CampaignMember ' + cm.Id + ' set to "Unsubscribed".'
+                            : 'CampaignMember ' + cm.Id + ' left at "' + wasStatus +
+                              '" so the outcome is not erased — the opt-out still applies.'),
+                        cm.Id
+                    ));
+                }
             } else {
-                cm.Status = 'Replied';
+                if (inSequence) {
+                    cm.Status = 'Replied';
+                    toUpdate.add(cm);
+                }
                 alerts.add(new OA_AlertService.Alert(
                     'Reply received — ' + addr,
                     'Inbound email from ' + addr + ' matched CampaignMember ' + cm.Id +
                     ' (Lead ' + cm.LeadId + ') by EXACT address.\n' +
-                    'Status set to "Replied" — the sequence is halted. This prospect is waiting ' +
-                    'on a human response.',
+                    (inSequence
+                        ? 'Status set to "Replied" — the sequence is halted. This prospect is ' +
+                          'waiting on a human response.'
+                        : 'Member is already at "' + wasStatus + '"; status unchanged. This is a ' +
+                          'FOLLOW-UP message on an existing thread and still needs a reply.'),
                     cm.Id
                 ));
             }
-            toUpdate.add(cm);
         }
         if (!toUpdate.isEmpty()) update toUpdate;
-        if (!optOuts.isEmpty())  update optOuts;
+        if (!optOuts.isEmpty())  update optOuts.values();
 
         // Raised AFTER the status DML so a notification failure can never roll back detection.
         // OA_AlertService.raiseAll swallows its own errors for the same reason.

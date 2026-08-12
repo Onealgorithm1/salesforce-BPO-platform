@@ -164,6 +164,57 @@ private class OA_ReplyStatusService_Test {
     }
 
     @isTest
+    static void testUnsubscribeAfterAReplyStillOptsLeadOut() {
+        // The case the first version of this fix missed, and the one that actually happens:
+        // the prospect replies normally (-> 'Replied'), then later asks to unsubscribe. The old
+        // query filtered terminal statuses out entirely, so the opt-out never ran and the Lead
+        // stayed emailable by any other campaign.
+        Campaign c = makeTestCampaign();
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+
+        Lead l = makeLead('changed.mind@example.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Replied');
+
+        Test.startTest();
+        sendInbound('changed.mind@example.com', 'Please UNSUBSCRIBE me');
+        Test.stopTest();
+
+        System.assertEquals(true,
+            [SELECT HasOptedOutOfEmail FROM Lead WHERE Id = :l.Id].HasOptedOutOfEmail,
+            'An unsubscribe must opt the Lead out even when the member is already terminal');
+        System.assertEquals('Replied',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'A terminal status is reporting data and must not be overwritten by the opt-out');
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject LIKE 'Unsubscribe request%'],
+            'The unsubscribe must still raise a visible alert');
+    }
+
+    @isTest
+    static void testSecondReplyFromTerminalMemberStillAlerts() {
+        // A prospect chasing for the second time was previously invisible: already 'Replied',
+        // so excluded by the query and no alert raised — silence for the person most owed a reply.
+        Campaign c = makeTestCampaign();
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+
+        Lead l = makeLead('chasing@example.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Replied');
+
+        Test.startTest();
+        sendInbound('chasing@example.com', 'RE: Teaming - following up again');
+        Test.stopTest();
+
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject LIKE 'Reply received%'],
+            'A follow-up message from an already-Replied member must still alert');
+        System.assertEquals('Replied',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'Alerting must not change an existing terminal status');
+    }
+
+    @isTest
     static void testFreemailInboundStaysSilent() {
         Campaign c = makeTestCampaign();
         OA_ReplyStatusService.testCampaignIdOverride = c.Id;
