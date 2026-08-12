@@ -24,9 +24,14 @@
 public with sharing class OA_AlertService {
 
     private static final String NOTIF_TYPE = 'OA_Pipeline_Alert';
-    // Salesforce caps custom-notification sends per transaction. Staying under it matters more
+    // Salesforce caps custom-notification sends per TRANSACTION. Staying under it matters more
     // than delivering every bell, because breaching it throws an uncatchable LimitException.
     private static final Integer MAX_NOTIFICATIONS = 10;
+    // Deliberately a static, never reset: Apex statics live for the transaction, which is the
+    // scope the governor actually counts. A per-call counter was not enough — one inbound batch
+    // can call raiseAll() for exact matches and then raise() again per domain-fallback address,
+    // and each call starting from zero could still push the transaction past the cap.
+    @TestVisible private static Integer notificationsSent = 0;
 
     @TestVisible private static Id testRecipientOverride;
     @TestVisible private static Boolean lastTaskInsertFailed = false;
@@ -92,19 +97,18 @@ public with sharing class OA_AlertService {
         if (types.isEmpty()) return;   // type not deployed — Task + email still fire
 
         Set<String> recipients = new Set<String>{ String.valueOf(recipient) };
-        Integer sent = 0;
         for (Alert a : alerts) {
             // Hard stop before the per-transaction custom-notification cap. A governor
             // LimitException is NOT catchable by the try/catch below, so overrunning here would
             // roll back the caller's status and opt-out writes — exactly what the failure
             // contract forbids. The Task and email channels still carry every alert, so nothing
             // is lost; only the bell is truncated.
-            if (sent >= MAX_NOTIFICATIONS) {
-                System.debug('[OA_AlertService] notification cap reached; '
-                    + (alerts.size() - sent) + ' alert(s) delivered by Task + email only.');
+            if (notificationsSent >= MAX_NOTIFICATIONS) {
+                System.debug('[OA_AlertService] transaction notification cap reached; '
+                    + 'remaining alert(s) delivered by Task + email only.');
                 break;
             }
-            sent++;
+            notificationsSent++;
             Id linkId = (a.targetId != null) ? a.targetId : recipient;
             try {
                 Messaging.CustomNotification n = new Messaging.CustomNotification();
