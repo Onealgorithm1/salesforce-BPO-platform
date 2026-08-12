@@ -46,6 +46,27 @@
                     <stringValue>Unsubscribed</stringValue>
                 </rightValue>
             </conditions>
+            <conditions>
+                <leftValueReference>varCampaignMember.Status</leftValueReference>
+                <operator>NotEqualTo</operator>
+                <rightValue>
+                    <stringValue>Interested</stringValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>varCampaignMember.Status</leftValueReference>
+                <operator>NotEqualTo</operator>
+                <rightValue>
+                    <stringValue>Call Completed</stringValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>varCampaignMember.Status</leftValueReference>
+                <operator>NotEqualTo</operator>
+                <rightValue>
+                    <stringValue>Reply - Unverified</stringValue>
+                </rightValue>
+            </conditions>
             <connector>
                 <targetReference>Check_Unsubscribe</targetReference>
             </connector>
@@ -99,7 +120,7 @@
             <label>Unsubscribe</label>
         </rules>
     </decisions>
-    <description>Detects inbound emails from campaign leads via EAC. Matches by FromAddress to Lead.Email (RelatedToId is null for Lead-targeted emails by Salesforce design). UNSUBSCRIBE in subject sets status to Unsubscribed and opts lead out of email. All other replies set status to Replied. Both stop the outreach sequence.</description>
+    <description>Detects inbound emails from campaign leads via EAC. Matches by FromAddress to Lead.Email (RelatedToId is null for Lead-targeted emails by Salesforce design). UNSUBSCRIBE in subject sets status to Unsubscribed and opts lead out of email. All other replies set status to Replied. Both stop the outreach sequence. 2026-08-12: the Check_CM_Found gate now excludes ALL SEVEN statuses that OA_ReplyStatusService.STOP_STATUSES treats as terminal. It previously excluded only four, so a member at Interested, Call Completed or Reply - Unverified was treated as active here and overwritten with Replied - erasing the outcome the Apex had deliberately preserved. Apex runs first and already handles these; keep the two lists in step.</description>
     <environments>Default</environments>
     <interviewLabel>OA Reply Detection {!$Flow.CurrentDateTime}</interviewLabel>
     <label>OA Reply Detection</label>
