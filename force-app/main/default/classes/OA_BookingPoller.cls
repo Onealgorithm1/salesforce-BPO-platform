@@ -36,7 +36,6 @@ public class OA_BookingPoller implements Schedulable {
         // (populating WhoId) before the poller runs. Idempotency is enforced inside
         // processBookingEvent() using Lead.Meeting_Booked_Date__c as the processed flag.
         Datetime lookback = Datetime.now().addMinutes(-20);
-        String marker = '%' + cfg.Booking_Marker__c + '%';
 
         List<Event> bookingEvents = [
             SELECT Id, Subject, StartDateTime, EndDateTime, Description, OwnerId, WhoId
@@ -45,10 +44,36 @@ public class OA_BookingPoller implements Schedulable {
             AND OwnerId = :UserInfo.getUserId()
         ];
 
-        // Filter for booking marker in Apex — Event.Description is not filterable in SOQL
+        // Two ways in, deliberately carrying different confidence.
+        //
+        // 1. MARKER — the description contains Booking_Marker__c ("bookings page"), so this is a
+        //    self-service booking off the Bookings/Cal page. Prospect intent is known: domain
+        //    fallback is allowed, and an unmatched attendee raises a VISIBLE alert.
+        //
+        // 2. LINKED — no marker, but Einstein Activity Capture attached someone (WhoId set).
+        //    This is the case that was silently dropped. A meeting booked by hand from Outlook
+        //    carries no Bookings text, so it failed the marker test and never reached the
+        //    pipeline below — no Meeting Booked, no Lead stamp, no PREP task, and no correction
+        //    of EAC's habit of linking WhoId to an internal colleague. Three real prospect
+        //    meetings (RDX Enterprise, ICM Federal, Investment Science) were lost this way on
+        //    2026-08-12 alone, two of them pointing at our own Enterprise Architect.
+        //    Confidence is lower here — an internal or vendor meeting can also be linked — so
+        //    these require an EXACT email match and stay silent when they miss.
+        //
+        // ponytail: WhoId != null is the cheap gate. It costs no Graph callout and cleanly
+        // separates real meetings from noise like recurring vendor webinars, which EAC leaves
+        // unlinked. Ceiling: a prospect meeting EAC fails to link at all is still missed.
+        // Upgrade path — resolve attendees through Graph for every event in the window, at the
+        // cost of one callout each.
         List<Event> filteredEvents = new List<Event>();
+        Set<Id>     markerEventIds = new Set<Id>();
         for (Event ev : bookingEvents) {
-            if (ev.Description != null && ev.Description.containsIgnoreCase(cfg.Booking_Marker__c)) {
+            Boolean hasMarker = ev.Description != null
+                                && ev.Description.containsIgnoreCase(cfg.Booking_Marker__c);
+            if (hasMarker) {
+                markerEventIds.add(ev.Id);
+                filteredEvents.add(ev);
+            } else if (ev.WhoId != null) {
                 filteredEvents.add(ev);
             }
         }
@@ -80,7 +105,8 @@ public class OA_BookingPoller implements Schedulable {
 
         for (Event ev : filteredEvents) {
             try {
-                processBookingEvent(ev, accessToken, cfg.Graph_User_OID__c, campaignId, alertOwnerId);
+                processBookingEvent(ev, accessToken, cfg.Graph_User_OID__c, campaignId, alertOwnerId,
+                                    markerEventIds.contains(ev.Id));
             } catch (Exception e) {
                 System.debug('[OA_BookingPoller] Error processing Event ' + ev.Id + ': ' + e.getMessage());
                 createAlertTask(
@@ -96,7 +122,8 @@ public class OA_BookingPoller implements Schedulable {
 
     // ── Process a single booking event ──────────────────────────────────────────
     private static void processBookingEvent(Event ev, String token, String graphUserOid,
-                                             String campaignId, String alertOwnerId) {
+                                             String campaignId, String alertOwnerId,
+                                             Boolean isMarkerBooking) {
         System.debug('[OA_BookingPoller] Processing Event: ' + ev.Subject + ' (' + ev.Id + ')');
 
         Lead lead;
@@ -129,6 +156,14 @@ public class OA_BookingPoller implements Schedulable {
             String attendeeEmail = getAttendeeEmail(ev, token, graphUserOid);
 
             if (attendeeEmail == null) {
+                // Only a marker booking is known to be a prospect meeting, so only it is worth
+                // waking someone for. Alerting on every unresolved linked event would bury the
+                // real ones under internal and vendor noise.
+                if (!isMarkerBooking) {
+                    System.debug('[OA_BookingPoller] Non-marker Event ' + ev.Id
+                        + ' — no attendee resolved from Graph. Exiting quietly.');
+                    return;
+                }
                 createAlertTask(
                     'ALERT: Booking received — attendee email not found in Graph',
                     'Meeting: ' + ev.Subject +
@@ -160,6 +195,16 @@ public class OA_BookingPoller implements Schedulable {
             ];
 
             if (leads.isEmpty()) {
+                // Non-marker events get EXACT matches only. A vendor call or an internal meeting
+                // must never flip a campaign member's status on a domain guess, and must never
+                // raise an alert — that noise is precisely what would make the widened gate
+                // unusable and get it reverted.
+                if (!isMarkerBooking) {
+                    System.debug('[OA_BookingPoller] Non-marker Event ' + ev.Id
+                        + ' — no exact Lead match for ' + attendeeEmail + '. Exiting quietly.');
+                    return;
+                }
+
                 // Exact match missed — try a DOMAIN match before giving up (the real case:
                 // info@sulphoor.com booking against a named lead at the same company). Never
                 // auto-confirms Meeting Booked — a single candidate is flagged for human review.
