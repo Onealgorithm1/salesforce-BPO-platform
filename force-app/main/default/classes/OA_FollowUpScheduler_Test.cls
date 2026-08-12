@@ -38,6 +38,31 @@ private class OA_FollowUpScheduler_Test {
     }
 
     @isTest
+    static void testPastEndDateCampaignSendsNothing() {
+        // Campaign.EndDate used to be a label only — nothing in code honored it, so a finished
+        // campaign kept sending until someone manually aborted the job.
+        Campaign c   = makeTestCampaign();
+        Lead    lead = makeTestLead('ended-test@example.com');
+        c.EndDate = Date.today().addDays(-1);
+        update c;
+
+        CampaignMember cm = new CampaignMember(CampaignId = c.Id, LeadId = lead.Id, Status = 'Day 1 Sent');
+        insert cm;
+
+        OA_FollowUpScheduler.testCampaignIdOverride = c.Id;
+        OA_FollowUpScheduler.nowOverride            = DateTime.now().addDays(30);
+        OA_EmailSender.bypassActualSendForTest      = true;
+
+        Test.startTest();
+        OA_FollowUpScheduler.sendFollowUps();
+        Test.stopTest();
+
+        System.assertEquals('Day 1 Sent',
+            [SELECT Status FROM CampaignMember WHERE Id = :cm.Id].Status,
+            'A campaign past its EndDate must not send follow-ups');
+    }
+
+    @isTest
     static void testDay1SentAdvancesToDay3() {
         // Proves the follow-up pipeline runs end-to-end for a Day 1 Sent member.
         // nowOverride pushes "today" 30 days forward so any CM created now meets

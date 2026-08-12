@@ -28,9 +28,25 @@ public class OA_FollowUpScheduler implements Schedulable {
 
         String activeCampaignId = testCampaignIdOverride != null ? testCampaignIdOverride : CAMPAIGN_ID;
 
+        // Campaign.EndDate was previously a label only — nothing in code honored it, so a
+        // finished campaign kept sending indefinitely. Stop on inactive or past-end.
+        for (Campaign c : [SELECT IsActive, EndDate FROM Campaign WHERE Id = :activeCampaignId LIMIT 1]) {
+            if (c.IsActive != true || (c.EndDate != null && c.EndDate < Date.today())) {
+                System.debug('[OA_FollowUpScheduler] Campaign inactive or past EndDate; no follow-ups sent.');
+                return;
+            }
+        }
+
         Integer queryLimit = Math.min(MAX_SYNC_BATCH, OA_SendGovernor.remainingToday());
         if (queryLimit <= 0) return;
 
+        // ponytail: ORDER BY LastModifiedDate ASC is one clause serving three cohorts — for
+        // 'Day 1 Sent' it is ~enrollment time, for the others ~when the last touch went out, so
+        // it approximates "waiting longest" everywhere. Ceiling: any unrelated field edit on a
+        // CampaignMember resets its position in the queue. Upgrade path if that ever bites —
+        // a dedicated Last_Touch_Sent__c datetime stamped by OA_EmailSender.
+        // Without any ordering the backlog was served arbitrarily and the oldest cohort
+        // (1,360 members stranded at Day 1 since July 2026) could starve indefinitely.
         List<CampaignMember> members = [
             SELECT Id, LeadId, Status, CreatedDate, LastModifiedDate
             FROM CampaignMember
@@ -43,6 +59,7 @@ public class OA_FollowUpScheduler implements Schedulable {
                   (Status = 'Day 3 Sent'  AND LastModifiedDate <= :day5Cutoff)  OR
                   (Status = 'Day 5 Sent'  AND LastModifiedDate <= :day10Cutoff)
               )
+            ORDER BY LastModifiedDate ASC
             LIMIT :queryLimit
         ];
 

@@ -22,11 +22,15 @@ private class OA_ReplyStatusService_Test {
     }
 
     private static void sendInbound(String fromAddress) {
+        sendInbound(fromAddress, 'RE: Teaming');
+    }
+
+    private static void sendInbound(String fromAddress, String subject) {
         insert new EmailMessage(
             Incoming    = true,
             FromAddress = fromAddress,
             ToAddress   = 'lrubino@onealgorithm.com',
-            Subject     = 'RE: Teaming',
+            Subject     = subject,
             TextBody    = 'Interested, call me.',
             Status      = '3'
         );
@@ -105,6 +109,58 @@ private class OA_ReplyStatusService_Test {
         System.assertEquals(1,
             [SELECT COUNT() FROM Task WHERE Subject LIKE 'Reply — unverified domain match%'],
             'A visible alert must accompany the unverified flag');
+    }
+
+    @isTest
+    static void testExactReplyRaisesAlert() {
+        Campaign c = makeTestCampaign();
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+
+        Lead l = makeLead('hot.prospect@example.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+
+        Test.startTest();
+        sendInbound('hot.prospect@example.com');
+        Test.stopTest();
+
+        System.assertEquals('Replied',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'Exact-address inbound must still flip the member to Replied');
+        // The regression this guards: alerts fired only on the domain-fallback branch, so
+        // confirmed replies were silently logged and sat unanswered.
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject LIKE 'Reply received%'],
+            'An exact-match reply must raise a visible alert, not just log activity');
+    }
+
+    @isTest
+    static void testUnsubscribeSetsStatusAndOptsLeadOut() {
+        Campaign c = makeTestCampaign();
+        insert new CampaignMemberStatus(CampaignId = c.Id, Label = 'Unsubscribed',
+            HasResponded = false, SortOrder = 7);
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+        OA_AlertService.testRecipientOverride = UserInfo.getUserId();
+
+        Lead l = makeLead('done@example.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+
+        Test.startTest();
+        sendInbound('done@example.com', 'Please UNSUBSCRIBE me');
+        Test.stopTest();
+
+        // The compliance hole: Apex set 'Replied' first, which made the OA_Reply_Detection Flow
+        // take its "already terminal" exit before reaching its own unsubscribe branch — so
+        // HasOptedOutOfEmail stayed false and a second campaign would still have emailed them.
+        System.assertEquals('Unsubscribed',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'An unsubscribe request must set Unsubscribed, never Replied');
+        System.assertEquals(true,
+            [SELECT HasOptedOutOfEmail FROM Lead WHERE Id = :l.Id].HasOptedOutOfEmail,
+            'An unsubscribe request must opt the Lead out org-wide, not just stop this campaign');
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE Subject LIKE 'Unsubscribe request%'],
+            'An unsubscribe must raise a visible alert');
     }
 
     @isTest

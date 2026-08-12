@@ -11,10 +11,24 @@
  * different mailbox at the same company (it happened once: adminasst@ replying
  * for sti@) is NOT caught — domain-level matching risks false positives on
  * shared domains. Upgrade path: maintain a per-lead alternate-address list.
+ *
+ * UNSUBSCRIBE handling lives here, NOT only in the OA_Reply_Detection Flow.
+ * Both run after-save on EmailMessage insert and Apex goes first. The Flow's entry
+ * gate (OA_Reply_Detection.flow-meta.xml:5-54) requires Status != 'Replied' BEFORE it
+ * reaches its unsubscribe check at line 77 — so once this class set 'Replied', the Flow
+ * took its "Already Terminal" exit and Lead.HasOptedOutOfEmail was never set. This
+ * campaign still stopped mailing them ('Replied' is a stop status), which is why it went
+ * unnoticed, but the org-wide opt-out flag stayed false — so a SECOND campaign would have
+ * emailed people who explicitly asked to be removed. Setting 'Unsubscribed' here makes the
+ * Flow's gate exclude the record for the right reason, with no change to that protected Flow.
+ *
+ * Alerting: every exact match raises an alert. Previously only the domain-fallback branch
+ * did, so confirmed replies sat unanswered (11 prospects up to 19 days, 2026-08 audit).
  */
 public with sharing class OA_ReplyStatusService {
 
-    private static final String CAMPAIGN_ID = '701Pn00001ZOyj8IAD';
+    private static final String CAMPAIGN_ID       = '701Pn00001ZOyj8IAD';
+    private static final String UNSUBSCRIBE_TOKEN = 'UNSUBSCRIBE';
 
     @TestVisible private static String testCampaignIdOverride;
 
@@ -26,19 +40,26 @@ public with sharing class OA_ReplyStatusService {
 
     /** Trigger entry point — bulk-safe, no-op for outgoing or non-matching messages. */
     public static void markReplied(List<EmailMessage> messages) {
-        Set<String> fromAddresses = new Set<String>();
+        // addr -> did any inbound message from that address ask to unsubscribe?
+        Map<String, Boolean> unsubByAddress = new Map<String, Boolean>();
         for (EmailMessage m : messages) {
-            if (m.Incoming == true && String.isNotBlank(m.FromAddress)) {
-                fromAddresses.add(m.FromAddress.toLowerCase());
-            }
+            if (m.Incoming != true || String.isBlank(m.FromAddress)) continue;
+            String  addr    = m.FromAddress.toLowerCase();
+            Boolean isUnsub = String.isNotBlank(m.Subject)
+                              && m.Subject.toUpperCase().contains(UNSUBSCRIBE_TOKEN);
+            unsubByAddress.put(addr, unsubByAddress.get(addr) == true || isUnsub);
         }
-        if (fromAddresses.isEmpty()) return;
+        if (unsubByAddress.isEmpty()) return;
 
+        Set<String> fromAddresses = unsubByAddress.keySet();
         String activeCampaignId = testCampaignIdOverride != null ? testCampaignIdOverride : CAMPAIGN_ID;
 
         // Exact-address match — the primary, auto-confirmed path.
-        List<CampaignMember> toUpdate = new List<CampaignMember>();
-        Set<String> matchedAddresses = new Set<String>();
+        List<CampaignMember>        toUpdate         = new List<CampaignMember>();
+        List<Lead>                  optOuts          = new List<Lead>();
+        List<OA_AlertService.Alert> alerts           = new List<OA_AlertService.Alert>();
+        Set<String>                 matchedAddresses = new Set<String>();
+
         for (CampaignMember cm : [
             SELECT Id, LeadId, Lead.Email
             FROM CampaignMember
@@ -47,11 +68,38 @@ public with sharing class OA_ReplyStatusService {
               AND Status NOT IN :STOP_STATUSES
               AND Lead.Email IN :fromAddresses
         ]) {
-            cm.Status = 'Replied';
+            String addr = cm.Lead.Email != null ? cm.Lead.Email.toLowerCase() : null;
+            if (addr != null) matchedAddresses.add(addr);
+
+            if (addr != null && unsubByAddress.get(addr) == true) {
+                cm.Status = 'Unsubscribed';
+                optOuts.add(new Lead(Id = cm.LeadId, HasOptedOutOfEmail = true));
+                alerts.add(new OA_AlertService.Alert(
+                    'Unsubscribe request — ' + addr,
+                    'Inbound email from ' + addr + ' asked to unsubscribe (subject contains "' +
+                    UNSUBSCRIBE_TOKEN + '").\nCampaignMember ' + cm.Id + ' set to "Unsubscribed" and ' +
+                    'Lead ' + cm.LeadId + ' opted out of email org-wide.',
+                    cm.Id
+                ));
+            } else {
+                cm.Status = 'Replied';
+                alerts.add(new OA_AlertService.Alert(
+                    'Reply received — ' + addr,
+                    'Inbound email from ' + addr + ' matched CampaignMember ' + cm.Id +
+                    ' (Lead ' + cm.LeadId + ') by EXACT address.\n' +
+                    'Status set to "Replied" — the sequence is halted. This prospect is waiting ' +
+                    'on a human response.',
+                    cm.Id
+                ));
+            }
             toUpdate.add(cm);
-            if (cm.Lead.Email != null) matchedAddresses.add(cm.Lead.Email.toLowerCase());
         }
         if (!toUpdate.isEmpty()) update toUpdate;
+        if (!optOuts.isEmpty())  update optOuts;
+
+        // Raised AFTER the status DML so a notification failure can never roll back detection.
+        // OA_AlertService.raiseAll swallows its own errors for the same reason.
+        if (!alerts.isEmpty()) OA_AlertService.raiseAll(alerts);
 
         // Domain fallback for inbound addresses that matched no campaign lead exactly.
         // ponytail: one SOQL + up to one DML per unmatched address. Ceiling — the mailbox sync
