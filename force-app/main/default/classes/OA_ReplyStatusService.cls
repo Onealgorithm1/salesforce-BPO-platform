@@ -38,6 +38,67 @@ public with sharing class OA_ReplyStatusService {
         'Reply - Unverified'
     };
 
+    // Phrases a human actually writes when they want out. Checked against the NEW text of a
+    // reply only — see newTextOf. The bare word UNSUBSCRIBE is deliberately NOT in this list
+    // for the body path: every outbound template ends "click here to unsubscribe", so a reply
+    // that quotes the thread carries that word back to us. Matching it in the body would opt
+    // out every single person who replies and look like it worked.
+    private static final List<String> OPT_OUT_PHRASES = new List<String>{
+        'UNSUBSCRIBE ME', 'REMOVE ME', 'TAKE ME OFF', 'OPT OUT', 'OPT-OUT',
+        'STOP EMAILING', 'NO LONGER WISH TO RECEIVE', 'DO NOT EMAIL', 'DON\'T EMAIL'
+    };
+
+    // Where a mail client starts quoting the message being replied to. Everything from the
+    // first of these onward is THEIR words, not the sender's, and must not be scanned.
+    private static final List<String> QUOTE_MARKERS = new List<String>{
+        '-----ORIGINAL MESSAGE-----', '________________________________',
+        'FROM:', 'SENT FROM MY', 'WROTE:', 'ON MON', 'ON TUE', 'ON WED', 'ON THU',
+        'ON FRI', 'ON SAT', 'ON SUN'
+    };
+
+    /**
+     * The portion of a reply the human actually typed, upper-cased.
+     *
+     * ponytail: truncates at the first quote marker or the first quoted ('>') line, whichever
+     * comes first. Ceiling — a client that quotes with none of these markers (rare; most use
+     * "On <date> ... wrote:" or the Outlook divider) would have its quoted text scanned. The
+     * phrase list is specific enough that a quoted footer still will not match, so the failure
+     * mode is a missed opt-out, never a false one. Upgrade path is a proper MIME/reply parser.
+     */
+    @TestVisible
+    private static String newTextOf(String body) {
+        if (String.isBlank(body)) return '';
+        String up  = body.toUpperCase();
+        Integer cut = up.length();
+        for (String marker : QUOTE_MARKERS) {
+            Integer i = up.indexOf(marker);
+            if (i >= 0 && i < cut) cut = i;
+        }
+        Integer gt = up.indexOf('\n>');
+        if (gt >= 0 && gt < cut) cut = gt;
+        return up.substring(0, cut);
+    }
+
+    /**
+     * Did this inbound message ask to be removed?
+     *
+     * Subject keeps the original bare-token rule — a subject is written by the replier and is
+     * not quoted back. The body uses explicit phrases against the new text only, because the
+     * word "unsubscribe" arrives in every quoted footer.
+     */
+    @TestVisible
+    private static Boolean asksToOptOut(EmailMessage m) {
+        if (String.isNotBlank(m.Subject) && m.Subject.toUpperCase().contains(UNSUBSCRIBE_TOKEN)) {
+            return true;
+        }
+        String newText = newTextOf(m.TextBody);
+        if (String.isBlank(newText)) return false;
+        for (String phrase : OPT_OUT_PHRASES) {
+            if (newText.contains(phrase)) return true;
+        }
+        return false;
+    }
+
     /** Trigger entry point — bulk-safe, no-op for outgoing or non-matching messages. */
     public static void markReplied(List<EmailMessage> messages) {
         // addr -> did any inbound message from that address ask to unsubscribe?
@@ -45,8 +106,7 @@ public with sharing class OA_ReplyStatusService {
         for (EmailMessage m : messages) {
             if (m.Incoming != true || String.isBlank(m.FromAddress)) continue;
             String  addr    = m.FromAddress.toLowerCase();
-            Boolean isUnsub = String.isNotBlank(m.Subject)
-                              && m.Subject.toUpperCase().contains(UNSUBSCRIBE_TOKEN);
+            Boolean isUnsub = asksToOptOut(m);
             unsubByAddress.put(addr, unsubByAddress.get(addr) == true || isUnsub);
         }
         if (unsubByAddress.isEmpty()) return;
@@ -128,7 +188,29 @@ public with sharing class OA_ReplyStatusService {
             }
         }
         if (!toUpdate.isEmpty()) update toUpdate;
-        if (!optOuts.isEmpty())  update optOuts.values();
+
+        // Partial-save, deliberately. An all-or-none `update` here rolls back the CampaignMember
+        // suppression above whenever a Lead validation rule, trigger or record lock rejects the
+        // opt-out — leaving someone who just asked to be removed sitting at 'Day 1 Sent' with the
+        // follow-up scheduler still serving them. That is the precise failure this class exists to
+        // prevent, so a failed org-wide opt-out must not undo the campaign-level stop.
+        if (!optOuts.isEmpty()) {
+            List<Lead> optOutList = optOuts.values();
+            Database.SaveResult[] results = Database.update(optOutList, false);
+            for (Integer i = 0; i < results.size(); i++) {
+                if (results[i].isSuccess()) continue;
+                String errs = '';
+                for (Database.Error e : results[i].getErrors()) errs += e.getMessage() + '; ';
+                alerts.add(new OA_AlertService.Alert(
+                    'OPT-OUT WRITE FAILED — Lead ' + optOutList[i].Id,
+                    'A prospect asked to be removed but Lead.HasOptedOutOfEmail could NOT be set.\n' +
+                    'Errors: ' + errs + '\n' +
+                    'This campaign has still stopped mailing them (the CampaignMember status was ' +
+                    'saved), but EVERY OTHER campaign will keep sending. Set the flag by hand.',
+                    optOutList[i].Id
+                ));
+            }
+        }
 
         // Raised AFTER the status DML so a notification failure can never roll back detection.
         // OA_AlertService.raiseAll swallows its own errors for the same reason.

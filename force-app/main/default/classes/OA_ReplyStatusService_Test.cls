@@ -26,15 +26,28 @@ private class OA_ReplyStatusService_Test {
     }
 
     private static void sendInbound(String fromAddress, String subject) {
+        sendInbound(fromAddress, subject, 'Interested, call me.');
+    }
+
+    private static void sendInbound(String fromAddress, String subject, String body) {
         insert new EmailMessage(
             Incoming    = true,
             FromAddress = fromAddress,
             ToAddress   = 'lrubino@onealgorithm.com',
             Subject     = subject,
-            TextBody    = 'Interested, call me.',
+            TextBody    = body,
             Status      = '3'
         );
     }
+
+    // The quoted footer every outbound template carries. Any reply that quotes the thread
+    // brings this back to us, which is why the body scan must never match a bare
+    // "unsubscribe". See OA_ReplyStatusService.OPT_OUT_PHRASES.
+    private static final String QUOTED_FOOTER =
+        '\n\nOn Tue, Aug 12, 2026 at 9:04 AM One Algorithm LLC wrote:\n' +
+        '> Hello, following up on federal teaming.\n' +
+        '> If you no longer wish to receive further emails from One Algorithm LLC,\n' +
+        '> click here to unsubscribe\n';
 
     @isTest
     static void testInboundReplyFlipsMemberToReplied() {
@@ -228,5 +241,67 @@ private class OA_ReplyStatusService_Test {
         System.assertEquals('Day 1 Sent',
             [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
             'A freemail domain must never trigger an unverified flag');
+    }
+
+    // ---- body-text opt-out detection -------------------------------------------------
+    // Most people who want out write a polite sentence; they do not type UNSUBSCRIBE into
+    // the subject line. Detecting only the subject left that whole population marked
+    // 'Replied' with HasOptedOutOfEmail still false, mailable by every other campaign.
+
+    @isTest
+    static void testPlainEnglishOptOutInBodyIsHonoured() {
+        Campaign c = makeTestCampaign();
+        insert new CampaignMemberStatus(CampaignId = c.Id, Label = 'Unsubscribed',
+            IsDefault = false, HasResponded = true, SortOrder = 6);
+        Lead l = makeLead('polite@primecontractor.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+
+        Test.startTest();
+        sendInbound('polite@primecontractor.com', 'RE: Teaming',
+            'Thanks but please remove me from your list.' + QUOTED_FOOTER);
+        Test.stopTest();
+
+        System.assertEquals(true,
+            [SELECT HasOptedOutOfEmail FROM Lead WHERE Id = :l.Id].HasOptedOutOfEmail,
+            'A plain-English removal request in the body must set the org-wide opt-out');
+        System.assertEquals('Unsubscribed',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'A body opt-out must also stop this campaign');
+    }
+
+    @isTest
+    static void testQuotedUnsubscribeFooterIsNotAnOptOut() {
+        Campaign c = makeTestCampaign();
+        Lead l = makeLead('keen@primecontractor.com');
+        insert new CampaignMember(CampaignId = c.Id, LeadId = l.Id, Status = 'Day 1 Sent');
+        OA_ReplyStatusService.testCampaignIdOverride = c.Id;
+
+        Test.startTest();
+        // A genuinely interested reply that simply quotes the thread. The quoted footer
+        // contains "click here to unsubscribe" and "no longer wish to receive" — matching
+        // either would opt out everyone who replies and look like it worked.
+        sendInbound('keen@primecontractor.com', 'RE: Teaming',
+            'Yes, very interested. Are you free Thursday?' + QUOTED_FOOTER);
+        Test.stopTest();
+
+        System.assertEquals(false,
+            [SELECT HasOptedOutOfEmail FROM Lead WHERE Id = :l.Id].HasOptedOutOfEmail,
+            'A quoted unsubscribe footer must NEVER opt the prospect out');
+        System.assertEquals('Replied',
+            [SELECT Status FROM CampaignMember WHERE CampaignId = :c.Id AND LeadId = :l.Id].Status,
+            'An interested reply quoting the footer is a reply, not an unsubscribe');
+    }
+
+    @isTest
+    static void testNewTextOfTruncatesAtQuoteMarkers() {
+        System.assertEquals(false,
+            OA_ReplyStatusService.newTextOf('No thanks.' + QUOTED_FOOTER).contains('UNSUBSCRIBE'),
+            'Quoted text must be stripped before the opt-out phrase scan');
+        System.assertEquals(true,
+            OA_ReplyStatusService.newTextOf('Please TAKE ME OFF the list.').contains('TAKE ME OFF'),
+            'Text the human actually typed must survive truncation');
+        System.assertEquals('', OA_ReplyStatusService.newTextOf(null),
+            'A null body must be treated as empty, not throw');
     }
 }
