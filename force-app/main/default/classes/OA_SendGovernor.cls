@@ -44,6 +44,22 @@ public class OA_SendGovernor {
         upsert cfg;
     }
 
+    /**
+     * True when a campaign is still eligible to send. Campaign.EndDate used to be a label —
+     * nothing in code honored it, so a finished campaign kept sending until someone manually
+     * aborted the job. It lives here rather than in one scheduler because BOTH the drip
+     * (enrollment, which triggers the Day-1 send via OA_EDWOSB_Outreach_Sequence) and the
+     * follow-up path must honor it; guarding only follow-ups would still let the next drip
+     * run enroll and send Day 1 for a campaign that had already ended.
+     */
+    public static Boolean isCampaignSendable(Id campaignId) {
+        if (campaignId == null) return false;
+        for (Campaign c : [SELECT IsActive, EndDate FROM Campaign WHERE Id = :campaignId LIMIT 1]) {
+            return c.IsActive == true && (c.EndDate == null || c.EndDate >= Date.today());
+        }
+        return false;   // campaign not found — fail closed
+    }
+
     public static Boolean isBusinessDay() {
         Date   today = Date.today();
         String dow   = DateTime.newInstance(today, Time.newInstance(12, 0, 0, 0)).format('EEEE');

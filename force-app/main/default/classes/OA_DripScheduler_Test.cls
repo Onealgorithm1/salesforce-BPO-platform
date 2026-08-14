@@ -55,6 +55,44 @@ private class OA_DripScheduler_Test {
     }
 
     @isTest
+    static void testPastEndDateCampaignEnrollsNobody() {
+        // Guarding only the follow-up path left this one open: enrollment inserts a
+        // CampaignMember, which fires the outreach Flow and sends Day 1 — so an ended campaign
+        // could keep starting brand-new sequences even while follow-ups correctly stopped.
+        Campaign c = makeTestCampaign();
+        c.EndDate = Date.today().addDays(-1);
+        update c;
+        OA_DripScheduler.testCampaignIdOverride = c.Id;
+
+        makeWaveLead('after-end-1@example.com');
+        makeWaveLead('after-end-2@example.com');
+
+        Test.startTest();
+        OA_DripScheduler.addLeadsToCampaign();
+        Test.stopTest();
+
+        System.assertEquals(0, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            'A campaign past its EndDate must not enrol anyone');
+    }
+
+    @isTest
+    static void testInactiveCampaignEnrollsNobody() {
+        Campaign c = makeTestCampaign();
+        c.IsActive = false;
+        update c;
+        OA_DripScheduler.testCampaignIdOverride = c.Id;
+
+        makeWaveLead('inactive-1@example.com');
+
+        Test.startTest();
+        OA_DripScheduler.addLeadsToCampaign();
+        Test.stopTest();
+
+        System.assertEquals(0, [SELECT COUNT() FROM CampaignMember WHERE CampaignId = :c.Id],
+            'An inactive campaign must not enrol anyone');
+    }
+
+    @isTest
     static void testWaveLeads_areEnrolled() {
         Campaign c = makeTestCampaign();
         OA_DripScheduler.testCampaignIdOverride = c.Id;
