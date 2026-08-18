@@ -109,6 +109,48 @@ private class OA_FollowUpScheduler_Test {
     }
 
     @isTest
+    static void testLaterStageCohortIsServedFirst() {
+        // Guards the priority inversion: ORDER BY LastModifiedDate ASC alone put the cold
+        // Day-1 backlog (untouched since enrollment) ahead of every in-flight member, so
+        // nobody at Day 3 got their Day 5 until the whole Day-1 pile drained.
+        // Cap of 1 makes the queue serve exactly one member, so the winner IS the ordering.
+        Campaign c = makeTestCampaign();
+
+        insert new OA_Campaign_Settings__c(
+            SetupOwnerId      = UserInfo.getOrganizationId(),
+            Daily_Send_Cap__c = 1,
+            Sends_Today__c    = 0,
+            Cap_Reset_Date__c = Date.today()
+        );
+
+        Lead older  = makeTestLead('order-day1@example.com');
+        Lead newer  = makeTestLead('order-day3@example.com');
+
+        // Insert the Day-1 member FIRST so its LastModifiedDate can only be older or equal —
+        // under the old ordering it would always win, under the fix it never does.
+        CampaignMember day1 = new CampaignMember(CampaignId = c.Id, LeadId = older.Id, Status = 'Day 1 Sent');
+        insert day1;
+        CampaignMember day3 = new CampaignMember(CampaignId = c.Id, LeadId = newer.Id, Status = 'Day 3 Sent');
+        insert day3;
+
+        OA_FollowUpScheduler.testCampaignIdOverride = c.Id;
+        OA_FollowUpScheduler.nowOverride            = DateTime.now().addDays(30);
+        OA_EmailSender.bypassActualSendForTest      = true;
+
+        Test.startTest();
+        OA_FollowUpScheduler.sendFollowUps();
+        Test.stopTest();
+
+        Map<Id, CampaignMember> after = new Map<Id, CampaignMember>(
+            [SELECT Id, Status FROM CampaignMember WHERE Id IN (:day1.Id, :day3.Id)]);
+
+        System.assertEquals('Day 5 Sent', after.get(day3.Id).Status,
+            'The later-stage cohort (Day 3 Sent) must be served first');
+        System.assertEquals('Day 1 Sent', after.get(day1.Id).Status,
+            'The cold Day-1 backlog must not consume the slot ahead of an in-flight member');
+    }
+
+    @isTest
     static void testStopStatusesPreventAllFollowUp() {
         // Verifies every declared STOP_STATUS prevents advancement.
         // Creates one CM per stop status; sendFollowUps should produce zero DML updates.

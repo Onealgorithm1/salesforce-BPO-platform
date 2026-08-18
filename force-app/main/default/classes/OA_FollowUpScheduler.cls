@@ -36,13 +36,18 @@ public class OA_FollowUpScheduler implements Schedulable {
         Integer queryLimit = Math.min(MAX_SYNC_BATCH, OA_SendGovernor.remainingToday());
         if (queryLimit <= 0) return;
 
-        // ponytail: ORDER BY LastModifiedDate ASC is one clause serving three cohorts — for
-        // 'Day 1 Sent' it is ~enrollment time, for the others ~when the last touch went out, so
-        // it approximates "waiting longest" everywhere. Ceiling: any unrelated field edit on a
-        // CampaignMember resets its position in the queue. Upgrade path if that ever bites —
-        // a dedicated Last_Touch_Sent__c datetime stamped by OA_EmailSender.
-        // Without any ordering the backlog was served arbitrarily and the oldest cohort
-        // (1,360 members stranded at Day 1 since July 2026) could starve indefinitely.
+        // ponytail: Status DESC drains the latest-stage cohort first, then oldest-waiting within it.
+        // LastModifiedDate ASC alone inverted priority: Day-1 rows have not been written since July
+        // enrollment while Day-3/5 rows were written at their last touch, so all 1,852 cold Day-1
+        // members sorted ahead of every in-flight member (~9+ days before anyone at Day 3 got Day 5),
+        // starving the cohort closest to converting.
+        // ⚠️ CEILING — this rides a lexicographic coincidence:
+        //   'Day 5 Sent' > 'Day 3 Sent' > 'Day 1 Sent', but 'Day 10 Sent' < 'Day 3 Sent'.
+        // 'Day 10 Sent' is a terminal status today, so it never appears in this WHERE clause. The
+        // moment it becomes a driver status (a Day-15 touch, or the proposed Day-90 re-entry) the
+        // ordering silently inverts again.
+        // Upgrade path: a real sequence-position field, or the Last_Touch_Sent__c datetime stamped
+        // by OA_EmailSender, and order on that instead of on the status string.
         List<CampaignMember> members = [
             SELECT Id, LeadId, Status, CreatedDate, LastModifiedDate
             FROM CampaignMember
@@ -55,7 +60,7 @@ public class OA_FollowUpScheduler implements Schedulable {
                   (Status = 'Day 3 Sent'  AND LastModifiedDate <= :day5Cutoff)  OR
                   (Status = 'Day 5 Sent'  AND LastModifiedDate <= :day10Cutoff)
               )
-            ORDER BY LastModifiedDate ASC
+            ORDER BY Status DESC, LastModifiedDate ASC
             LIMIT :queryLimit
         ];
 
