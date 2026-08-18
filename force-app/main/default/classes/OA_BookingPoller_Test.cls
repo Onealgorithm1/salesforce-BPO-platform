@@ -461,6 +461,63 @@ private class OA_BookingPoller_Test {
         System.assertEquals(0, alerts.size(), 'No alert tasks should be created via EAC pre-linked path');
     }
 
+    // Test B3 — a meeting booked by hand from Outlook. No Bookings text anywhere in the
+    // description, so the old marker-only gate rejected it and the whole pipeline was skipped.
+    // Regression guard for 2026-08-12, when RDX Enterprise, ICM Federal and Investment Science
+    // were all dropped this way on a single day.
+    @isTest
+    static void testDirectOutlookInviteIsProcessed() {
+        Campaign c = [SELECT Id FROM Campaign WHERE Name = 'OA Test Campaign' LIMIT 1];
+        OA_BookingPoller.testCampaignIdOverride = c.Id;
+
+        Lead  l  = [SELECT Id FROM Lead  WHERE Email = 'jane.smith@primecontractor.com' LIMIT 1];
+        Event ev = [SELECT Id FROM Event WHERE Subject LIKE 'Jane Smith%' LIMIT 1];
+
+        ev.Description = 'Jane — taking your Wednesday window. Agenda below.';   // no marker
+        ev.WhoId       = l.Id;                                                   // EAC linked the prospect
+        update ev;
+
+        Test.setMock(HttpCalloutMock.class, new TokenOnlyMock());
+        Test.startTest();
+        OA_BookingPoller.processNewBookings();
+        Test.stopTest();
+
+        CampaignMember cm = [SELECT Status FROM CampaignMember WHERE LeadId = :l.Id AND CampaignId = :c.Id];
+        System.assertEquals('Meeting Booked', cm.Status,
+            'A hand-written Outlook invite linked to a campaign Lead must reach the pipeline');
+        System.assertEquals(1,
+            [SELECT COUNT() FROM Task WHERE WhoId = :l.Id AND Subject LIKE 'PREP:%'],
+            'The prep task confirms the Lead stamp also ran on the non-marker path');
+    }
+
+    // Test B4 — the other half of the widened gate: an unlinked, unmarked event (a recurring
+    // vendor webinar) must stay invisible. If widening the gate produced alert noise on these,
+    // the real bookings would be buried and the change would deserve reverting.
+    @isTest
+    static void testUnlinkedNonMarkerEventIsIgnored() {
+        Campaign c = [SELECT Id FROM Campaign WHERE Name = 'OA Test Campaign' LIMIT 1];
+        OA_BookingPoller.testCampaignIdOverride = c.Id;
+
+        Lead  l  = [SELECT Id FROM Lead  WHERE Email = 'jane.smith@primecontractor.com' LIMIT 1];
+        Event ev = [SELECT Id FROM Event WHERE Subject LIKE 'Jane Smith%' LIMIT 1];
+
+        ev.Subject     = 'Demo Best Practice Office Hours';
+        ev.Description = 'Join Zoom Meeting';
+        ev.WhoId       = null;
+        update ev;
+
+        Test.setMock(HttpCalloutMock.class, new TokenOnlyMock());
+        Test.startTest();
+        OA_BookingPoller.processNewBookings();
+        Test.stopTest();
+
+        System.assertEquals('Sent',
+            [SELECT Status FROM CampaignMember WHERE LeadId = :l.Id AND CampaignId = :c.Id].Status,
+            'An unlinked, unmarked event must not touch any campaign member');
+        System.assertEquals(0, [SELECT COUNT() FROM Task WHERE Subject LIKE 'ALERT:%'],
+            'Widening the gate must not create alert noise for vendor meetings');
+    }
+
     // Test B2 — EAC MIS-linked: Event.WhoId points at an internal Contact (a colleague invited
     // to the same meeting) rather than the prospect. The fast-path Lead query returns empty,
     // so the poller falls through to Graph, resolves the real prospect Lead, and must CORRECT
