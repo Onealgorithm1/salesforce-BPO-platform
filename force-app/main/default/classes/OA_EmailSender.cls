@@ -152,19 +152,33 @@ public class OA_EmailSender {
         List<Messaging.SingleEmailMessage> emails  = new List<Messaging.SingleEmailMessage>();
         List<String>                        leadIds = new List<String>();
 
-        Integer count = 0;
+        // Pass 1 — settle exactly who is being sent to, honoring the reserved cap and template
+        // availability, so unsubscribe tokens are minted for those recipients and nobody else.
+        // (Minting for the whole sendable list would leave orphan tokens for emails never sent,
+        // and these records are a compliance trail.)
+        List<EmailRequest> toSend = new List<EmailRequest>();
         for (EmailRequest req : sendable) {
             if (req == null || String.isBlank(req.leadId)) continue;
-            if (count >= allowed) break;
+            if (toSend.size() >= allowed) break;
             if (testHtmlOverride == null && !tplMap.containsKey(req.templateApiName)) {
                 System.debug('[OA_EmailSender] Template not found: ' + req.templateApiName);
                 continue;
             }
+            toSend.add(req);
+        }
+        if (toSend.isEmpty()) return results;
 
+        // ONE insert for every unsubscribe token in this batch. This used to be one insert per
+        // recipient inside the loop below, which is what pinned the safe batch size at 50 —
+        // above that the 150-DML cap rolled the run back and it silently sent nothing.
+        Map<Id, OA_UnsubscribeTokenService.TokenCreationResult> tokens = mintTokens(toSend, emailByLead);
+
+        // Pass 2 — render and build.
+        for (EmailRequest req : toSend) {
             Messaging.SingleEmailMessage rendered =
                 renderTemplate(tplMap.get(req.templateApiName), req.leadId);
 
-            String link = buildUnsubscribeLink(req, emailByLead.get((Id) req.leadId));
+            String link = unsubscribeLink(req, emailByLead.get((Id) req.leadId), tokens);
             String html = rendered.getHtmlBody();
             String text = rendered.getPlainTextBody();
             if (html != null) html = html.replace(PLACEHOLDER, link);
@@ -181,7 +195,6 @@ public class OA_EmailSender {
 
             emails.add(msg);
             leadIds.add(req.leadId);
-            count++;
         }
 
         lastBuiltEmails = emails;
@@ -212,25 +225,55 @@ public class OA_EmailSender {
     }
 
     /**
-     * Builds the tokenized HTTPS unsubscribe URL using the existing token service.
-     * Falls back to the legacy mailto link if campaign context or email is missing,
-     * so a raw placeholder is never shipped.
+     * Mints every unsubscribe token for the batch in a single DML statement.
+     * A total failure returns an empty map, which degrades the whole batch to the legacy
+     * mailto link rather than shipping a raw placeholder or blocking the send.
      */
-    private static String buildUnsubscribeLink(EmailRequest req, String email) {
+    private static Map<Id, OA_UnsubscribeTokenService.TokenCreationResult> mintTokens(
+        List<EmailRequest> toSend, Map<Id, String> emailByLead
+    ) {
+        List<OA_UnsubscribeTokenService.TokenRequest> reqs =
+            new List<OA_UnsubscribeTokenService.TokenRequest>();
+        Datetime expiresAt = System.now().addDays(TOKEN_TTL_DAYS);
+
+        for (EmailRequest req : toSend) {
+            String email = emailByLead.get((Id) req.leadId);
+            if (String.isBlank(req.campaignId) || String.isBlank(req.campaignMemberId)
+                || String.isBlank(email)) {
+                continue;   // no campaign context — legacy fallback, same as before
+            }
+            reqs.add(new OA_UnsubscribeTokenService.TokenRequest(
+                (Id) req.leadId, (Id) req.campaignId, (Id) req.campaignMemberId, email, expiresAt
+            ));
+        }
+        if (reqs.isEmpty()) return new Map<Id, OA_UnsubscribeTokenService.TokenCreationResult>();
+
+        try {
+            return OA_UnsubscribeTokenService.createCampaignUnsubscribeTokens(reqs);
+        } catch (Exception e) {
+            System.debug('[OA_EmailSender] Bulk token mint failed: ' + e.getMessage());
+            return new Map<Id, OA_UnsubscribeTokenService.TokenCreationResult>();
+        }
+    }
+
+    /**
+     * Builds the tokenized HTTPS unsubscribe URL from the pre-minted batch.
+     * Falls back to the legacy mailto link if campaign context, email, or the token is
+     * missing, so a raw placeholder is never shipped.
+     */
+    private static String unsubscribeLink(
+        EmailRequest req, String email,
+        Map<Id, OA_UnsubscribeTokenService.TokenCreationResult> tokens
+    ) {
         if (String.isBlank(req.campaignId) || String.isBlank(req.campaignMemberId) || String.isBlank(email)) {
             return LEGACY_FALLBACK;
         }
-        try {
-            OA_UnsubscribeTokenService.TokenCreationResult tok =
-                OA_UnsubscribeTokenService.createCampaignUnsubscribeToken(
-                    req.leadId, req.campaignId, req.campaignMemberId, email,
-                    System.now().addDays(TOKEN_TTL_DAYS)
-                );
-            return UNSUB_BASE + '?t=' + EncodingUtil.urlEncode(tok.rawToken, 'UTF-8');
-        } catch (Exception e) {
-            System.debug('[OA_EmailSender] Token mint failed for ' + req.leadId + ': ' + e.getMessage());
+        OA_UnsubscribeTokenService.TokenCreationResult tok = tokens.get((Id) req.campaignMemberId);
+        if (tok == null || String.isBlank(tok.rawToken)) {
+            System.debug('[OA_EmailSender] No token minted for ' + req.leadId + '; using legacy link.');
             return LEGACY_FALLBACK;
         }
+        return UNSUB_BASE + '?t=' + EncodingUtil.urlEncode(tok.rawToken, 'UTF-8');
     }
 
     /** Renders a stored template; uses a test seam so the inject path is coverable. */
