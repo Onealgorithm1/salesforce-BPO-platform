@@ -10,7 +10,7 @@
     </values>
     <values>
         <field>Booking_Marker__c</field>
-        <value xsi:type="xsd:string">bookings page</value>
+        <value xsi:type="xsd:string">cal.com/booking/</value>
     </values>
     <values>
         <field>Campaign_Id__c</field>
