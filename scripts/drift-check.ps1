@@ -7,6 +7,15 @@
 #
 # Exit code 1 = content drift found (reconcile before the next deploy).
 # Method proven in the 2026-07-16 integrity audit.
+#
+# KNOWN LIMITATION — this detects DRIFTED KNOWN components, not UNKNOWN ones.
+# The governed list below is an allow-list: the checker can only find a difference in a
+# component it already names. A brand-new Apex class, trigger, or flow created directly in
+# production is invisible here, because nothing ever asks the org "what else do you have?"
+# That is exactly how Active flow OA_New_Website_Lead_Notification sat unmirrored until
+# 2026-07-24. Adding it to the list closes that instance; it does not close the class of
+# problem. The fix is an inventory diff (list the org's components by type via
+# `sf org list metadata` and report any not tracked in the repo) — designed, not built.
 
 # 'Continue', not 'Stop': on Windows/PS 5.1 both git and sf write benign notices to stderr
 # (git's LF->CRLF warning, sf's "update available"), and under 'Stop' PowerShell turns the
@@ -52,6 +61,10 @@ $mdArgs = @(
     '--metadata','Flow:OA_EDWOSB_Outreach_Sequence',
     '--metadata','Flow:OA_PostMeeting_Nurture',
     '--metadata','Flow:OA_Reply_Detection',
+    # Added 2026-07-24: Active in prod but absent from the repo until now, and invisible to this
+    # checker because the governed list only compares components it already names. See the
+    # "unknown components" note in the header — this addition closes the instance, not the class.
+    '--metadata','Flow:OA_New_Website_Lead_Notification',
     '--metadata','EmailTemplate:my_templates/Teaming_Partner_Email_1',
     '--metadata','CustomNotificationType:OA_Pipeline_Alert'
 )
